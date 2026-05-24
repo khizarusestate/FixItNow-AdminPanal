@@ -5,6 +5,7 @@ import { useRefresh } from '../context/SocketContext'
 import Pagination from './Pagination'
 import { ArrowUpDown, RefreshCw } from 'lucide-react'
 import { pickServiceIcon, SERVICE_ICON_OPTIONS } from '../utils/serviceIcons.js'
+import ConfirmDialog from './ConfirmDialog'
 
 const FALLBACK_CATEGORIES = [
   'Home Maintenance',
@@ -21,6 +22,8 @@ export default function Services() {
   const [error, setError] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingService, setEditingService] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null })
+  const [deleting, setDeleting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -106,13 +109,21 @@ export default function Services() {
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this service?')) return
+  const handleDelete = (id) => {
+    setDeleteConfirm({ open: true, id })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return
+    setDeleting(true)
     try {
-      await apiRequest(`/admin/services/${id}`, { method: 'DELETE' })
-      setServices(prev => prev.filter(s => (s.id || s._id) !== id))
+      await apiRequest(`/admin/services/${deleteConfirm.id}`, { method: 'DELETE' })
+      setServices(prev => prev.filter(s => (s.id || s._id) !== deleteConfirm.id))
+      setDeleteConfirm({ open: false, id: null })
     } catch (err) {
       setError(err.message || 'Failed to delete service')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -497,6 +508,16 @@ export default function Services() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        title="Delete service?"
+        message="This service will be permanently removed from the menu. This action cannot be undone."
+        confirmLabel="Delete"
+        loading={deleting}
+        onCancel={() => setDeleteConfirm({ open: false, id: null })}
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

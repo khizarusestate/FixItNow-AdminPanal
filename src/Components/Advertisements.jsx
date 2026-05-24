@@ -23,6 +23,7 @@ import {
 import { apiRequest } from "../lib/api";
 import { useRefresh } from "../context/SocketContext";
 import { resolveUploadMediaUrl } from "../utils/mediaUrl.js";
+import ConfirmDialog from "./ConfirmDialog";
 
 const getImageUrl = (url) => resolveUploadMediaUrl(url);
 
@@ -43,6 +44,8 @@ export default function Advertisements() {
   const [reviewNote, setReviewNote] = useState("");
   const [reviewingId, setReviewingId] = useState(null);
   const [previewModal, setPreviewModal] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAds = async () => {
     setLoading(true);
@@ -86,14 +89,23 @@ export default function Advertisements() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this advertisement?"))
-      return;
+  const handleDelete = (id) => {
+    setDeleteConfirm({ open: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return;
+    setDeleting(true);
     try {
-      await apiRequest(`/advertisements/${id}`, { method: "DELETE" });
+      await apiRequest(`/advertisements/${deleteConfirm.id}`, {
+        method: "DELETE",
+      });
+      setDeleteConfirm({ open: false, id: null });
       await fetchAds();
     } catch (err) {
       setError(err.message || "Failed to delete advertisement.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -625,6 +637,16 @@ export default function Advertisements() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        title="Delete advertisement?"
+        message="This advertisement will be permanently removed. This action cannot be undone."
+        confirmLabel="Delete"
+        loading={deleting}
+        onCancel={() => setDeleteConfirm({ open: false, id: null })}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

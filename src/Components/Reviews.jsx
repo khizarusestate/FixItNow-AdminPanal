@@ -23,6 +23,7 @@ import {
 import { apiRequest, paginatedRequest } from '../lib/api';
 import { useRefresh } from '../context/SocketContext';
 import Pagination from './Pagination';
+import ConfirmDialog from './ConfirmDialog';
 import { resolveUploadMediaUrl } from '../utils/mediaUrl.js';
 
 const getImageUrl = (url) => resolveUploadMediaUrl(url);
@@ -50,6 +51,8 @@ export default function Reviews() {
   const [sort, setSort] = useState('-createdAt');
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
+  const [deleting, setDeleting] = useState(false);
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -105,13 +108,21 @@ export default function Reviews() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this review?')) return;
+  const handleDelete = (id) => {
+    setDeleteConfirm({ open: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return;
+    setDeleting(true);
     try {
-      await apiRequest(`/app-reviews/${id}`, { method: "DELETE" });
+      await apiRequest(`/app-reviews/${deleteConfirm.id}`, { method: "DELETE" });
+      setDeleteConfirm({ open: false, id: null });
       await fetchReviews();
     } catch (err) {
       setError(err.message || 'Failed to delete review.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -535,6 +546,16 @@ export default function Reviews() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        title="Delete review?"
+        message="This review will be permanently removed. This action cannot be undone."
+        confirmLabel="Delete"
+        loading={deleting}
+        onCancel={() => setDeleteConfirm({ open: false, id: null })}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

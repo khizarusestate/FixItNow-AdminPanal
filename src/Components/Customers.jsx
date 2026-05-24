@@ -59,6 +59,7 @@ export default function Customers() {
     customer: null,
   });
   const [saving, setSaving] = useState(false);
+  const [successBanner, setSuccessBanner] = useState("");
   const [customerGeo, setCustomerGeo] = useState(() => geoFromUser(null));
 
   const { clearBadge } = useSocket();
@@ -183,7 +184,8 @@ export default function Customers() {
       });
       fetchCustomers();
       setError("");
-      alert("Customer approved successfully!");
+      setSuccessBanner("Customer approved successfully.");
+      setTimeout(() => setSuccessBanner(""), 4000);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to approve customer");
     }
@@ -303,6 +305,12 @@ export default function Customers() {
 
   return (
     <div className="space-y-6">
+      {successBanner && (
+        <div className="flex items-center gap-2 bg-emerald-50 text-emerald-800 px-4 py-2 rounded-lg text-sm border border-emerald-200">
+          <CheckCircle size={16} className="shrink-0" />
+          <span>{successBanner}</span>
+        </div>
+      )}
       {error && (
         <div className="flex items-center justify-between gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm">
           <span>{error}</span>
