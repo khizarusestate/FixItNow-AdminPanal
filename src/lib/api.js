@@ -205,8 +205,17 @@ export async function apiRequest(
           onTokenRefreshed(accessToken, newRefreshToken);
           isRefreshing = false;
 
-          // Retry the original request with new token
-          return apiRequest(path, options, retryCount, true);
+          // Retry with refreshed Bearer token (required when API is on another domain)
+          const retryHeaders = { ...(options.headers || {}) };
+          if (accessToken) {
+            retryHeaders.Authorization = `Bearer ${accessToken}`;
+          }
+          return apiRequest(
+            path,
+            { ...options, headers: retryHeaders },
+            retryCount,
+            true,
+          );
         } catch (refreshError) {
           isRefreshing = false;
           console.error("Token refresh failed:", refreshError);
