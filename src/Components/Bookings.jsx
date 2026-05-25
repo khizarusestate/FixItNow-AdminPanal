@@ -28,6 +28,7 @@ import { useRefresh, useSocket } from "../context/SocketContext";
 import Pagination from "./Pagination";
 import { RefreshCw } from "lucide-react";
 import ListToolbar, { StatCard } from "./shared/ListToolbar";
+import CompletionTicks from "./CompletionTicks";
 import { resolveMediaUrl } from "../lib/media";
 
 const ADMIN_STATUSES = [
@@ -266,6 +267,11 @@ export default function Bookings() {
             "",
         ),
         status: booking?.status || "pending",
+        customerMarkedDone: Boolean(booking?.customerMarkedDone),
+        workerMarkedDone: Boolean(booking?.workerMarkedDone),
+        customerMarkedDoneAt: booking?.customerMarkedDoneAt,
+        workerMarkedDoneAt: booking?.workerMarkedDoneAt,
+        customerRating: booking?.customerRating,
         paymentDetails: booking?.paymentDetails || null,
         createdAt: booking?.createdAt,
         updatedAt: booking?.updatedAt,
@@ -610,7 +616,15 @@ export default function Bookings() {
                       </div>
                     </div>
 
-                    {renderStatusBadge(booking.status)}
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      {(booking.customerMarkedDone || booking.workerMarkedDone) && (
+                        <CompletionTicks
+                          customerMarkedDone={booking.customerMarkedDone}
+                          workerMarkedDone={booking.workerMarkedDone}
+                        />
+                      )}
+                      {renderStatusBadge(booking.status)}
+                    </div>
                   </div>
 
                   <div className="space-y-3 text-sm">
@@ -1015,6 +1029,20 @@ function BookingModal({ booking, processing, onClose, onApprove, onReject }) {
             <p className="mt-1 text-sm text-slate-500">
               #{booking.id.slice(-8).toUpperCase()}
             </p>
+            {(booking.customerMarkedDone || booking.workerMarkedDone) && (
+              <div className="mt-3 flex items-center gap-3 text-sm">
+                <CompletionTicks
+                  customerMarkedDone={booking.customerMarkedDone}
+                  workerMarkedDone={booking.workerMarkedDone}
+                  size={20}
+                />
+                <span className="text-slate-600">
+                  <span className="text-orange-600 font-medium">Orange</span> = customer
+                  {" · "}
+                  <span className="text-blue-600 font-medium">Blue</span> = worker
+                </span>
+              </div>
+            )}
           </div>
 
           <button
