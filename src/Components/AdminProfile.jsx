@@ -347,7 +347,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-900">Device notifications</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      Get WhatsApp-style alerts when the admin panel is closed.
+                      WhatsApp-style alerts when the admin panel is closed. Turning off stops server delivery — it does not change your browser permission.
                     </p>
                   </div>
                   <button
@@ -361,6 +361,14 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                     <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform mt-0.5 ${devicePushEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </button>
                 </div>
+                {!isPushSupported() && (
+                  <p className="text-xs text-amber-700 mt-2">Not supported in this browser.</p>
+                )}
+                {isPushSupported() && Notification.permission === 'denied' && devicePushEnabled && (
+                  <p className="text-xs text-amber-700 mt-2">
+                    Notifications blocked in browser. Open site settings to allow them.
+                  </p>
+                )}
                 {pushMessage ? <p className="text-xs text-emerald-700 mt-2 font-medium">{pushMessage}</p> : null}
               </div>
               <div className="flex items-center gap-3">
