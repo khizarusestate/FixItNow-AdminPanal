@@ -308,6 +308,9 @@ export default function Workers() {
     setSaving(true)
     setError('')
 
+    const statusToSave =
+      formData.status === 'pending' ? 'not_approved' : formData.status
+
     const submitData = {
       fullName: formData.fullName,
       emailAddress: formData.email,
@@ -319,7 +322,7 @@ export default function Workers() {
       placeId: workerGeo.placeId,
       cnicNumber: formData.cnic,
       availability: formData.availability,
-      status: formData.status,
+      status: statusToSave,
     }
 
     if (formData.password) {

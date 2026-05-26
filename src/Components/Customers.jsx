@@ -197,6 +197,12 @@ export default function Customers() {
 
     setSaving(true);
     try {
+      // DB customer schema me "pending" valid nahi hota; legacy/UI ke liye map "pending" -> "not_approved".
+      const statusToSave =
+        editModal.customer.status === "pending"
+          ? "not_approved"
+          : editModal.customer.status;
+
       await apiRequest(`/admin/customers/${editModal.customer.id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -207,7 +213,7 @@ export default function Customers() {
           latitude: customerGeo.latitude,
           longitude: customerGeo.longitude,
           placeId: customerGeo.placeId,
-          status: editModal.customer.status,
+          status: statusToSave,
           isActive: editModal.customer.isActive,
         }),
       });
@@ -289,17 +295,29 @@ export default function Customers() {
         </span>
       );
     }
-    if (
-      status === "active" ||
-      status === "inactive" ||
-      status === "approved"
-    ) {
+
+    if (status === "active") {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 flex items-center gap-1">
+          <CheckCircle size={12} /> Active
+        </span>
+      );
+    }
+    if (status === "approved") {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 flex items-center gap-1">
+          <CheckCircle size={12} /> Approved
+        </span>
+      );
+    }
+    if (status === "inactive") {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-600 flex items-center gap-1">
           <Clock size={12} /> Inactive
         </span>
       );
     }
+
     return (
       <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
         <User size={12} /> {status}
@@ -664,9 +682,13 @@ export default function Customers() {
                           className={`px-2 py-1 text-xs rounded-full ${
                             booking.status === "completed"
                               ? "bg-green-100 text-green-700"
-                              : booking.status === "pending"
+                              : booking.status === "pending" ||
+                                booking.status === "pending-confirmation"
                                 ? "bg-yellow-100 text-yellow-700"
-                                : "bg-blue-100 text-blue-700"
+                                : booking.status === "rejected" ||
+                                    booking.status === "cancelled"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-blue-100 text-blue-700"
                           }`}
                         >
                           {booking.status}
@@ -786,7 +808,7 @@ export default function Customers() {
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
                   >
                     <option value="approved">Approved</option>
-                    <option value="pending">Pending</option>
+                    <option value="not_approved">Pending</option>
                   </select>
                 </div>
                 <div>
