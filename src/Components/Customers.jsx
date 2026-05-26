@@ -275,7 +275,7 @@ export default function Customers() {
         </span>
       );
     }
-    if (status === "pending") {
+    if (status === "pending" || status === "not_approved") {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1">
           <Clock size={12} /> Pending
@@ -511,7 +511,7 @@ export default function Customers() {
                   >
                     <Edit size={16} />
                   </button>
-                  {c.status === "pending" && (
+                  {(c.status === "pending" || c.status === "not_approved") && (
                     <button
                       onClick={() => handleApprove(c.id)}
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
