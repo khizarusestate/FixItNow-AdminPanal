@@ -193,6 +193,13 @@ export async function apiRequest(
       throw new Error(data.message || "Access revoked.");
     }
 
+    const isCredentialRequest =
+      path === "/admin/login" || options.skipAuthRefresh === true;
+
+    if (response.status === 401 && !isRetry && isCredentialRequest) {
+      throw createApiClientError(data, response.status);
+    }
+
     // 🔐 Unauthorized → try token refresh
     if (response.status === 401 && !isRetry) {
       const refreshToken = getAdminRefreshToken();
@@ -273,6 +280,9 @@ export async function apiRequest(
       return apiRequest(path, options, retryCount + 1, isRetry);
     }
 
+    if (error?.name === "ApiClientError") {
+      throw error;
+    }
     console.error("API Error:", error.message);
     throw new Error(error.message || "Network error. Please try again.");
   }
