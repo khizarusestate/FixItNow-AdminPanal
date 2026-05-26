@@ -19,6 +19,7 @@ import { AdminProvider } from "./context/AdminContext";
 import { useState, useEffect } from "react";
 import { isAdminAuthenticated, clearAdminToken } from "./lib/api";
 import { useAdmin } from "./context/AdminContext";
+import LiveNotificationHost from "./Components/shared/LiveNotificationHost.jsx";
 
 function AppContent({ onLogout }) {
   const { isSuperAdmin } = useAdmin();
@@ -34,6 +35,15 @@ function AppContent({ onLogout }) {
     setProfileAutoEdit(true);
     setActiveSection("profile");
   };
+
+  useEffect(() => {
+    const onNavigate = (e) => {
+      const section = e.detail?.section;
+      if (section) setActiveSection(section);
+    };
+    window.addEventListener("admin-navigate", onNavigate);
+    return () => window.removeEventListener("admin-navigate", onNavigate);
+  }, []);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -90,6 +100,7 @@ function AppContent({ onLogout }) {
           {renderContent()}
         </main>
       </div>
+      <LiveNotificationHost />
     </div>
   );
 }

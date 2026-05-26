@@ -78,7 +78,6 @@ export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [badges, setBadges] = useState(loadBadgesFromStorage);
-  const [toast, setToast] = useState(null);
   const socketRef = useRef(null);
 
   const clearBadge = useCallback((type) => {
@@ -177,14 +176,6 @@ export function SocketProvider({ children }) {
         data.message?.toLowerCase().includes("new") ||
         data.message?.toLowerCase().includes("created");
 
-      if (data.message) {
-        setToast({
-          id: Date.now(),
-          message: data.message,
-          type: data.type || "notification",
-        });
-      }
-
       if (isNewItem && data.type) {
         playNotificationSound();
         setBadges((prev) => {
@@ -196,22 +187,31 @@ export function SocketProvider({ children }) {
       }
 
       window.dispatchEvent(
-        new CustomEvent("admin-notification-new", { detail: data }),
+        new CustomEvent("admin-notification-new", {
+          detail: {
+            id: data.id || `legacy-${data.type}-${Date.now()}`,
+            title: data.title || "Live update",
+            message: data.message || "",
+            sectionType: data.type,
+            type: data.type,
+          },
+        }),
       );
     });
 
     newSocket.on("notification-new", (data) => {
-      if (data.message) {
-        setToast({
-          id: Date.now(),
-          message: data.message,
-          type: data.type || "notification",
-        });
-      }
-
       playNotificationSound();
       window.dispatchEvent(
-        new CustomEvent("admin-notification-new", { detail: data }),
+        new CustomEvent("admin-notification-new", {
+          detail: {
+            id: data.id || `persisted-${Date.now()}`,
+            title: data.title || "Notification",
+            message: data.message || "",
+            type: data.type,
+            link: data.link,
+            sectionType: data.type,
+          },
+        }),
       );
     });
 
@@ -258,23 +258,11 @@ export function SocketProvider({ children }) {
       window.removeEventListener("admin-auth-restored", onReconnectAuth);
   }, [joinAdminRooms, loadInitialBadges]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const timeout = setTimeout(() => setToast(null), 4200);
-    return () => clearTimeout(timeout);
-  }, [toast]);
-
   return (
     <SocketContext.Provider
       value={{ socket, connected, badges, clearBadge, clearAllBadges }}
     >
       {children}
-      {toast ? (
-        <div className="fixed right-4 bottom-4 z-50 w-80 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-xl">
-          <p className="text-sm font-semibold text-slate-900">Live update</p>
-          <p className="mt-1 text-sm text-slate-700">{toast.message}</p>
-        </div>
-      ) : null}
     </SocketContext.Provider>
   );
 }
