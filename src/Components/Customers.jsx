@@ -102,7 +102,6 @@ export default function Customers() {
           status: c.status || "approved",
           isActive: c.isActive ?? true,
           isOnline: c.isOnline ?? false,
-          isVerified: c.isVerified ?? false,
           createdAt: c.createdAt,
           updatedAt: c.updatedAt,
           totalBookings: c.totalBookings || 0,
@@ -276,7 +275,7 @@ export default function Customers() {
         </span>
       );
     }
-    if (status === "pending" || status === "pending-verification") {
+    if (status === "pending") {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1">
           <Clock size={12} /> Pending
