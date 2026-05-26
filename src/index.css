@@ -164,3 +164,17 @@
 .super-admin-panel ::-webkit-scrollbar-thumb {
   background: #6d28d9;
 }
+
+@keyframes adminBootstrapProgressLtr {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.admin-bootstrap-progress {
+  width: 38%;
+  animation: adminBootstrapProgressLtr 1.25s ease-in-out infinite;
+}

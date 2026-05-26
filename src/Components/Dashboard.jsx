@@ -1,6 +1,7 @@
 import { ArrowRight, ClipboardList } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { apiRequest } from "../lib/api";
+import { getCachedAdminSummary } from "../utils/adminBootstrap";
 import { useRefresh } from "../context/SocketContext";
 import { ADMIN_MENU_ITEMS } from "../config/navigation";
 
@@ -15,7 +16,7 @@ export default function Dashboard({ onNavigate }) {
     revenue: 0,
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!getCachedAdminSummary());
 
   const fetchSummary = useCallback(async () => {
     try {
@@ -31,6 +32,11 @@ export default function Dashboard({ onNavigate }) {
   }, []);
 
   useEffect(() => {
+    const cached = getCachedAdminSummary();
+    if (cached) {
+      setSummary(cached);
+      setLoading(false);
+    }
     fetchSummary();
   }, [fetchSummary]);
 

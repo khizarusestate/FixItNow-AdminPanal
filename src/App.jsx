@@ -13,6 +13,7 @@ import TeamManagement from "./Components/TeamManagement";
 import AdminsActivity from "./Components/AdminsActivity";
 import ErrorBoundary from "./Components/ErrorBoundary";
 import PinLogin from "./Components/PinLogin";
+import AdminBootstrapGate from "./Components/AdminBootstrapGate";
 import { SocketProvider } from "./context/SocketContext";
 import { AdminProvider } from "./context/AdminContext";
 import { useState, useEffect } from "react";
@@ -147,7 +148,9 @@ export default function App() {
           />
         ) : (
           <SocketProvider>
-            <AppContent onLogout={handleLogout} />
+            <AdminBootstrapGate>
+              <AppContent onLogout={handleLogout} />
+            </AdminBootstrapGate>
           </SocketProvider>
         )}
       </AdminProvider>
