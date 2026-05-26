@@ -81,6 +81,7 @@ const normalizeWorker = (worker = {}) => ({
   availability: worker.availability ?? true,
   status: worker.status || 'not_approved',
   isDisabled: worker.isDisabled ?? false,
+  isOnline: worker.isOnline ?? false,
   joinDate: worker.joinDate || worker.createdAt,
   lastActive: worker.lastActive,
   createdAt: worker.createdAt,
@@ -108,9 +109,22 @@ const isPendingWorker = (worker) =>
 
 const getPresenceLabel = (worker) => {
   if (worker.isDisabled) return 'Disabled'
-  if (worker.status === 'active') return 'Active'
-  if (worker.status === 'inactive') return 'Inactive'
+  if (worker.status === 'not_approved' || worker.status === 'pending') return 'Pending'
+  if (worker.status === 'rejected') return 'Rejected'
+  if (worker.status === 'approved' || worker.status === 'active' || worker.status === 'inactive') {
+    return worker.isOnline ? 'Active' : 'Inactive'
+  }
   return STATUS_LABELS[worker.status] || worker.status
+}
+
+const getPresenceColor = (worker) => {
+  if (worker.isDisabled) return 'bg-gray-100 text-gray-800'
+  if (worker.status === 'not_approved' || worker.status === 'pending') {
+    return 'bg-yellow-100 text-yellow-800'
+  }
+  if (worker.status === 'rejected') return 'bg-red-100 text-red-800'
+  if (worker.isOnline) return 'bg-green-100 text-green-800'
+  return 'bg-gray-100 text-gray-800'
 }
 
 const formatDateTime = (value) => {
@@ -462,7 +476,7 @@ export default function Workers() {
                     </h3>
                     <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(worker.isDisabled ? 'inactive' : worker.status)}`}>
+                      <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${getPresenceColor(worker)}`}>
                         {getPresenceLabel(worker)}
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
@@ -535,15 +549,13 @@ export default function Workers() {
                       <XCircle size={16} />
                     </button>
                   )}
-                  {worker.status === 'inactive' && !worker.isDisabled && (
-                    <button
-                      onClick={() => setDeleteConfirm({ open: true, worker })}
-                      className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                      title="Delete account (logged out)"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setDeleteConfirm({ open: true, worker })}
+                    className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    title="Delete account"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </div>

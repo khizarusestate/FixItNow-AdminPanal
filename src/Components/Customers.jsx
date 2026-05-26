@@ -101,6 +101,7 @@ export default function Customers() {
           profilePicture: c.profilePicture,
           status: c.status || "approved",
           isActive: c.isActive ?? true,
+          isOnline: c.isOnline ?? false,
           isVerified: c.isVerified ?? false,
           createdAt: c.createdAt,
           updatedAt: c.updatedAt,
@@ -267,7 +268,7 @@ export default function Customers() {
   };
 
   // Status badge
-  const getStatusBadge = (status, isActive) => {
+  const getStatusBadge = (status, isActive, isOnline = false) => {
     if (!isActive) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 flex items-center gap-1">
@@ -275,24 +276,28 @@ export default function Customers() {
         </span>
       );
     }
-    if (status === "active") {
+    if (status === "pending" || status === "pending-verification") {
+      return (
+        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1">
+          <Clock size={12} /> Pending
+        </span>
+      );
+    }
+    if (isOnline) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 flex items-center gap-1">
           <CheckCircle size={12} /> Active
         </span>
       );
     }
-    if (status === "inactive") {
+    if (
+      status === "active" ||
+      status === "inactive" ||
+      status === "approved"
+    ) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-600 flex items-center gap-1">
           <Clock size={12} /> Inactive
-        </span>
-      );
-    }
-    if (status === "pending" || status === "pending-verification") {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1">
-          <Clock size={12} /> Pending
         </span>
       );
     }
@@ -438,7 +443,7 @@ export default function Customers() {
                     </h3>
                     <p className="text-sm text-slate-500 truncate">{c.email}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      {getStatusBadge(c.status, c.isActive)}
+                      {getStatusBadge(c.status, c.isActive, c.isOnline)}
                       <span className="text-xs text-slate-500">
                         Member since {formatDate(c.createdAt)}
                       </span>
@@ -532,17 +537,15 @@ export default function Customers() {
                       <XCircle size={16} />
                     </button>
                   )}
-                  {c.status === "inactive" && c.isActive && (
-                    <button
-                      onClick={() =>
-                        setDeleteConfirm({ open: true, customer: c })
-                      }
-                      className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                      title="Delete (logged out)"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
+                  <button
+                    onClick={() =>
+                      setDeleteConfirm({ open: true, customer: c })
+                    }
+                    className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                    title="Delete account"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -606,6 +609,7 @@ export default function Customers() {
                   {getStatusBadge(
                     viewModal.customer.status,
                     viewModal.customer.isActive,
+                    viewModal.customer.isOnline,
                   )}
                 </div>
               </div>
