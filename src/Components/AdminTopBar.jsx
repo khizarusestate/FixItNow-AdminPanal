@@ -109,7 +109,7 @@ export default function AdminTopBar({
             </h1>
             {activeSection === "dashboard" && (
               <p
-                className={`text-sm mt-0.5 ${isSuperAdmin ? "text-violet-300/80" : "text-slate-500"}`}
+                className={`text-sm mt-0.5 ${isSuperAdmin ? "text-cyan-200/80" : "text-slate-500"}`}
               >
                 {isSuperAdmin
                   ? "Command center — full platform oversight"
@@ -117,12 +117,12 @@ export default function AdminTopBar({
               </p>
             )}
             {isSuperAdmin && isOperationsSection(activeSection) && (
-              <p className="text-sm mt-0.5 text-violet-300/80">
+              <p className="text-sm mt-0.5 text-cyan-200/80">
                 Platform Operations — same tools your admins use
               </p>
             )}
             {isSuperAdmin && activeSection === "team" && (
-              <p className="text-sm mt-0.5 text-violet-300/80">
+              <p className="text-sm mt-0.5 text-cyan-200/80">
                 Create and manage admin team accounts
               </p>
             )}
@@ -134,7 +134,7 @@ export default function AdminTopBar({
               onClick={() => setShowNotifications(!showNotifications)}
               className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${
                 isSuperAdmin
-                  ? "bg-violet-900/50 hover:bg-violet-800/60"
+                    ? "bg-cyan-900/40 hover:bg-cyan-800/50"
                   : "bg-orange-50 hover:bg-orange-100"
               }`}
               title={`${unreadNotifications > 0 ? unreadNotifications : totalBadges} new notifications`}
@@ -144,17 +144,17 @@ export default function AdminTopBar({
                 className={
                   totalBadges > 0
                     ? isSuperAdmin
-                      ? "text-violet-400"
+                      ? "text-cyan-300"
                       : "text-orange-500"
                     : isSuperAdmin
-                      ? "text-violet-500"
+                      ? "text-cyan-300"
                       : "text-orange-400"
                 }
               />
               {(unreadNotifications > 0 || totalBadges > 0) && (
                 <span
                   className={`absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full text-[10px] font-bold text-white px-1 ${
-                    isSuperAdmin ? "bg-violet-500" : "bg-orange-500"
+                    isSuperAdmin ? "bg-cyan-500" : "bg-orange-500"
                   }`}
                 >
                   {unreadNotifications > 0
@@ -174,7 +174,7 @@ export default function AdminTopBar({
                 onClick={() => setShowDropdown(!showDropdown)}
                 className={`flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl transition-colors ${
                   isSuperAdmin
-                    ? "bg-violet-900/40 hover:bg-violet-800/50"
+                    ? "bg-cyan-900/35 hover:bg-cyan-800/45"
                     : "bg-orange-50 hover:bg-orange-100"
                 }`}
               >
@@ -195,7 +195,7 @@ export default function AdminTopBar({
                 )}
                 <ChevronDown
                   size={16}
-                  className={`hidden sm:block ${isSuperAdmin ? "text-violet-400" : "text-orange-400"}`}
+                  className={`hidden sm:block ${isSuperAdmin ? "text-cyan-300" : "text-orange-400"}`}
                 />
               </button>
 
@@ -203,14 +203,14 @@ export default function AdminTopBar({
                 <div
                   className={`absolute right-0 mt-2 w-56 rounded-xl shadow-xl py-2 z-50 ${
                     isSuperAdmin
-                      ? "bg-slate-900 border border-violet-800/50"
+                      ? "bg-slate-900 border border-cyan-900/50"
                       : "bg-white border border-orange-100"
                   }`}
                 >
                   <div
                     className={`px-4 py-3 border-b ${
                       isSuperAdmin
-                        ? "border-violet-800/40"
+                        ? "border-cyan-900/40"
                         : "border-orange-100"
                     }`}
                   >
@@ -220,12 +220,12 @@ export default function AdminTopBar({
                       {admin?.name || "Admin"}
                     </p>
                     <p
-                      className={`text-xs truncate ${isSuperAdmin ? "text-violet-300" : "text-orange-600"}`}
+                      className={`text-xs truncate ${isSuperAdmin ? "text-cyan-200" : "text-orange-600"}`}
                     >
                       {admin?.email || "admin@email.com"}
                     </p>
                     {isSuperAdmin && (
-                      <span className="inline-flex mt-1 items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-amber-200 bg-violet-600/30 border border-violet-500/40 px-2 py-0.5 rounded-full">
+                      <span className="inline-flex mt-1 items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-cyan-100 bg-cyan-600/30 border border-cyan-500/40 px-2 py-0.5 rounded-full">
                         Super Admin
                       </span>
                     )}
@@ -238,14 +238,14 @@ export default function AdminTopBar({
                     }}
                     className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${
                       isSuperAdmin
-                        ? "text-violet-200 hover:bg-violet-900/40"
+                        ? "text-cyan-100 hover:bg-cyan-900/40"
                         : "text-orange-800 hover:bg-orange-50"
                     }`}
                   >
                     <User
                       size={16}
                       className={
-                        isSuperAdmin ? "text-violet-400" : "text-orange-500"
+                        isSuperAdmin ? "text-cyan-300" : "text-orange-500"
                       }
                     />
                     Profile &amp; Settings
@@ -253,7 +253,7 @@ export default function AdminTopBar({
                   <div
                     className={`border-t mt-1 pt-1 ${
                       isSuperAdmin
-                        ? "border-violet-800/40"
+                        ? "border-cyan-900/40"
                         : "border-orange-100"
                     }`}
                   >

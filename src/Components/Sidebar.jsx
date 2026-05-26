@@ -1,4 +1,4 @@
-import { Menu, X, Crown, ChevronLeft, LayoutGrid } from "lucide-react";
+import { Menu, X, ChevronLeft, LayoutGrid } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSocket } from "../context/SocketContext";
 import {
@@ -143,10 +143,8 @@ export default function Sidebar({ activeSection, setActiveSection }) {
           >
             {isSuperAdmin ? (
               <>
-                <div className="p-3 rounded-2xl bg-violet-600/20 border border-violet-500/30">
-                  <Crown size={32} className="text-amber-300" />
-                </div>
-                <span className="text-xs font-bold uppercase tracking-widest text-violet-300">
+                <AdminLogo size="lg" className="drop-shadow-md" />
+                <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">
                   Super Admin
                 </span>
               </>

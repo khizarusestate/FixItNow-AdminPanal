@@ -158,11 +158,11 @@
 }
 
 .super-admin-panel ::-webkit-scrollbar-track {
-  background: #1e1b4b;
+  background: #082f49;
 }
 
 .super-admin-panel ::-webkit-scrollbar-thumb {
-  background: #6d28d9;
+  background: #0e7490;
 }
 
 @keyframes adminBootstrapProgressLtr {

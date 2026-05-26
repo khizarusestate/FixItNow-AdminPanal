@@ -166,7 +166,7 @@ export default function Reviews() {
   }
 
   return (
-    <div className="space-y-6 rounded-2xl border border-orange-100 bg-gradient-to-br from-orange-50/40 via-white to-slate-50/80 p-4 sm:p-6">
+    <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

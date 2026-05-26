@@ -13,6 +13,7 @@ import {
   Crown,
   Users,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
@@ -36,6 +37,7 @@ export default function TeamManagement() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [viewTarget, setViewTarget] = useState(null);
 
   const fetchTeam = useCallback(async () => {
     try {
@@ -348,6 +350,16 @@ export default function TeamManagement() {
                           {!isSuperRow && (
                             <button
                               type="button"
+                              onClick={() => setViewTarget(member)}
+                              className="p-2 rounded-lg text-blue-600 hover:bg-blue-50"
+                              title="View details"
+                            >
+                              <Eye size={16} />
+                            </button>
+                          )}
+                          {!isSuperRow && (
+                            <button
+                              type="button"
                               onClick={() => openEdit(member)}
                               className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
                               title="Edit"
@@ -424,6 +436,60 @@ export default function TeamManagement() {
               >
                 Delete
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900">Admin details</h3>
+              <button
+                type="button"
+                onClick={() => setViewTarget(null)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
+                  {(viewTarget.name || "A").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">{viewTarget.name}</p>
+                  <p className="text-sm text-slate-500">{viewTarget.email}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                  <p className="text-xs text-slate-500">Phone</p>
+                  <p className="font-medium text-slate-800">{viewTarget.phone || "N/A"}</p>
+                </div>
+                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                  <p className="text-xs text-slate-500">Role</p>
+                  <p className="font-medium text-slate-800 capitalize">
+                    {viewTarget.role === "super_admin" ? "Super Admin" : "Admin"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                  <p className="text-xs text-slate-500">Status</p>
+                  <p className="font-medium text-slate-800">
+                    {viewTarget.isActive ? "Active" : "Deactivated"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                  <p className="text-xs text-slate-500">Last Login</p>
+                  <p className="font-medium text-slate-800">
+                    {viewTarget.lastLogin
+                      ? new Date(viewTarget.lastLogin).toLocaleString()
+                      : "Never"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
