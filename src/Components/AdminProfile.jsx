@@ -5,6 +5,7 @@ import { resolveMediaUrl } from '../lib/media'
 import LocationPicker from './LocationPicker.jsx'
 import { geoFromUser } from '../utils/location.js'
 import { fetchDevicePushPreference, registerWebPushAdmin, saveDevicePushPreference, unregisterWebPushAdmin, isPushSupported } from '../utils/pushNotifications.js'
+import { useSocket } from '../context/SocketContext'
 
 const roleLabel = (role) =>
   role === 'super_admin' ? 'Super Admin' : 'Admin';
@@ -44,6 +45,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
     confirmPassword: ''
   })
   const [geo, setGeo] = useState(() => geoFromUser(null))
+  const { connected } = useSocket()
 
   const fetchProfile = async () => {
     try {
@@ -567,8 +569,33 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                         </div>
                         <div>
                           <p className="text-sm text-slate-500 mb-1">Account Status</p>
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            Active
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              profile.isActive
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {profile.isActive ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 mb-1">Presence</p>
+                          <span className="inline-flex items-center gap-2 px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800">
+                            <span
+                              className={`h-2 w-2 rounded-full ${
+                                !profile.isActive
+                                  ? 'bg-red-500'
+                                  : connected
+                                    ? 'bg-green-500'
+                                    : 'bg-slate-400'
+                              }`}
+                            />
+                            {!profile.isActive
+                              ? 'Non-active'
+                              : connected
+                                ? 'Online'
+                                : 'Offline'}
                           </span>
                         </div>
                       </div>

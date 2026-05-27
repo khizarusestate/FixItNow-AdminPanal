@@ -48,8 +48,8 @@ const STATUS_LABELS = {
   pending: 'Pending',
   approved: 'Approved',
   rejected: 'Rejected',
-  active: 'Active',
-  inactive: 'Inactive'
+  active: 'Online',
+  inactive: 'Offline'
 }
 
 const blankForm = {
@@ -108,23 +108,33 @@ const isPendingWorker = (worker) =>
   worker.status === 'not_approved' || worker.status === 'pending'
 
 const getPresenceLabel = (worker) => {
-  if (worker.isDisabled) return 'Disabled'
+  if (worker.isDisabled) return 'Non-active'
   if (worker.status === 'not_approved' || worker.status === 'pending') return 'Pending'
   if (worker.status === 'rejected') return 'Rejected'
   if (worker.status === 'approved' || worker.status === 'active' || worker.status === 'inactive') {
-    return worker.isOnline ? 'Active' : 'Inactive'
+    return worker.isOnline ? 'Online' : 'Offline'
   }
   return STATUS_LABELS[worker.status] || worker.status
 }
 
 const getPresenceColor = (worker) => {
-  if (worker.isDisabled) return 'bg-gray-100 text-gray-800'
+  if (worker.isDisabled) return 'bg-red-100 text-red-800'
   if (worker.status === 'not_approved' || worker.status === 'pending') {
     return 'bg-yellow-100 text-yellow-800'
   }
   if (worker.status === 'rejected') return 'bg-red-100 text-red-800'
   if (worker.isOnline) return 'bg-green-100 text-green-800'
   return 'bg-gray-100 text-gray-800'
+}
+
+const getPresenceDotClass = (worker) => {
+  if (worker.isDisabled) return 'bg-red-500'
+  if (worker.status === 'not_approved' || worker.status === 'pending')
+    return 'bg-yellow-500'
+  if (worker.status === 'rejected') return 'bg-red-500'
+  if (worker.status === 'approved' || worker.status === 'active' || worker.status === 'inactive')
+    return worker.isOnline ? 'bg-green-500' : 'bg-slate-400'
+  return worker.isOnline ? 'bg-green-500' : 'bg-slate-400'
 }
 
 const formatDateTime = (value) => {
@@ -483,7 +493,12 @@ export default function Workers() {
                     </h3>
                     <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${getPresenceColor(worker)}`}>
+                      <span
+                        className={`inline-flex items-center gap-2 px-2.5 py-1 text-xs font-semibold rounded-full ${getPresenceColor(worker)}`}
+                      >
+                        <span
+                          className={`h-2 w-2 rounded-full ${getPresenceDotClass(worker)}`}
+                        />
                         {getPresenceLabel(worker)}
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
@@ -507,19 +522,43 @@ export default function Workers() {
                   </div>
                 </div>
 
-                {/* Presence / Last Login */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                    <p className="text-xs text-slate-500">Active now</p>
-                    <p className="font-semibold text-slate-800">
-                      {worker.isOnline ? 'Yes' : 'No'}
-                    </p>
+                {isWorkerApproved(worker) && (
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                      <p className="text-xs text-slate-500">Account</p>
+                      <p className="font-semibold text-slate-800">
+                        {worker.isDisabled ? 'Disabled' : 'Enabled'}
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                      <p className="text-xs text-slate-500">Presence</p>
+                      <p className="font-semibold text-slate-800">
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${
+                              worker.isDisabled
+                                ? 'bg-red-500'
+                                : worker.isOnline
+                                  ? 'bg-green-500'
+                                  : 'bg-slate-400'
+                            }`}
+                          />
+                          {worker.isDisabled
+                            ? 'Non-active'
+                            : worker.isOnline
+                              ? 'Online'
+                              : 'Offline'}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 col-span-2">
+                      <p className="text-xs text-slate-500">Last Login</p>
+                      <p className="font-semibold text-slate-800">
+                        {formatDateTime(worker.lastActive)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                    <p className="text-xs text-slate-500">Last Login</p>
-                    <p className="font-semibold text-slate-800">{formatDateTime(worker.lastActive)}</p>
-                  </div>
-                </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-2">
@@ -687,8 +726,8 @@ export default function Workers() {
                     <option value="not_approved">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="rejected">Rejected</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="active">Online</option>
+                    <option value="inactive">Offline</option>
                   </select>
                 </div>
               </div>
@@ -776,8 +815,10 @@ export default function Workers() {
               <div>
                 <h3 className="font-semibold text-2xl text-slate-900">{viewingWorker.fullName || 'N/A'}</h3>
                 <p className="text-sm text-slate-500">{viewingWorker.email || 'No email'}</p>
-                <span className={`mt-2 inline-flex px-2.5 py-1 text-xs rounded-full ${getStatusColor(viewingWorker.status)}`}>
-                  {STATUS_LABELS[viewingWorker.status] || viewingWorker.status}
+                <span
+                  className={`mt-2 inline-flex px-2.5 py-1 text-xs rounded-full ${getPresenceColor(viewingWorker)}`}
+                >
+                  {getPresenceLabel(viewingWorker)}
                 </span>
               </div>
             </div>

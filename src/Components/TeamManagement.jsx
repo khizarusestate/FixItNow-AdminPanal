@@ -145,8 +145,8 @@ export default function TeamManagement() {
       });
       setSuccess(
         member.isActive
-          ? `${member.name} was deactivated and signed out on all devices.`
-          : `${member.name} has been activated.`,
+          ? `${member.name} was disabled and signed out on all devices.`
+          : `${member.name} has been enabled.`,
       );
       await fetchTeam();
     } catch (err) {
@@ -154,9 +154,14 @@ export default function TeamManagement() {
     }
   };
 
-  const getPresenceLabel = (member) => {
-    if (!member.isActive) return "Disabled";
-    return member.presenceStatus === "active" ? "Active" : "Inactive";
+  const getPresenceMeta = (member) => {
+    // Presence is independent of account status:
+    // - Online/Offline comes from socket presence (presenceStatus).
+    // - Account disabled shows as "Non-active".
+    if (!member.isActive) return { label: "Non-active", dotClass: "bg-red-500" };
+    if (member.presenceStatus === "active")
+      return { label: "Online", dotClass: "bg-green-500" };
+    return { label: "Offline", dotClass: "bg-slate-400" };
   };
 
   const confirmDelete = async () => {
@@ -223,13 +228,13 @@ export default function TeamManagement() {
             color: "bg-blue-50 text-blue-600",
           },
           {
-            label: "Active now",
+            label: "Online now",
             value: stats.active,
             icon: Power,
             color: "bg-green-50 text-green-600",
           },
           {
-            label: "Inactive",
+            label: "Offline",
             value: stats.inactive,
             icon: PowerOff,
             color: "bg-red-50 text-red-600",
@@ -323,7 +328,17 @@ export default function TeamManagement() {
                   <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
                     <p className="text-xs text-slate-500">Presence</p>
                     <p className="font-semibold text-slate-800">
-                      {getPresenceLabel(member)}
+                      {(() => {
+                        const { label, dotClass } = getPresenceMeta(member);
+                        return (
+                          <span className="inline-flex items-center gap-2">
+                            <span
+                              className={`h-2.5 w-2.5 rounded-full ${dotClass}`}
+                            />
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </p>
                   </div>
                   <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 col-span-2">
@@ -379,7 +394,7 @@ export default function TeamManagement() {
                             }}
                             className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
                           >
-                            {member.isActive ? "Disable account" : "Activate account"}
+                            {member.isActive ? "Disable account" : "Enable account"}
                           </button>
                           <button
                             type="button"
@@ -468,12 +483,28 @@ export default function TeamManagement() {
                   </p>
                 </div>
                 <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                  <p className="text-xs text-slate-500">Status</p>
+                  <p className="text-xs text-slate-500">Account status</p>
                   <p className="font-medium text-slate-800">
-                    {viewTarget.isActive ? "Active" : "Deactivated"}
+                    {viewTarget.isActive ? "Enabled" : "Disabled"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                  <p className="text-xs text-slate-500">Presence</p>
+                  <p className="font-medium text-slate-800">
+                    {(() => {
+                      const { label, dotClass } = getPresenceMeta(viewTarget);
+                      return (
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${dotClass}`}
+                          />
+                          {label}
+                        </span>
+                      );
+                    })()}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 col-span-2">
                   <p className="text-xs text-slate-500">Last Login</p>
                   <p className="font-medium text-slate-800">
                     {viewTarget.lastLogin
