@@ -14,6 +14,7 @@ import {
   Users,
   Trash2,
   Eye,
+  MoreVertical,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
@@ -38,13 +39,20 @@ export default function TeamManagement() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
 
   const fetchTeam = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
       const res = await apiRequest("/admin/team");
-      setAdmins(res.data || []);
+      setAdmins(
+        (res.data || []).map((member) => ({
+          ...member,
+          id: String(member.id || member._id || ""),
+          _id: String(member._id || member.id || ""),
+        })),
+      );
       setStats(res.stats || { total: 0, active: 0, superAdmins: 0 });
     } catch (err) {
       setError(err.message || "Failed to load team");
@@ -144,6 +152,11 @@ export default function TeamManagement() {
     } catch (err) {
       setError(err.message || "Could not update status");
     }
+  };
+
+  const getPresenceLabel = (member) => {
+    if (!member.isActive) return "Disabled";
+    return member.presenceStatus === "active" ? "Active" : "Inactive";
   };
 
   const confirmDelete = async () => {
@@ -250,163 +263,142 @@ export default function TeamManagement() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-slate-500">
+          <div className="col-span-full flex items-center justify-center py-16 text-slate-500 bg-white rounded-2xl border border-slate-200">
             <Loader2 className="animate-spin mr-2" size={22} />
             Loading team...
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-4 py-3 font-semibold">Admin</th>
-                  <th className="px-4 py-3 font-semibold">Contact</th>
-                  <th className="px-4 py-3 font-semibold">Role</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Last login</th>
-                  <th className="px-4 py-3 font-semibold text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {admins.map((member) => {
-                  const memberId = String(member.id || member._id || "");
-                  const isSelf = memberId === String(currentAdmin?.id || "");
-                  const isSuperRow = member.role === "super_admin";
-                  return (
-                    <tr
-                      key={member.id}
-                      className="border-b border-slate-100 hover:bg-orange-50/30 transition"
-                    >
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
-                            {(member.name || "A").charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-900">
-                              {member.name}
-                              {isSelf && (
-                                <span className="ml-2 text-[10px] font-bold uppercase text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
-                                  You
-                                </span>
-                              )}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              Joined{" "}
-                              {new Date(member.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-slate-600">
-                        <p className="flex items-center gap-1">
-                          <Mail size={14} className="text-slate-400" />
-                          {member.email}
-                        </p>
-                        <p className="flex items-center gap-1 mt-1">
-                          <Phone size={14} className="text-slate-400" />
-                          {member.phone}
-                        </p>
-                      </td>
-                      <td className="px-4 py-4">
-                        {member.role === "super_admin" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 text-orange-800 px-2.5 py-1 text-xs font-semibold">
-                            <Crown size={12} />
-                            Super Admin
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 px-2.5 py-1 text-xs font-semibold">
-                            <Shield size={12} />
-                            Admin
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4">
-                        {!member.isActive ? (
-                          <span className="text-red-600 font-medium">
-                            Deactivated
-                          </span>
-                        ) : member.presenceStatus === "active" ? (
-                          <span className="text-green-700 font-medium">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="text-slate-600 font-medium">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 text-xs text-slate-600">
-                        {member.lastLogin
-                          ? new Date(member.lastLogin).toLocaleString()
-                          : "Never"}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          {!isSuperRow && (
-                            <button
-                              type="button"
-                              onClick={() => setViewTarget(member)}
-                              className="p-2 rounded-lg text-blue-600 hover:bg-blue-50"
-                              title="View details"
-                            >
-                              <Eye size={16} />
-                            </button>
-                          )}
-                          {!isSuperRow && (
-                            <button
-                              type="button"
-                              onClick={() => openEdit(member)}
-                              className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
-                              title="Edit"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                          {!isSelf && !isSuperRow && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => toggleActive(member)}
-                                className={`p-2 rounded-lg ${
-                                  member.isActive
-                                    ? "text-red-600 hover:bg-red-50"
-                                    : "text-green-600 hover:bg-green-50"
-                                }`}
-                                title={
-                                  member.isActive
-                                    ? "Deactivate & sign out"
-                                    : "Activate"
-                                }
-                              >
-                                {member.isActive ? (
-                                  <PowerOff size={16} />
-                                ) : (
-                                  <Power size={16} />
-                                )}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setDeleteTarget(member)}
-                                className="p-2 rounded-lg text-red-700 hover:bg-red-50"
-                                title="Delete permanently"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        ) : admins.length === 0 ? (
+          <div className="col-span-full rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500">
+            No admins found.
           </div>
+        ) : (
+          admins.map((member) => {
+            const memberId = String(member.id || member._id || "");
+            const isSelf = memberId === String(currentAdmin?.id || "");
+            const isSuperRow = member.role === "super_admin";
+            return (
+              <div
+                key={memberId}
+                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold shrink-0">
+                    {(member.name || "A").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-slate-900 truncate">
+                      {member.name}
+                      {isSelf && (
+                        <span className="ml-2 text-[10px] font-bold uppercase text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+                          You
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-sm text-slate-500 truncate">{member.email}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      {member.role === "super_admin" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 text-orange-800 px-2.5 py-1 text-xs font-semibold">
+                          <Crown size={12} />
+                          Super Admin
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 px-2.5 py-1 text-xs font-semibold">
+                          <Shield size={12} />
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                    <p className="text-xs text-slate-500">Account</p>
+                    <p className="font-semibold text-slate-800">
+                      {member.isActive ? "Enabled" : "Disabled"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                    <p className="text-xs text-slate-500">Presence</p>
+                    <p className="font-semibold text-slate-800">
+                      {getPresenceLabel(member)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 col-span-2">
+                    <p className="text-xs text-slate-500">Last Login</p>
+                    <p className="font-semibold text-slate-800">
+                      {member.lastLogin
+                        ? new Date(member.lastLogin).toLocaleString()
+                        : "Never"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewTarget(member)}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                  >
+                    <Eye size={16} />
+                  </button>
+
+                  {!isSelf && !isSuperRow && (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenActionMenuId((prev) =>
+                            prev === memberId ? null : memberId,
+                          )
+                        }
+                        className="p-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        title="More actions"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                      {openActionMenuId === memberId && (
+                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-10">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              openEdit(member);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              toggleActive(member);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                          >
+                            {member.isActive ? "Disable account" : "Activate account"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              setDeleteTarget(member);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 

@@ -2,7 +2,6 @@ import {
   Search,
   Plus,
   Eye,
-  Edit,
   Trash2,
   CheckCircle,
   XCircle,
@@ -13,7 +12,8 @@ import {
   Save,
   AlertTriangle,
   Phone,
-  MapPin
+  MapPin,
+  MoreVertical
 } from 'lucide-react'
 import { useEffect, useState, useCallback } from 'react'
 import { apiRequest, paginatedRequest } from '../lib/api'
@@ -198,6 +198,7 @@ export default function Workers() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 })
+  const [openActionMenuId, setOpenActionMenuId] = useState(null)
 
   const WORKER_STATUS_OPTIONS = [
     { value: 'all', label: 'All Status' },
@@ -378,6 +379,9 @@ export default function Workers() {
     fetchWorkers()
   }
 
+  const isWorkerApproved = (worker) =>
+    ['approved', 'active', 'inactive'].includes(worker.status)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">
@@ -503,6 +507,20 @@ export default function Workers() {
                   </div>
                 </div>
 
+                {/* Presence / Last Login */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                    <p className="text-xs text-slate-500">Active now</p>
+                    <p className="font-semibold text-slate-800">
+                      {worker.isOnline ? 'Yes' : 'No'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                    <p className="text-xs text-slate-500">Last Login</p>
+                    <p className="font-semibold text-slate-800">{formatDateTime(worker.lastActive)}</p>
+                  </div>
+                </div>
+
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-2">
                   <button
@@ -511,13 +529,7 @@ export default function Workers() {
                   >
                     <Eye size={16} />
                   </button>
-                  <button
-                    onClick={() => handleEdit(worker)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors text-sm font-medium"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  {isPendingWorker(worker) && (
+                  {!isWorkerApproved(worker) ? (
                     <>
                       <button
                         onClick={() => handleStatusChange(worker._id, 'approved')}
@@ -527,38 +539,57 @@ export default function Workers() {
                         <CheckCircle size={16} />
                       </button>
                       <button
-                        onClick={() => handleStatusChange(worker._id, 'rejected')}
+                        onClick={() => setDeleteConfirm({ open: true, worker })}
                         className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                        title="Reject"
+                        title="Delete account"
                       >
-                        <XCircle size={16} />
+                        <Trash2 size={16} />
                       </button>
                     </>
-                  )}
-                  {worker.isDisabled ? (
-                    <button
-                      onClick={() => handleStatusChange(worker._id, null, { isDisabled: false })}
-                      className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                      title="Enable account"
-                    >
-                      <CheckCircle size={16} />
-                    </button>
                   ) : (
-                    <button
-                      onClick={() => handleStatusChange(worker._id, null, { isDisabled: true })}
-                      className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
-                      title="Disable account (blocks login)"
-                    >
-                      <XCircle size={16} />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          setOpenActionMenuId((prev) => (prev === worker._id ? null : worker._id))
+                        }
+                        className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                        title="More actions"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                      {openActionMenuId === worker._id && (
+                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              setOpenActionMenuId(null)
+                              handleEdit(worker)
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOpenActionMenuId(null)
+                              setDeleteConfirm({ open: true, worker })
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOpenActionMenuId(null)
+                              handleStatusChange(worker._id, null, { isDisabled: !worker.isDisabled })
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                          >
+                            {worker.isDisabled ? 'Enable account' : 'Disable account'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
-                  <button
-                    onClick={() => setDeleteConfirm({ open: true, worker })}
-                    className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                    title="Delete account"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               </div>
             </div>
