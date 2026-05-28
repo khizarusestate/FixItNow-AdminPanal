@@ -148,6 +148,28 @@ const formatDateTime = (value) => {
   })
 }
 
+const formatRelativeTime = (value) => {
+  if (!value) return null
+  const t = new Date(value).getTime()
+  if (Number.isNaN(t)) return null
+  const diffMs = Date.now() - t
+  const diffSec = Math.max(0, Math.floor(diffMs / 1000))
+  if (diffSec < 60) return `${diffSec}s`
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `${diffMin} min`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24) return `${diffHr} hr`
+  const diffDay = Math.floor(diffHr / 24)
+  return `${diffDay} day`
+}
+
+const getActiveLine = (worker) => {
+  if (worker?.isDisabled) return 'Disabled'
+  if (worker?.isOnline) return 'Active now'
+  const rel = formatRelativeTime(worker?.lastActive)
+  return rel ? `Active ${rel} ago` : 'Active: N/A'
+}
+
 const getStatusColor = (status) => {
   const map = {
     approved: 'bg-green-100 text-green-800',
@@ -494,12 +516,18 @@ export default function Workers() {
                     <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <span
-                        className={`inline-flex items-center gap-2 px-2.5 py-1 text-xs font-semibold rounded-full ${getPresenceColor(worker)}`}
+                        className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800"
                       >
                         <span
-                          className={`h-2 w-2 rounded-full ${getPresenceDotClass(worker)}`}
+                          className={`h-2 w-2 rounded-full ${
+                            worker.isDisabled
+                              ? 'bg-red-500'
+                              : worker.isOnline
+                                ? 'bg-green-500'
+                                : 'bg-slate-400'
+                          }`}
                         />
-                        {getPresenceLabel(worker)}
+                        {getActiveLine(worker)}
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
                         {worker.service || 'N/A'}
@@ -525,30 +553,15 @@ export default function Workers() {
                 {isWorkerApproved(worker) && (
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                      <p className="text-xs text-slate-500">Account</p>
+                      <p className="text-xs text-slate-500">Status</p>
                       <p className="font-semibold text-slate-800">
-                        {worker.isDisabled ? 'Disabled' : 'Enabled'}
+                        {worker.isDisabled ? 'Disable' : 'Enable'}
                       </p>
                     </div>
                     <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                      <p className="text-xs text-slate-500">Presence</p>
+                      <p className="text-xs text-slate-500">Active</p>
                       <p className="font-semibold text-slate-800">
-                        <span className="inline-flex items-center gap-2">
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full ${
-                              worker.isDisabled
-                                ? 'bg-red-500'
-                                : worker.isOnline
-                                  ? 'bg-green-500'
-                                  : 'bg-slate-400'
-                            }`}
-                          />
-                          {worker.isDisabled
-                            ? 'Non-active'
-                            : worker.isOnline
-                              ? 'Online'
-                              : 'Offline'}
-                        </span>
+                        {getActiveLine(worker)}
                       </p>
                     </div>
                     <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 col-span-2">

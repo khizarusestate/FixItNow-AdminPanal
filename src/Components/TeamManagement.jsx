@@ -164,6 +164,28 @@ export default function TeamManagement() {
     return { label: "Offline", dotClass: "bg-slate-400" };
   };
 
+  const formatRelativeTime = (value) => {
+    if (!value) return null;
+    const t = new Date(value).getTime();
+    if (Number.isNaN(t)) return null;
+    const diffMs = Date.now() - t;
+    const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+    if (diffSec < 60) return `${diffSec}s`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} min`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} hr`;
+    const diffDay = Math.floor(diffHr / 24);
+    return `${diffDay} day`;
+  };
+
+  const getActiveLine = (member) => {
+    if (!member?.isActive) return "Disabled";
+    if (member?.presenceStatus === "active") return "Active now";
+    const rel = formatRelativeTime(member?.lastLogin);
+    return rel ? `Active ${rel} ago` : "Active: N/A";
+  };
+
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     if (String(deleteTarget.id) === String(currentAdmin?.id)) {
@@ -320,25 +342,15 @@ export default function TeamManagement() {
 
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                    <p className="text-xs text-slate-500">Account</p>
+                    <p className="text-xs text-slate-500">Status</p>
                     <p className="font-semibold text-slate-800">
-                      {member.isActive ? "Enabled" : "Disabled"}
+                      {member.isActive ? "Enable" : "Disable"}
                     </p>
                   </div>
                   <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                    <p className="text-xs text-slate-500">Presence</p>
+                    <p className="text-xs text-slate-500">Active</p>
                     <p className="font-semibold text-slate-800">
-                      {(() => {
-                        const { label, dotClass } = getPresenceMeta(member);
-                        return (
-                          <span className="inline-flex items-center gap-2">
-                            <span
-                              className={`h-2.5 w-2.5 rounded-full ${dotClass}`}
-                            />
-                            {label}
-                          </span>
-                        );
-                      })()}
+                      {getActiveLine(member)}
                     </p>
                   </div>
                   <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 col-span-2">
