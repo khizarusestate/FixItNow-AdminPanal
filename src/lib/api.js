@@ -249,11 +249,11 @@ export async function apiRequest(
         }
       } else if (canRefresh && isRefreshing) {
         // Wait for the ongoing refresh to complete
-        return new Promise((resolve, reject) => {
-          subscribeTokenRefresh((newToken, newRefreshToken) => {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh(() => {
             resolve(apiRequest(path, options, retryCount, true));
-          });
-        });
+          })
+        })
       } else {
         // No refresh token available, logout
         clearAdminToken();

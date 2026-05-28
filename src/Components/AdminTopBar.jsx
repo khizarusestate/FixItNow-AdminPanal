@@ -83,7 +83,7 @@ export default function AdminTopBar({
   }, [showNotifications, loadNotifications, clearAllBadges]);
 
   useEffect(() => {
-    const onNotificationNew = (event) => {
+    const onNotificationNew = () => {
       setUnreadNotifications((count) => Math.min(count + 1, 99));
       if (showNotifications) {
         loadNotifications();

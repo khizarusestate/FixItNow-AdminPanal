@@ -107,9 +107,6 @@ const sortWorkerList = (list) =>
     return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
   })
 
-const isPendingWorker = (worker) =>
-  worker.status === 'not_approved' || worker.status === 'pending'
-
 const getPresenceLabel = (worker) => {
   if (worker.isDisabled) return 'Non-active'
   if (worker.status === 'not_approved' || worker.status === 'pending') return 'Pending'
@@ -128,16 +125,6 @@ const getPresenceColor = (worker) => {
   if (worker.status === 'rejected') return 'bg-red-100 text-red-800'
   if (worker.isOnline) return 'bg-green-100 text-green-800'
   return 'bg-gray-100 text-gray-800'
-}
-
-const getPresenceDotClass = (worker) => {
-  if (worker.isDisabled) return 'bg-red-500'
-  if (worker.status === 'not_approved' || worker.status === 'pending')
-    return 'bg-yellow-500'
-  if (worker.status === 'rejected') return 'bg-red-500'
-  if (worker.status === 'approved' || worker.status === 'active' || worker.status === 'inactive')
-    return worker.isOnline ? 'bg-green-500' : 'bg-slate-400'
-  return worker.isOnline ? 'bg-green-500' : 'bg-slate-400'
 }
 
 const formatDateTime = (value) => {
@@ -192,18 +179,6 @@ const getActiveLineClasses = (worker) => {
   }
 }
 
-const getStatusColor = (status) => {
-  const map = {
-    approved: 'bg-green-100 text-green-800',
-    active: 'bg-green-100 text-green-800',
-    not_approved: 'bg-yellow-100 text-yellow-800',
-    pending: 'bg-yellow-100 text-yellow-800',
-    rejected: 'bg-red-100 text-red-800',
-    inactive: 'bg-gray-100 text-gray-800'
-  }
-  return map[status] || 'bg-gray-100 text-gray-800'
-}
-
 function WorkerAvatar({ worker, size = 'md' }) {
   const sizeClass = size === 'lg' ? 'h-20 w-20 text-3xl' : size === 'sm' ? 'h-10 w-10 text-base' : 'h-12 w-12 text-xl'
 
@@ -234,7 +209,7 @@ export default function Workers() {
   const [filterStatus, setFilterStatus] = useState('all')
   const [error, setError] = useState('')
   const [workers, setWorkers] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)

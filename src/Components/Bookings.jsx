@@ -22,7 +22,7 @@ import {
   Receipt,
 } from "lucide-react";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { apiRequest, paginatedRequest } from "../lib/api";
 import { useRefresh, useSocket } from "../context/SocketContext";
 import Pagination from "./Pagination";

@@ -5,7 +5,6 @@ import { useRefresh } from '../context/SocketContext'
 
 export default function Revenue() {
   const [selectedPeriod, setSelectedPeriod] = useState('month')
-  const [selectedMetric, setSelectedMetric] = useState('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [revenueData, setRevenueData] = useState({
