@@ -99,6 +99,9 @@ const workerSortPriority = (worker) => {
 
 const sortWorkerList = (list) =>
   [...list].sort((a, b) => {
+    const aOnline = a?.isDisabled ? 0 : a?.isOnline ? 1 : 0
+    const bOnline = b?.isDisabled ? 0 : b?.isOnline ? 1 : 0
+    if (aOnline !== bOnline) return bOnline - aOnline
     const p = workerSortPriority(a) - workerSortPriority(b)
     if (p !== 0) return p
     return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
@@ -551,25 +554,8 @@ export default function Workers() {
                 </div>
 
                 {isWorkerApproved(worker) && (
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                      <p className="text-xs text-slate-500">Status</p>
-                      <p className="font-semibold text-slate-800">
-                        {worker.isDisabled ? 'Disable' : 'Enable'}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                      <p className="text-xs text-slate-500">Active</p>
-                      <p className="font-semibold text-slate-800">
-                        {getActiveLine(worker)}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 col-span-2">
-                      <p className="text-xs text-slate-500">Last Login</p>
-                      <p className="font-semibold text-slate-800">
-                        {formatDateTime(worker.lastActive)}
-                      </p>
-                    </div>
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm">
+                    <p className="font-semibold text-slate-800">{getActiveLine(worker)}</p>
                   </div>
                 )}
 
