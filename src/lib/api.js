@@ -172,6 +172,18 @@ export async function apiRequest(
       body: options.body || null,
     });
 
+    // If a proxy/CDN redirects (302) to an HTML login page, treat as session end.
+    // The admin API should return JSON 401/403; redirects cause false "deactivated" style UX.
+    if (response.redirected || response.status === 302) {
+      clearAdminToken();
+      window.dispatchEvent(
+        new CustomEvent("admin-logout", {
+          detail: { reason: "Session expired. Please login again." },
+        }),
+      );
+      throw new Error("Session expired. Please login again.");
+    }
+
     let data = {};
 
     try {
