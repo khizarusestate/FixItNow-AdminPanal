@@ -235,8 +235,39 @@ export function SocketProvider({ children }) {
     newSocket.on("admin-team-updated", () => {
       window.dispatchEvent(new CustomEvent("admin-team-updated"));
     });
-    newSocket.on("admin-status-updated", () => {
+    newSocket.on("admin-status-updated", async (payload = {}) => {
       window.dispatchEvent(new CustomEvent("admin-team-updated"));
+
+      // Super admin live feed: "Khizar is active now" / "Khizar is inactive".
+      try {
+        const adminId = String(payload?.adminId || "");
+        let adminName = adminId ? `Admin ${adminId.slice(-4)}` : "An admin";
+
+        if (adminId) {
+          const res = await apiRequest("/admin/team");
+          const team = Array.isArray(res?.data) ? res.data : [];
+          const match = team.find(
+            (a) => String(a.id || a._id || "") === adminId,
+          );
+          if (match?.name) adminName = match.name;
+        }
+
+        const isActiveNow = payload?.status === "active";
+        playNotificationSound();
+        window.dispatchEvent(
+          new CustomEvent("admin-notification-new", {
+            detail: {
+              id: `admin-status-${adminId || Date.now()}-${Date.now()}`,
+              title: "Admin Activity",
+              message: `${adminName} is ${isActiveNow ? "active now" : "inactive"}.`,
+              type: "admins",
+              sectionType: "admins",
+            },
+          }),
+        );
+      } catch {
+        /* ignore live status notification failures */
+      }
     });
     setSocket(newSocket);
 

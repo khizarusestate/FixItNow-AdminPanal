@@ -186,6 +186,15 @@ export default function TeamManagement() {
     return rel ? `Active ${rel} ago` : "Active: N/A";
   };
 
+  const sortedAdmins = [...admins].sort((a, b) => {
+    const aOnline = a?.isActive && a?.presenceStatus === "active" ? 1 : 0;
+    const bOnline = b?.isActive && b?.presenceStatus === "active" ? 1 : 0;
+    if (aOnline !== bOnline) return bOnline - aOnline;
+    const aTime = new Date(a?.lastLogin || a?.updatedAt || a?.createdAt || 0).getTime();
+    const bTime = new Date(b?.lastLogin || b?.updatedAt || b?.createdAt || 0).getTime();
+    return bTime - aTime;
+  });
+
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     if (String(deleteTarget.id) === String(currentAdmin?.id)) {
@@ -250,13 +259,13 @@ export default function TeamManagement() {
             color: "bg-blue-50 text-blue-600",
           },
           {
-            label: "Online now",
+            label: "Active",
             value: stats.active,
             icon: Power,
             color: "bg-green-50 text-green-600",
           },
           {
-            label: "Offline",
+            label: "Inactive",
             value: stats.inactive,
             icon: PowerOff,
             color: "bg-red-50 text-red-600",
@@ -301,7 +310,7 @@ export default function TeamManagement() {
             No admins found.
           </div>
         ) : (
-          admins.map((member) => {
+          sortedAdmins.map((member) => {
             const memberId = String(member.id || member._id || "");
             const isSelf = memberId === String(currentAdmin?.id || "");
             const isSuperRow = member.role === "super_admin";
@@ -340,27 +349,8 @@ export default function TeamManagement() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                    <p className="text-xs text-slate-500">Status</p>
-                    <p className="font-semibold text-slate-800">
-                      {member.isActive ? "Enable" : "Disable"}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                    <p className="text-xs text-slate-500">Active</p>
-                    <p className="font-semibold text-slate-800">
-                      {getActiveLine(member)}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 col-span-2">
-                    <p className="text-xs text-slate-500">Last Login</p>
-                    <p className="font-semibold text-slate-800">
-                      {member.lastLogin
-                        ? new Date(member.lastLogin).toLocaleString()
-                        : "Never"}
-                    </p>
-                  </div>
+                <div className="mt-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm">
+                  <p className="font-semibold text-slate-800">{getActiveLine(member)}</p>
                 </div>
 
                 <div className="mt-4 flex items-center gap-2">
