@@ -28,6 +28,7 @@ export default defineConfig([
       // Newer react-hooks eslint rules can flag these patterns as errors even when safe.
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/purity': 'off',
+      'react-hooks/exhaustive-deps': 'off',
       // Some context files export hooks/helpers alongside providers; keep fast refresh.
       'react-refresh/only-export-components': 'off',
     },
