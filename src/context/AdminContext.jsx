@@ -18,7 +18,9 @@ function buildSession(data, stored = null) {
     email: data.email,
     phone: data.phone,
     role: data.role || "admin",
-    isActive: data.isActive ?? true,
+    // NOTE: Deactivation is enforced by backend 403 (ADMIN_DEACTIVATED).
+    // Keep this field defensive to avoid false negatives from malformed responses.
+    isActive: data.isActive !== false,
     profilePicture: data.profilePicture || "",
     loginAs: stored?.loginAs || (data.role === "super_admin" ? "super_admin" : "admin"),
   };
@@ -45,17 +47,6 @@ export function AdminProvider({ children }) {
         window.dispatchEvent(
           new CustomEvent("admin-logout", {
             detail: { reason: "Session mismatch detected. Please sign in again." },
-          }),
-        );
-        setAdmin(null);
-        return null;
-      }
-
-      if (!session.isActive) {
-        clearAdminToken();
-        window.dispatchEvent(
-          new CustomEvent("admin-logout", {
-            detail: { reason: "Your account has been deactivated." },
           }),
         );
         setAdmin(null);
