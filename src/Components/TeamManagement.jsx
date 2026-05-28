@@ -540,6 +540,12 @@ export default function TeamManagement() {
                       : "Never"}
                   </p>
                 </div>
+                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 col-span-2">
+                  <p className="text-xs text-slate-500">Location</p>
+                  <p className="font-medium text-slate-800">
+                    {viewTarget.location || "N/A"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

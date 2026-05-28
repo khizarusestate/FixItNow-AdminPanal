@@ -79,6 +79,7 @@ export function SocketProvider({ children }) {
   const [connected, setConnected] = useState(false);
   const [badges, setBadges] = useState(loadBadgesFromStorage);
   const socketRef = useRef(null);
+  const lastAdminStatusNotifyRef = useRef({ key: "", at: 0 });
 
   const clearBadge = useCallback((type) => {
     setBadges((prev) => {
@@ -244,7 +245,8 @@ export function SocketProvider({ children }) {
         if (me?.role !== "super_admin") return;
 
         const adminId = String(payload?.adminId || "");
-        let adminName = adminId ? `Admin ${adminId.slice(-4)}` : "An admin";
+        if (!adminId) return;
+        let adminName = `Admin ${adminId.slice(-4)}`;
 
         if (adminId) {
           const res = await apiRequest("/admin/team");
@@ -252,16 +254,25 @@ export function SocketProvider({ children }) {
           const match = team.find(
             (a) => String(a.id || a._id || "") === adminId,
           );
+          if (!match) return; // unknown / stale id -> no useless notifications
           if (match?.name) adminName = match.name;
         }
 
         const isActiveNow = payload?.status === "active";
         if (!isActiveNow) return;
+
+        // Dedupe: backend can emit twice during reconnect / multiple joins.
+        const dedupeKey = `${adminId}:active`;
+        const now = Date.now();
+        const last = lastAdminStatusNotifyRef.current;
+        if (last.key === dedupeKey && now - last.at < 4000) return;
+        lastAdminStatusNotifyRef.current = { key: dedupeKey, at: now };
+
         playNotificationSound();
         window.dispatchEvent(
           new CustomEvent("admin-notification-new", {
             detail: {
-              id: `admin-status-${adminId || Date.now()}-${Date.now()}`,
+              id: `admin-status-${adminId}-${now}`,
               title: "Admin Activity",
               message: `${adminName} is active now.`,
               type: "admins",

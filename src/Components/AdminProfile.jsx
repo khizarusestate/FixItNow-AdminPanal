@@ -162,6 +162,12 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
       return
     }
 
+    const normalizedLocation = (geo.location?.trim() || editForm.address?.trim() || '')
+    if (!normalizedLocation) {
+      setError('Location is required')
+      return
+    }
+
     if (editForm.newPassword && editForm.newPassword !== editForm.confirmPassword) {
       setError('New passwords do not match')
       return
@@ -180,11 +186,11 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
         name: editForm.name,
         email: editForm.email,
         phone: editForm.phone,
-        location: geo.location?.trim() || '',
+        location: normalizedLocation,
         latitude: geo.latitude,
         longitude: geo.longitude,
         placeId: geo.placeId,
-        address: geo.location?.trim() || editForm.address
+        address: normalizedLocation
       }
 
       // Only include password fields if new password is provided

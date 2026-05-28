@@ -448,7 +448,7 @@ export default function Customers() {
           sortedCustomers.map((c) => (
             <div
               key={c.id}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 overflow-hidden group"
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 group"
             >
               {/* Customer Header */}
               <div className="relative p-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
@@ -510,34 +510,6 @@ export default function Customers() {
                   </div>
                 )}
 
-                {/* Booking Stats */}
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <p className="text-xs text-blue-600 font-medium">
-                      Total Bookings
-                    </p>
-                    <p className="text-lg font-bold text-blue-700">
-                      {c.totalBookings || 0}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <p className="text-xs text-green-600 font-medium">
-                      Completed
-                    </p>
-                    <p className="text-lg font-bold text-green-700">
-                      {c.completedBookings || 0}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 bg-amber-50 rounded-lg">
-                    <p className="text-xs text-amber-600 font-medium">
-                      Pending
-                    </p>
-                    <p className="text-lg font-bold text-amber-700">
-                      {c.pendingBookings || 0}
-                    </p>
-                  </div>
-                </div>
-
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-2">
                   <button
@@ -577,7 +549,7 @@ export default function Customers() {
                         <MoreVertical size={16} />
                       </button>
                       {openActionMenuId === c.id && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50">
                           <button
                             onClick={() => {
                               setOpenActionMenuId(null);
@@ -705,6 +677,27 @@ export default function Customers() {
                   label="Member Since"
                   value={formatDate(viewModal.customer.createdAt)}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-6">
+                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-xs text-blue-600 font-medium">Total Bookings</p>
+                  <p className="text-lg font-bold text-blue-700">
+                    {viewModal.customer.totalBookings || 0}
+                  </p>
+                </div>
+                <div className="text-center p-3 bg-green-50 rounded-lg border border-green-100">
+                  <p className="text-xs text-green-600 font-medium">Completed</p>
+                  <p className="text-lg font-bold text-green-700">
+                    {viewModal.customer.completedBookings || 0}
+                  </p>
+                </div>
+                <div className="text-center p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <p className="text-xs text-amber-600 font-medium">Pending</p>
+                  <p className="text-lg font-bold text-amber-700">
+                    {viewModal.customer.pendingBookings || 0}
+                  </p>
+                </div>
               </div>
 
               <h4 className="font-semibold text-slate-900 mb-3">

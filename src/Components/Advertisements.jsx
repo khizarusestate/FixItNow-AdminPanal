@@ -5,6 +5,7 @@ import {
   XCircle,
   Trash2,
   Eye,
+  MoreVertical,
   Loader2,
   AlertTriangle,
   Image as ImageIcon,
@@ -46,6 +47,7 @@ export default function Advertisements() {
   const [previewModal, setPreviewModal] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
   const [deleting, setDeleting] = useState(false);
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
 
   const fetchAds = async () => {
     setLoading(true);
@@ -312,7 +314,7 @@ export default function Advertisements() {
             return (
               <div
                 key={aid}
-                className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-lg"
+                className="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-lg"
               >
                 <div className="flex flex-1 flex-col p-5 sm:p-6">
                   <div className="mb-4 flex items-start justify-between gap-3">
@@ -463,35 +465,53 @@ export default function Advertisements() {
                     >
                       <Eye size={20} />
                     </button>
-
-                    {effectiveStatus === "pending" && (
-                      <>
-                        <button
-                          onClick={() => handleStatusUpdate(aid, "approved")}
-                          disabled={reviewingId === aid}
-                          className="rounded-xl bg-emerald-500 px-4 py-3 text-white transition-colors hover:bg-emerald-600 disabled:opacity-60"
-                        >
-                          {reviewingId === aid ? (
-                            <Loader2 size={20} className="animate-spin" />
-                          ) : (
-                            <CheckCircle size={20} />
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          setOpenActionMenuId((prev) => (prev === aid ? null : aid))
+                        }
+                        className="rounded-xl bg-slate-100 px-4 py-3 text-slate-700 hover:bg-slate-200 transition-colors"
+                        title="More actions"
+                      >
+                        <MoreVertical size={20} />
+                      </button>
+                      {openActionMenuId === aid && (
+                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50 overflow-hidden">
+                          {effectiveStatus === "pending" && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setOpenActionMenuId(null);
+                                  handleStatusUpdate(aid, "approved");
+                                }}
+                                disabled={reviewingId === aid}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50 disabled:opacity-60"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setOpenActionMenuId(null);
+                                  setSelectedAd(ad);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                              >
+                                Reject
+                              </button>
+                            </>
                           )}
-                        </button>
-                        <button
-                          onClick={() => setSelectedAd(ad)}
-                          className="rounded-xl bg-red-500 px-4 py-3 text-white transition-colors hover:bg-red-600"
-                        >
-                          <ThumbsDown size={20} />
-                        </button>
-                      </>
-                    )}
-
-                    <button
-                      onClick={() => handleDelete(aid)}
-                      className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600 hover:bg-red-100 transition-colors"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+                          <button
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              handleDelete(aid);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -526,7 +526,7 @@ export default function Workers() {
           </div>
         ) : (
           workers.map((worker) => (
-            <div key={worker._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 overflow-hidden group">
+            <div key={worker._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 group">
               {/* Worker Header */}
               <div className="relative p-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
                 <div className="flex items-start gap-4">
@@ -604,7 +604,7 @@ export default function Workers() {
                         <MoreVertical size={16} />
                       </button>
                       {openActionMenuId === worker._id && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50">
                           <button
                             onClick={() => {
                               setOpenActionMenuId(null)
