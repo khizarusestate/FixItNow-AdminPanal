@@ -240,6 +240,9 @@ export function SocketProvider({ children }) {
 
       // Super admin live feed: "Khizar is active now" / "Khizar is inactive".
       try {
+        const me = getStoredAdminSession();
+        if (me?.role !== "super_admin") return;
+
         const adminId = String(payload?.adminId || "");
         let adminName = adminId ? `Admin ${adminId.slice(-4)}` : "An admin";
 
