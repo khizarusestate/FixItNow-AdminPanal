@@ -256,13 +256,14 @@ export function SocketProvider({ children }) {
         }
 
         const isActiveNow = payload?.status === "active";
+        if (!isActiveNow) return;
         playNotificationSound();
         window.dispatchEvent(
           new CustomEvent("admin-notification-new", {
             detail: {
               id: `admin-status-${adminId || Date.now()}-${Date.now()}`,
               title: "Admin Activity",
-              message: `${adminName} is ${isActiveNow ? "active now" : "inactive"}.`,
+              message: `${adminName} is active now.`,
               type: "admins",
               sectionType: "admins",
             },

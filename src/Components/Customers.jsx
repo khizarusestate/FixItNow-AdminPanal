@@ -18,6 +18,7 @@ import {
   Loader2,
   TrendingUp,
   BarChart3,
+  MoreVertical,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { apiRequest, paginatedRequest } from "../lib/api";
@@ -61,6 +62,7 @@ export default function Customers() {
   const [saving, setSaving] = useState(false);
   const [successBanner, setSuccessBanner] = useState("");
   const [customerGeo, setCustomerGeo] = useState(() => geoFromUser(null));
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
 
   const { clearBadge } = useSocket();
 
@@ -272,58 +274,69 @@ export default function Customers() {
     }
   };
 
-  // Status badge
-  const getStatusBadge = (status, isActive, isOnline = false) => {
-    if (!isActive) {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 flex items-center gap-1">
-          <XCircle size={12} /> Disabled
-        </span>
-      );
-    }
-    if (status === "pending" || status === "not_approved") {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 flex items-center gap-1">
-          <Clock size={12} /> Pending
-        </span>
-      );
-    }
-    if (isOnline) {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 flex items-center gap-1">
-          <CheckCircle size={12} /> Active
-        </span>
-      );
-    }
-
-    if (status === "active") {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 flex items-center gap-1">
-          <CheckCircle size={12} /> Active
-        </span>
-      );
-    }
-    if (status === "approved") {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 flex items-center gap-1">
-          <CheckCircle size={12} /> Approved
-        </span>
-      );
-    }
-    if (status === "inactive") {
-      return (
-        <span className="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-600 flex items-center gap-1">
-          <Clock size={12} /> Inactive
-        </span>
-      );
-    }
-
-    return (
-      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
-        <User size={12} /> {status}
-      </span>
-    );
+  const formatRelativeTime = (value) => {
+    if (!value) return null;
+    const t = new Date(value).getTime();
+    if (Number.isNaN(t)) return null;
+    const diffMs = Date.now() - t;
+    const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+    if (diffSec < 60) return `${diffSec}s`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} min`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} hr`;
+    const diffDay = Math.floor(diffHr / 24);
+    return `${diffDay} day`;
   };
+
+  const isCustomerPending = (customer) =>
+    customer?.status === "pending" || customer?.status === "not_approved";
+
+  const isCustomerApproved = (customer) =>
+    ["approved", "active", "inactive"].includes(customer?.status);
+
+  const getActiveLine = (customer) => {
+    if (!customer?.isActive) return "Disabled";
+    if (isCustomerPending(customer)) return "Pending approval";
+    if (customer?.isOnline) return "Active now";
+    const rel = formatRelativeTime(customer?.updatedAt || customer?.createdAt);
+    return rel ? `Active ${rel} ago` : "Active: N/A";
+  };
+
+  const getActiveLineClasses = (customer) => {
+    if (!customer?.isActive) {
+      return {
+        wrap: "bg-red-50 text-red-700 ring-1 ring-red-100",
+        dot: "bg-red-500",
+      };
+    }
+    if (isCustomerPending(customer)) {
+      return {
+        wrap: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
+        dot: "bg-amber-500",
+      };
+    }
+    if (customer?.isOnline) {
+      return {
+        wrap: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 shadow-sm",
+        dot: "bg-emerald-500 animate-pulse",
+      };
+    }
+    return {
+      wrap: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
+      dot: "bg-slate-400",
+    };
+  };
+
+  const sortedCustomers = [...customers].sort((a, b) => {
+    const aOnline = a?.isActive && a?.isOnline ? 1 : 0;
+    const bOnline = b?.isActive && b?.isOnline ? 1 : 0;
+    if (aOnline !== bOnline) return bOnline - aOnline;
+    const aPending = isCustomerPending(a) ? 0 : 1;
+    const bPending = isCustomerPending(b) ? 0 : 1;
+    if (aPending !== bPending) return aPending - bPending;
+    return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+  });
 
   return (
     <div className="space-y-6">
@@ -432,7 +445,7 @@ export default function Customers() {
             </p>
           </div>
         ) : (
-          customers.map((c) => (
+          sortedCustomers.map((c) => (
             <div
               key={c.id}
               className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 overflow-hidden group"
@@ -459,12 +472,9 @@ export default function Customers() {
                       {c.fullName}
                     </h3>
                     <p className="text-sm text-slate-500 truncate">{c.email}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      {getStatusBadge(c.status, c.isActive, c.isOnline)}
-                      <span className="text-xs text-slate-500">
-                        Member since {formatDate(c.createdAt)}
-                      </span>
-                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Member since {formatDate(c.createdAt)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -486,6 +496,19 @@ export default function Customers() {
                     </span>
                   </div>
                 </div>
+
+                {isCustomerApproved(c) && (
+                  <div
+                    className={`rounded-lg px-3 py-2 text-sm ${getActiveLineClasses(c).wrap}`}
+                  >
+                    <p className="font-semibold inline-flex items-center gap-2">
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full ${getActiveLineClasses(c).dot}`}
+                      />
+                      {getActiveLine(c)}
+                    </p>
+                  </div>
+                )}
 
                 {/* Booking Stats */}
                 <div className="grid grid-cols-3 gap-4 text-sm">
@@ -523,46 +546,69 @@ export default function Customers() {
                   >
                     <Eye size={16} />
                   </button>
-                  <button
-                    onClick={() => handleEdit(c)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors text-sm font-medium"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  {(c.status === "pending" || c.status === "not_approved") && (
-                    <button
-                      onClick={() => handleApprove(c.id)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
-                    >
-                      <CheckCircle size={16} />
-                    </button>
-                  )}
-                  {!c.isActive ? (
-                    <button
-                      onClick={() => handleEnable(c.id)}
-                      className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                      title="Enable account"
-                    >
-                      <CheckCircle size={16} />
-                    </button>
+                  {isCustomerPending(c) ? (
+                    <>
+                      <button
+                        onClick={() => handleApprove(c.id)}
+                        className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                        title="Approve customer"
+                      >
+                        <CheckCircle size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm({ open: true, customer: c })}
+                        className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                        title="Delete account"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
                   ) : (
-                    <button
-                      onClick={() => handleDisable(c.id)}
-                      className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
-                      title="Disable account (blocks login)"
-                    >
-                      <XCircle size={16} />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() =>
+                          setOpenActionMenuId((prev) =>
+                            prev === c.id ? null : c.id,
+                          )
+                        }
+                        className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                        title="More actions"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                      {openActionMenuId === c.id && (
+                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              handleEdit(c);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              c.isActive ? handleDisable(c.id) : handleEnable(c.id);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
+                          >
+                            {c.isActive ? "Disable account" : "Enable account"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOpenActionMenuId(null);
+                              setDeleteConfirm({ open: true, customer: c });
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
-                  <button
-                    onClick={() =>
-                      setDeleteConfirm({ open: true, customer: c })
-                    }
-                    className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                    title="Delete account"
-                  >
-                    <Trash2 size={16} />
-                  </button>
                 </div>
               </div>
             </div>
@@ -623,11 +669,14 @@ export default function Customers() {
                   <p className="text-slate-500">
                     Customer since {formatDate(viewModal.customer.createdAt)}
                   </p>
-                  {getStatusBadge(
-                    viewModal.customer.status,
-                    viewModal.customer.isActive,
-                    viewModal.customer.isOnline,
-                  )}
+                  <span
+                    className={`mt-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold ${getActiveLineClasses(viewModal.customer).wrap}`}
+                  >
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${getActiveLineClasses(viewModal.customer).dot}`}
+                    />
+                    {getActiveLine(viewModal.customer)}
+                  </span>
                 </div>
               </div>
 

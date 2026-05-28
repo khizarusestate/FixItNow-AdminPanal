@@ -186,6 +186,25 @@ export default function TeamManagement() {
     return rel ? `Active ${rel} ago` : "Active: N/A";
   };
 
+  const getActiveLineClasses = (member) => {
+    if (!member?.isActive) {
+      return {
+        wrap: "bg-red-50 text-red-700 ring-1 ring-red-100",
+        dot: "bg-red-500",
+      };
+    }
+    if (member?.presenceStatus === "active") {
+      return {
+        wrap: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 shadow-sm",
+        dot: "bg-emerald-500 animate-pulse",
+      };
+    }
+    return {
+      wrap: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
+      dot: "bg-slate-400",
+    };
+  };
+
   const sortedAdmins = [...admins].sort((a, b) => {
     const aOnline = a?.isActive && a?.presenceStatus === "active" ? 1 : 0;
     const bOnline = b?.isActive && b?.presenceStatus === "active" ? 1 : 0;
@@ -349,8 +368,15 @@ export default function TeamManagement() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm">
-                  <p className="font-semibold text-slate-800">{getActiveLine(member)}</p>
+                <div
+                  className={`mt-4 rounded-lg px-3 py-2 text-sm ${getActiveLineClasses(member).wrap}`}
+                >
+                  <p className="font-semibold inline-flex items-center gap-2">
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${getActiveLineClasses(member).dot}`}
+                    />
+                    {getActiveLine(member)}
+                  </p>
                 </div>
 
                 <div className="mt-4 flex items-center gap-2">

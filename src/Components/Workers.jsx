@@ -173,6 +173,25 @@ const getActiveLine = (worker) => {
   return rel ? `Active ${rel} ago` : 'Active: N/A'
 }
 
+const getActiveLineClasses = (worker) => {
+  if (worker?.isDisabled) {
+    return {
+      wrap: 'bg-red-50 text-red-700 ring-1 ring-red-100',
+      dot: 'bg-red-500',
+    }
+  }
+  if (worker?.isOnline) {
+    return {
+      wrap: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 shadow-sm',
+      dot: 'bg-emerald-500 animate-pulse',
+    }
+  }
+  return {
+    wrap: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
+    dot: 'bg-slate-400',
+  }
+}
+
 const getStatusColor = (status) => {
   const map = {
     approved: 'bg-green-100 text-green-800',
@@ -518,20 +537,6 @@ export default function Workers() {
                     </h3>
                     <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span
-                        className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800"
-                      >
-                        <span
-                          className={`h-2 w-2 rounded-full ${
-                            worker.isDisabled
-                              ? 'bg-red-500'
-                              : worker.isOnline
-                                ? 'bg-green-500'
-                                : 'bg-slate-400'
-                          }`}
-                        />
-                        {getActiveLine(worker)}
-                      </span>
                       <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
                         {worker.service || 'N/A'}
                       </span>
@@ -554,8 +559,11 @@ export default function Workers() {
                 </div>
 
                 {isWorkerApproved(worker) && (
-                  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm">
-                    <p className="font-semibold text-slate-800">{getActiveLine(worker)}</p>
+                  <div className={`rounded-lg px-3 py-2 text-sm ${getActiveLineClasses(worker).wrap}`}>
+                    <p className="font-semibold inline-flex items-center gap-2">
+                      <span className={`h-2.5 w-2.5 rounded-full ${getActiveLineClasses(worker).dot}`} />
+                      {getActiveLine(worker)}
+                    </p>
                   </div>
                 )}
 
