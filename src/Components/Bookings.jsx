@@ -123,6 +123,15 @@ const getReceiptImageUrl = (receiptPath) => {
   return resolveMediaUrl(`/uploads/payment-receipts/${filename}`);
 };
 
+const isPayAfterWorkBooking = (booking) => {
+  const pd = booking?.paymentDetails;
+  if (!pd) return false;
+  return Boolean(
+    pd.payAfterWork ||
+      String(pd.paymentMethod || "").toLowerCase() === "pay-after-work",
+  );
+};
+
 const paymentMethodLabel = (key) => {
   const k = String(key || "").toLowerCase();
   const map = {
@@ -183,6 +192,7 @@ function ReceiptPreview({
 export default function Bookings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -233,6 +243,7 @@ export default function Bookings() {
         ...(filterStatus !== "all" && { status: filterStatus }),
         ...(dateFrom && { startDate: dateFrom }),
         ...(dateTo && { endDate: dateTo }),
+        ...(paymentFilter !== "all" && { paymentFilter }),
       };
 
       const response = await paginatedRequest("/admin/bookings", params);
@@ -311,7 +322,7 @@ export default function Bookings() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, sort, searchTerm, filterStatus, dateFrom, dateTo]);
+  }, [page, limit, sort, searchTerm, filterStatus, dateFrom, dateTo, paymentFilter]);
 
   useEffect(() => {
     fetchBookings();
@@ -320,7 +331,7 @@ export default function Bookings() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, filterStatus, dateFrom, dateTo]);
+  }, [searchTerm, filterStatus, dateFrom, dateTo, paymentFilter]);
 
   useRefresh("bookings", fetchBookings);
 
@@ -430,6 +441,41 @@ export default function Bookings() {
   const handleRetry = () => {
     fetchBookings();
   };
+
+  const handlePaymentReceived = async (bookingId, received = true) => {
+    try {
+      setProcessing(bookingId);
+      await apiRequest(`/admin/bookings/${bookingId}/payment-received`, {
+        method: "PATCH",
+        body: JSON.stringify({ paymentReceived: received }),
+      });
+      await fetchBookings();
+      setViewModal((prev) => {
+        if (!prev.open || prev.booking?.id !== bookingId) return prev;
+        return {
+          ...prev,
+          booking: {
+            ...prev.booking,
+            paymentDetails: {
+              ...prev.booking.paymentDetails,
+              paymentReceived: received,
+            },
+          },
+        };
+      });
+      setError("");
+    } catch (err) {
+      setError(err?.message || "Failed to update payment status");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const PAYMENT_FILTER_OPTIONS = [
+    { value: "all", label: "All pay-after-work" },
+    { value: "pay-after-pending", label: "Pay-after: awaiting payment" },
+    { value: "pay-after-received", label: "Pay-after: payment received" },
+  ];
 
   const BOOKING_STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
@@ -551,6 +597,21 @@ export default function Bookings() {
         sortLabel={sort.startsWith("-") ? "Newest first" : "Oldest first"}
       />
 
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="text-sm font-medium text-slate-700">Pay-after-work</label>
+        <select
+          value={paymentFilter}
+          onChange={(e) => setPaymentFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
+        >
+          {PAYMENT_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {loading ? (
           Array.from({ length: limit }).map((_, index) => (
@@ -655,6 +716,27 @@ export default function Bookings() {
                       </div>
                     )}
 
+                    {isPayAfterWorkBooking(booking) && (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs">
+                        <p className="font-semibold text-amber-900">
+                          Payment after work
+                        </p>
+                        {booking.paymentDetails?.paymentReceived ? (
+                          <p className="mt-1 text-emerald-700 font-medium">
+                            Payment received by admin
+                          </p>
+                        ) : booking.workerMarkedDone ? (
+                          <p className="mt-1 text-amber-800">
+                            Awaiting customer payment
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-amber-700">
+                            Confirm payment after worker marks done
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {booking.paymentDetails?.paymentReceipt && (
                       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
                         <div className="flex min-w-0 flex-1 items-center gap-2 text-xs font-medium text-emerald-800">
@@ -735,6 +817,20 @@ export default function Bookings() {
                       <Eye size={20} />
                     </button>
 
+                    {isPayAfterWorkBooking(booking) &&
+                      booking.workerMarkedDone &&
+                      !booking.paymentDetails?.paymentReceived && (
+                        <button
+                          type="button"
+                          onClick={() => handlePaymentReceived(booking.id, true)}
+                          disabled={processing === booking.id}
+                          title="Mark payment received"
+                          className="rounded-xl bg-emerald-600 px-3 py-3 text-white transition-colors hover:bg-emerald-700 disabled:opacity-60 text-xs font-semibold"
+                        >
+                          <DollarSign size={18} />
+                        </button>
+                      )}
+
                     {booking.status === "approved" && !booking.workerId && (
                       <>
                         <button
@@ -813,6 +909,9 @@ export default function Bookings() {
           }
           onApprove={() => handleStatusUpdate(viewModal.booking.id, "approved")}
           onReject={() => handleStatusUpdate(viewModal.booking.id, "rejected")}
+          onPaymentReceived={(received) =>
+            handlePaymentReceived(viewModal.booking.id, received)
+          }
         />
       )}
 
@@ -1013,7 +1112,14 @@ export default function Bookings() {
   );
 }
 
-function BookingModal({ booking, processing, onClose, onApprove, onReject }) {
+function BookingModal({
+  booking,
+  processing,
+  onClose,
+  onApprove,
+  onReject,
+  onPaymentReceived,
+}) {
   const receiptUrl = getReceiptImageUrl(booking.paymentDetails?.paymentReceipt);
   const hasReceipt = Boolean(receiptUrl);
   const isCompleted = booking.status === "completed";
@@ -1187,6 +1293,29 @@ function BookingModal({ booking, processing, onClose, onApprove, onReject }) {
             </div>
           )}
 
+          {isPayAfterWorkBooking(booking) && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <h3 className="mb-2 font-semibold text-amber-900">
+                Pay after work
+              </h3>
+              {booking.paymentDetails?.paymentReceived ? (
+                <p className="text-sm text-emerald-700 font-medium">
+                  Payment marked as received by admin.
+                </p>
+              ) : booking.workerMarkedDone ? (
+                <p className="text-sm text-amber-800 mb-3">
+                  Worker marked the job done. Confirm when you have received
+                  payment from the customer.
+                </p>
+              ) : (
+                <p className="text-sm text-amber-700">
+                  Payment confirmation will be available after the worker marks
+                  the job as done.
+                </p>
+              )}
+            </div>
+          )}
+
           {hasReceipt && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
               <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -1252,6 +1381,19 @@ function BookingModal({ booking, processing, onClose, onApprove, onReject }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 p-6">
+          {isPayAfterWorkBooking(booking) &&
+            booking.workerMarkedDone &&
+            !booking.paymentDetails?.paymentReceived &&
+            onPaymentReceived && (
+              <button
+                type="button"
+                onClick={() => onPaymentReceived(true)}
+                disabled={processing === booking.id}
+                className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+              >
+                Payment received
+              </button>
+            )}
           {isAdminControlled(booking.status) && (
             <>
               <button
