@@ -137,6 +137,7 @@ const paymentMethodLabel = (key) => {
   const map = {
     easypaisa: "EasyPaisa",
     jazzcash: "JazzCash",
+    "bank-transfer": "Bank transfer",
     "hand-to-hand": "Hand to hand",
     "pay-after-work": "Payment after work",
     "debit-card": "Debit card",
