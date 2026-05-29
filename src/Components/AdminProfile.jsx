@@ -156,6 +156,8 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
     setSuccess('')
   }
 
+  const isSuperAdmin = profile.role === 'super_admin'
+
   const handleSave = async () => {
     if (!editForm.name || !editForm.email) {
       setError('Name and email are required')
@@ -163,7 +165,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
     }
 
     const normalizedLocation = (geo.location?.trim() || editForm.address?.trim() || '')
-    if (!normalizedLocation) {
+    if (!isSuperAdmin && !normalizedLocation) {
       setError('Location is required')
       return
     }
@@ -186,11 +188,15 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
         name: editForm.name,
         email: editForm.email,
         phone: editForm.phone,
-        location: normalizedLocation,
-        latitude: geo.latitude,
-        longitude: geo.longitude,
-        placeId: geo.placeId,
-        address: normalizedLocation
+        ...(isSuperAdmin
+          ? {}
+          : {
+              location: normalizedLocation,
+              latitude: geo.latitude,
+              longitude: geo.longitude,
+              placeId: geo.placeId,
+              address: normalizedLocation,
+            }),
       }
 
       // Only include password fields if new password is provided
@@ -436,14 +442,16 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           placeholder="Enter your phone number"
                         />
                       </div>
-                      <div>
-                        <LocationPicker
-                          label="Location"
-                          required={false}
-                          value={geo}
-                          onChange={setGeo}
-                        />
-                      </div>
+                      {!isSuperAdmin ? (
+                        <div>
+                          <LocationPicker
+                            label="Location"
+                            required={false}
+                            value={geo}
+                            onChange={setGeo}
+                          />
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
@@ -557,10 +565,12 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           <p className="text-sm text-slate-500 mb-1">Phone Number</p>
                           <p className="font-medium text-slate-900">{profile.phone}</p>
                         </div>
-                        <div>
-                          <p className="text-sm text-slate-500 mb-1">Location</p>
-                          <p className="font-medium text-slate-900">{profile.location || profile.address}</p>
-                        </div>
+                        {profile.role !== 'super_admin' ? (
+                          <div>
+                            <p className="text-sm text-slate-500 mb-1">Location</p>
+                            <p className="font-medium text-slate-900">{profile.location || profile.address}</p>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>
