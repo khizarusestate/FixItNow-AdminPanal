@@ -25,6 +25,7 @@ import { apiRequest } from "../lib/api";
 import { useRefresh } from "../context/SocketContext";
 import { resolveUploadMediaUrl } from "../utils/mediaUrl.js";
 import ConfirmDialog from "./ConfirmDialog";
+import Pagination from "./Pagination";
 
 const getImageUrl = (url) => resolveUploadMediaUrl(url);
 
@@ -48,6 +49,8 @@ export default function Advertisements() {
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
   const [deleting, setDeleting] = useState(false);
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const fetchAds = async () => {
     setLoading(true);
@@ -123,6 +126,15 @@ export default function Advertisements() {
       ad.duration?.toLowerCase().includes(searchLower);
     return matchesFilter && matchesSearch;
   });
+
+  const totalItems = filteredAds.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  const safePage = Math.min(page, totalPages);
+  const paginatedAds = filteredAds.slice((safePage - 1) * limit, safePage * limit);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, searchTerm]);
 
   const statusConfig = {
     pending: {
@@ -297,8 +309,9 @@ export default function Advertisements() {
           </p>
         </div>
       ) : (
+        <>
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredAds.map((ad) => {
+          {paginatedAds.map((ad) => {
             const aid = String(ad.id || ad._id);
             const effectiveStatus =
               ad.status === "approved" ||
@@ -518,6 +531,17 @@ export default function Advertisements() {
             );
           })}
         </div>
+        {totalItems > limit && (
+          <Pagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            limit={limit}
+            onLimitChange={(n) => { setLimit(n); setPage(1); }}
+            totalItems={totalItems}
+          />
+        )}
+        </>
       )}
 
       {/* Reject Modal */}
