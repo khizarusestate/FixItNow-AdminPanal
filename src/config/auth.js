@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "./env.js";
+
 /**
  * HttpOnly cookies only work when the admin UI and API share the same site
  * (e.g. Vite proxy /api on localhost). Vercel admin + Railway API are cross-origin;
@@ -5,7 +7,7 @@
  */
 function isCrossOriginApi() {
   if (typeof window === "undefined") return false;
-  const raw = import.meta.env.VITE_API_BASE_URL?.trim() || "";
+  const raw = import.meta.env.VITE_API_BASE_URL?.trim() || API_BASE_URL;
   if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
     return false;
   }

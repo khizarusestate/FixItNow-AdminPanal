@@ -1,12 +1,11 @@
+import { API_ORIGIN } from "../config/env.js";
 import { resolveMediaUrl } from "../lib/media.js";
 
 /**
  * Resolve API origin (no trailing /api) for building absolute asset URLs.
  */
 export function getApiOriginForAssets() {
-  const base =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-  return base.replace(/\/api\/?$/, "");
+  return API_ORIGIN;
 }
 
 /**
