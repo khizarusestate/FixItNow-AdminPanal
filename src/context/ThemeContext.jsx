@@ -1,50 +1,33 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useEffect, useState } from "react";
 
-const ThemeContext = createContext()
+const ThemeContext = createContext(null);
 
 export const useTheme = () => {
-  const context = useContext(ThemeContext)
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-  return context
-}
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
+  return ctx;
+};
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(() => {
-    // Check localStorage for saved theme preference
-    const savedTheme = localStorage.getItem('theme')
-    // Default to light mode if no preference is saved
-    return savedTheme === 'dark'
-  })
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("fixitnow-admin-theme");
+    if (saved === "dark" || saved === "light") return saved;
+    return "light";
+  });
 
   useEffect(() => {
-    // Update localStorage and document class when theme changes
-    localStorage.setItem('theme', isDark ? 'dark' : 'light')
-    if (isDark) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [isDark])
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("fixitnow-admin-theme", theme);
+  }, [theme]);
 
-  // Initialize theme on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [])
-
-  const toggleTheme = () => {
-    setIsDark(!isDark)
-  }
+  const toggleTheme = () =>
+    setTheme((t) => (t === "light" ? "dark" : "light"));
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, isDark: theme === "dark", toggleTheme, setTheme }}
+    >
       {children}
     </ThemeContext.Provider>
-  )
-}
+  );
+};

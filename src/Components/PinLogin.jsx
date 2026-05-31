@@ -121,57 +121,57 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
 
   if (!loginAs) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-orange-50/30 to-slate-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg">
-          <div className="text-center mb-8">
+      <div className="admin-shell flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-lg animate-scale-in">
+          <div className="mb-8 text-center">
             <AdminLogo size="xl" className="mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-slate-900">Fix It Now</h1>
-            <p className="text-slate-500 mt-2">Choose how you want to sign in</p>
+            <h1 className="font-display text-2xl font-bold text-[var(--text-heading)]">
+              Fix It Now
+            </h1>
+            <p className="mt-2 text-[var(--text-muted)]">Choose how you want to sign in</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => pickPortal("super_admin")}
-              className="group text-left rounded-2xl border-2 border-violet-300/60 bg-gradient-to-br from-slate-900 via-violet-950 to-indigo-950 p-6 shadow-xl shadow-violet-900/30 hover:scale-[1.02] transition-transform"
+              className="admin-card group p-6 text-left transition-transform hover:-translate-y-1"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-violet-500/20 border border-violet-400/30">
-                  <Crown className="text-amber-300" size={28} />
+              <div className="mb-4 flex items-center gap-3">
+                <div className="rounded-xl border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] p-3">
+                  <Crown className="text-[var(--accent)]" size={28} />
                 </div>
-                <Sparkles className="text-violet-400 ml-auto" size={20} />
+                <Sparkles className="ml-auto text-[var(--text-faint)]" size={20} />
               </div>
-              <h2 className="text-lg font-bold text-white">Super Admin</h2>
-              <p className="text-sm text-violet-300/90 mt-2 leading-relaxed">
+              <h2 className="font-display text-lg font-bold text-[var(--text-heading)]">
+                Super Admin
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
                 Full control: all admin tools plus team management & platform settings.
-              </p>
-              <p className="text-xs text-violet-400/70 mt-4 font-medium uppercase tracking-wider">
-                Single owner account
               </p>
             </button>
 
             <button
               type="button"
               onClick={() => pickPortal("admin")}
-              className="group text-left rounded-2xl border-2 border-orange-200 bg-white p-6 shadow-lg hover:border-orange-400 hover:scale-[1.02] transition-all"
+              className="admin-card group p-6 text-left transition-transform hover:-translate-y-1"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-orange-100">
-                  <Shield className="text-orange-600" size={28} />
+              <div className="mb-4 flex items-center gap-3">
+                <div className="rounded-xl border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] p-3">
+                  <Shield className="text-[var(--accent)]" size={28} />
                 </div>
               </div>
-              <h2 className="text-lg font-bold text-slate-900">Admin</h2>
-              <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+              <h2 className="font-display text-lg font-bold text-[var(--text-heading)]">
+                Admin
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
                 Day-to-day operations: bookings, workers, customers, services & reviews.
-              </p>
-              <p className="text-xs text-orange-500 mt-4 font-medium uppercase tracking-wider">
-                Team accounts
               </p>
             </button>
           </div>
 
           {sessionExpired && (
-            <p className="text-center text-sm text-amber-700 mt-6 bg-amber-50 border border-amber-200 rounded-lg py-2 px-3">
+            <p className="mt-6 rounded-xl border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] py-2 px-3 text-center text-sm text-[var(--accent)]">
               Your session expired. Please sign in again.
             </p>
           )}
@@ -181,17 +181,9 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
   }
 
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center p-4 ${isSuperPortal ? theme.pageBg : "bg-slate-50"}`}
-    >
-      <div className="w-full max-w-sm">
-        <div
-          className={`rounded-2xl p-8 border ${
-            isSuperPortal
-              ? "bg-slate-900/80 backdrop-blur border-violet-500/30 shadow-2xl shadow-violet-900/40"
-              : "bg-white shadow-lg border-slate-200"
-          }`}
-        >
+    <div className={`admin-shell flex min-h-screen items-center justify-center p-4 ${isSuperPortal ? "super-admin-panel" : ""}`}>
+      <div className="w-full max-w-sm animate-scale-in">
+        <div className="admin-card border p-8">
           <button
             type="button"
             onClick={() => setLoginAs(null)}

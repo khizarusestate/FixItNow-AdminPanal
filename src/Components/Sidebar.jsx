@@ -27,11 +27,7 @@ function NavButton({
         onClick={onClick}
         className={`
           w-full flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 group
-          ${
-            isActive
-              ? `bg-gradient-to-r ${theme.navActive} text-white shadow-lg`
-              : theme.navIdle
-          }
+          ${isActive ? theme.navActive : theme.navIdle}
         `}
       >
         <div className="flex items-center gap-3">
@@ -123,33 +119,25 @@ export default function Sidebar({ activeSection, setActiveSection }) {
       <button
         type="button"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className={`lg:hidden fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r ${theme.fab} text-white shadow-xl hover:shadow-2xl transition-all`}
+        className={`lg:hidden fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-2xl ${theme.fab} text-[var(--accent-fg)] shadow-[var(--shadow-lg)] transition-all hover:scale-105`}
       >
         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       <aside
         className={`
-        fixed lg:static inset-y-0 left-0 z-40 w-72 bg-gradient-to-b ${theme.sidebar} shadow-xl
+        fixed lg:static inset-y-0 left-0 z-40 w-72 ${theme.sidebar} shadow-[var(--shadow-md)]
         transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}
       >
         <div className="flex h-full flex-col">
-          <div
-            className={`p-6 border-b flex flex-col items-center gap-2 ${
-              isSuperAdmin ? "border-violet-800/40" : "border-orange-200"
-            }`}
-          >
-            {isSuperAdmin ? (
-              <>
-                <AdminLogo size="lg" className="drop-shadow-md" />
-                <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">
-                  Super Admin
-                </span>
-              </>
-            ) : (
-              <AdminLogo size="lg" />
+          <div className="flex flex-col items-center gap-2 border-b border-[var(--border)] p-6">
+            <AdminLogo size="lg" className="drop-shadow-sm" />
+            {isSuperAdmin && (
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent)]">
+                Super Admin
+              </span>
             )}
           </div>
 
@@ -244,11 +232,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
             )}
           </nav>
 
-          <div
-            className={`p-4 border-t flex justify-center ${
-              isSuperAdmin ? "border-violet-800/40" : "border-orange-200"
-            }`}
-          >
+          <div className="flex justify-center border-t border-[var(--border)] p-4">
             {!isSuperAdmin && <AdminLogo size="sm" />}
           </div>
         </div>
@@ -256,9 +240,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
 
       {isMobileMenuOpen && (
         <div
-          className={`fixed inset-0 z-30 backdrop-blur-sm lg:hidden ${
-            isSuperAdmin ? "bg-black/50" : "bg-orange-900/20"
-          }`}
+          className="fixed inset-0 z-30 bg-[var(--overlay)] backdrop-blur-sm lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
           role="presentation"
         />

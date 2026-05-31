@@ -78,10 +78,10 @@ export default function Dashboard({ onNavigate }) {
             key={item.label}
             type="button"
             onClick={item.action}
-            className="rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:shadow-md hover:border-orange-200 transition-all"
+            className="admin-card p-5 text-left transition-all hover:-translate-y-0.5"
           >
-            <p className="text-sm text-slate-500">{item.label}</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="text-sm text-[var(--text-muted)]">{item.label}</p>
+            <p className="mt-1 font-display text-2xl font-bold text-[var(--text-heading)]">
               {loading ? "—" : item.value}
             </p>
           </button>
@@ -89,10 +89,10 @@ export default function Dashboard({ onNavigate }) {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-1">
+        <h2 className="mb-1 font-display text-lg font-semibold text-[var(--text-heading)]">
           Quick access
         </h2>
-        <p className="text-sm text-slate-500 mb-3">
+        <p className="mb-3 text-sm text-[var(--text-muted)]">
           Open any module to manage your platform
         </p>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -114,16 +114,16 @@ export default function Dashboard({ onNavigate }) {
                 key={item.id}
                 type="button"
                 onClick={() => onNavigate?.(item.id)}
-                className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-orange-200 hover:shadow-md transition-all text-left"
+                className="admin-card group flex items-center justify-between p-4 text-left transition-all hover:-translate-y-0.5"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600 group-hover:bg-orange-100 transition-colors">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="rounded-xl border border-[var(--accent-soft-border)] bg-[var(--accent-soft)] p-2.5 text-[var(--accent)] transition-colors group-hover:brightness-110">
                     <Icon size={20} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-900">{item.label}</p>
+                    <p className="font-semibold text-[var(--text-heading)]">{item.label}</p>
                     {countHint != null && (
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                         {countHint} total
                       </p>
                     )}
@@ -131,7 +131,7 @@ export default function Dashboard({ onNavigate }) {
                 </div>
                 <ArrowRight
                   size={18}
-                  className="text-slate-300 group-hover:text-orange-500 shrink-0"
+                  className="shrink-0 text-[var(--text-faint)] group-hover:text-[var(--accent)]"
                 />
               </button>
             );
@@ -139,7 +139,7 @@ export default function Dashboard({ onNavigate }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-500 to-orange-600 p-5 text-white shadow-lg">
+      <div className="admin-card overflow-hidden border-[var(--accent-soft-border)] bg-[var(--accent)] p-5 text-[var(--accent-fg)] shadow-[var(--shadow-md)]">
         <div className="flex items-center gap-3 mb-3">
           <div className="p-2 bg-white/20 rounded-lg">
             <ClipboardList size={20} />

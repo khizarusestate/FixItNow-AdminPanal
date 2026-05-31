@@ -81,8 +81,8 @@ function AppContent({ onLogout }) {
 
   return (
     <div
-      className={`min-h-screen admin-panel-container flex ${
-        isSuperAdmin ? "super-admin-panel bg-slate-950" : "bg-slate-50"
+      className={`min-h-screen admin-shell flex ${
+        isSuperAdmin ? "super-admin-panel" : ""
       }`}
     >
       <Sidebar
@@ -96,7 +96,7 @@ function AppContent({ onLogout }) {
           onLogout={handleLogout}
           onOpenProfileSettings={openProfileSettings}
         />
-        <main className="super-admin-main flex-1 p-6 animate-fadeIn min-w-0 overflow-auto">
+        <main className="super-admin-main flex-1 overflow-auto p-5 sm:p-6 lg:p-8 animate-fadeIn min-w-0">
           {renderContent()}
         </main>
       </div>
@@ -139,10 +139,10 @@ export default function App() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
+      <div className="admin-shell grid min-h-screen place-items-center">
+        <div className="animate-scale-in admin-card w-full max-w-sm px-8 py-10 text-center">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--accent)]" />
+          <p className="text-sm font-medium text-[var(--text-muted)]">Loading admin…</p>
         </div>
       </div>
     );

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Bell, ChevronDown, LogOut, User, X } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User, X, Moon, Sun } from "lucide-react";
+import { useTheme } from "../context/ThemeContext.jsx";
 import { apiRequest, clearAdminToken } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
 import { resolveMediaUrl } from "../lib/media";
@@ -14,6 +15,7 @@ export default function AdminTopBar({
   onOpenProfileSettings,
 }) {
   const { admin, refreshAdmin, isSuperAdmin } = useAdmin();
+  const { isDark, toggleTheme } = useTheme();
   const theme = getTheme(isSuperAdmin);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -102,41 +104,41 @@ export default function AdminTopBar({
       >
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1
-              className={`text-2xl font-bold truncate ${isSuperAdmin ? "text-white" : "text-slate-900"}`}
-            >
+            <h1 className="truncate font-display text-2xl font-bold text-[var(--text-heading)]">
               {title}
             </h1>
             {activeSection === "dashboard" && (
-              <p
-                className={`text-sm mt-0.5 ${isSuperAdmin ? "text-cyan-200/80" : "text-slate-500"}`}
-              >
+              <p className="mt-0.5 text-sm text-[var(--text-muted)]">
                 {isSuperAdmin
                   ? "Command center — full platform oversight"
                   : "Platform overview and module shortcuts"}
               </p>
             )}
             {isSuperAdmin && isOperationsSection(activeSection) && (
-              <p className="text-sm mt-0.5 text-cyan-200/80">
+              <p className="mt-0.5 text-sm text-[var(--text-muted)]">
                 Platform Operations — same tools your admins use
               </p>
             )}
             {isSuperAdmin && activeSection === "team" && (
-              <p className="text-sm mt-0.5 text-cyan-200/80">
+              <p className="mt-0.5 text-sm text-[var(--text-muted)]">
                 Create and manage admin team accounts
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <button
               type="button"
               onClick={() => setShowNotifications(!showNotifications)}
-              className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${
-                isSuperAdmin
-                    ? "bg-cyan-900/40 hover:bg-cyan-800/50"
-                  : "bg-orange-50 hover:bg-orange-100"
-              }`}
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] transition-colors hover:border-[var(--accent-soft-border)]"
               title={`${unreadNotifications > 0 ? unreadNotifications : totalBadges} new notifications`}
             >
               <Bell
