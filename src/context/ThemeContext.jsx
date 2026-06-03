@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 
 const ThemeContext = createContext(null);
 
@@ -8,24 +8,16 @@ export const useTheme = () => {
   return ctx;
 };
 
+/** Single light theme — dark mode removed per product requirements. */
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem("fixitnow-admin-theme");
-    if (saved === "dark" || saved === "light") return saved;
-    return "light";
-  });
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("fixitnow-admin-theme", theme);
-  }, [theme]);
-
-  const toggleTheme = () =>
-    setTheme((t) => (t === "light" ? "dark" : "light"));
-
   return (
     <ThemeContext.Provider
-      value={{ theme, isDark: theme === "dark", toggleTheme, setTheme }}
+      value={{
+        theme: "light",
+        isDark: false,
+        toggleTheme: () => {},
+        setTheme: () => {},
+      }}
     >
       {children}
     </ThemeContext.Provider>

@@ -78,7 +78,6 @@ const normalizeWorker = (worker = {}) => ({
   longitude: worker.longitude ?? null,
   cnic: worker.cnicNumber || worker.cnic || '',
   profilePicture: worker.profilePicture || '',
-  verificationPhoto: worker.verificationPhoto || '',
   availability: worker.availability ?? true,
   status: worker.status || 'not_approved',
   isDisabled: worker.isDisabled ?? false,
@@ -581,7 +580,7 @@ export default function Workers() {
                         <MoreVertical size={16} />
                       </button>
                       {openActionMenuId === worker._id && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50">
+                        <div className="admin-action-menu">
                           <button
                             onClick={() => {
                               setOpenActionMenuId(null)
@@ -620,7 +619,7 @@ export default function Workers() {
         )}
       </div>
 
-      {totalPages > 1 && (
+      {totalItems > 0 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}
@@ -818,23 +817,7 @@ export default function Workers() {
               <DetailItem label="Worker Since" value={formatDateTime(viewingWorker.joinDate)} />
               <DetailItem label="Last Active" value={formatDateTime(viewingWorker.lastActive)} />
               <DetailItem label="Profile Picture" value={viewingWorker.profilePicture ? 'Uploaded' : 'N/A'} />
-              <DetailItem
-                label="Verification photo"
-                value={viewingWorker.verificationPhoto ? 'Uploaded' : 'Not submitted'}
-              />
             </div>
-            {viewingWorker.verificationPhoto && (
-              <div className="mt-4">
-                <p className="text-xs uppercase font-medium text-slate-500 mb-2">
-                  Passport-size verification photo
-                </p>
-                <img
-                  src={resolveMediaUrl(`/uploads/worker-verification/${viewingWorker.verificationPhoto}`)}
-                  alt="Worker verification"
-                  className="max-h-64 rounded-lg border object-contain"
-                />
-              </div>
-            )}
 
             <div className="flex gap-2 pt-6">
               <button

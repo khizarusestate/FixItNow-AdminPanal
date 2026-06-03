@@ -448,7 +448,7 @@ export default function Customers() {
           sortedCustomers.map((c) => (
             <div
               key={c.id}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 group"
+              className="admin-entity-card bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 group"
             >
               {/* Customer Header */}
               <div className="relative p-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
@@ -468,10 +468,10 @@ export default function Customers() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-slate-900 truncate group-hover:text-orange-600 transition-colors">
+                    <h3 className="card-title font-bold text-lg text-slate-900 truncate group-hover:text-orange-600 transition-colors">
                       {c.fullName}
                     </h3>
-                    <p className="text-sm text-slate-500 truncate">{c.email}</p>
+                    <p className="card-muted text-sm text-slate-500 truncate">{c.email}</p>
                     <p className="text-xs text-slate-500 mt-2">
                       Member since {formatDate(c.createdAt)}
                     </p>
@@ -549,7 +549,7 @@ export default function Customers() {
                         <MoreVertical size={16} />
                       </button>
                       {openActionMenuId === c.id && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50">
+                        <div className="admin-action-menu">
                           <button
                             onClick={() => {
                               setOpenActionMenuId(null);
@@ -588,7 +588,7 @@ export default function Customers() {
         )}
       </div>
 
-      {totalPages > 1 && (
+      {totalItems > 0 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}

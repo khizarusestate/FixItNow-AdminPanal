@@ -389,7 +389,7 @@ export default function Reviews() {
                         <MoreVertical size={20} />
                       </button>
                       {openActionMenuId === rid && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50 overflow-hidden">
+                        <div className="admin-action-menu overflow-hidden">
                           {effectiveStatus === 'pending' && (
                             <>
                               <button
@@ -433,7 +433,7 @@ export default function Reviews() {
         </div>
       )}
 
-      {totalPages > 1 && (
+      {totalItems > 0 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}

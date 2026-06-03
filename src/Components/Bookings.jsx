@@ -141,29 +141,6 @@ const getReceiptImageUrl = (receiptPath) => {
   return resolveMediaUrl(`/uploads/payment-receipts/${filename}`);
 };
 
-const isPayAfterWorkBooking = (booking) => {
-  const pd = booking?.paymentDetails;
-  if (!pd) return false;
-  return Boolean(
-    pd.payAfterWork ||
-      String(pd.paymentMethod || "").toLowerCase() === "pay-after-work",
-  );
-};
-
-const paymentMethodLabel = (key) => {
-  const k = String(key || "").toLowerCase();
-  const map = {
-    easypaisa: "EasyPaisa",
-    jazzcash: "JazzCash",
-    "bank-transfer": "Bank transfer",
-    "hand-to-hand": "Hand to hand",
-    "pay-after-work": "Payment after work",
-    "debit-card": "Debit card",
-    "credit-card": "Credit card",
-  };
-  return map[k] || k || "—";
-};
-
 function ReceiptPreview({
   receiptPath,
   thumbClassName = "h-20 w-20",
@@ -211,7 +188,6 @@ function ReceiptPreview({
 export default function Bookings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [paymentFilter, setPaymentFilter] = useState("all");
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -224,11 +200,11 @@ export default function Bookings() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [stats, setStats] = useState({
-    pending: 0,
-    approved: 0,
-    assigned: 0,
-    rejected: 0,
+    open: 0,
+    claimPending: 0,
+    workerAssigned: 0,
     completed: 0,
+    cancelled: 0,
   });
 
   const [viewModal, setViewModal] = useState({
@@ -262,7 +238,6 @@ export default function Bookings() {
         ...(filterStatus !== "all" && { status: filterStatus }),
         ...(dateFrom && { startDate: dateFrom }),
         ...(dateTo && { endDate: dateTo }),
-        ...(paymentFilter !== "all" && { paymentFilter }),
       };
 
       const response = await paginatedRequest("/admin/bookings", params);
@@ -311,14 +286,16 @@ export default function Bookings() {
 
       const statusOrder = (s) => {
         const order = {
-          pending: 0,
-          "pending-confirmation": 0,
+          "claim-pending": 0,
+          open: 1,
+          pending: 1,
           approved: 1,
+          "worker-assigned": 2,
           assigned: 2,
           "in-progress": 2,
           completed: 3,
+          cancelled: 4,
           rejected: 4,
-          cancelled: 5,
         };
         return order[s] ?? 99;
       };
@@ -341,7 +318,7 @@ export default function Bookings() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, sort, searchTerm, filterStatus, dateFrom, dateTo, paymentFilter]);
+  }, [page, limit, sort, searchTerm, filterStatus, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchBookings();
@@ -350,7 +327,7 @@ export default function Bookings() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, filterStatus, dateFrom, dateTo, paymentFilter]);
+  }, [searchTerm, filterStatus, dateFrom, dateTo]);
 
   useRefresh("bookings", fetchBookings);
 
@@ -477,48 +454,13 @@ export default function Bookings() {
     fetchBookings();
   };
 
-  const handlePaymentReceived = async (bookingId, received = true) => {
-    try {
-      setProcessing(bookingId);
-      await apiRequest(`/admin/bookings/${bookingId}/payment-received`, {
-        method: "PATCH",
-        body: JSON.stringify({ paymentReceived: received }),
-      });
-      await fetchBookings();
-      setViewModal((prev) => {
-        if (!prev.open || prev.booking?.id !== bookingId) return prev;
-        return {
-          ...prev,
-          booking: {
-            ...prev.booking,
-            paymentDetails: {
-              ...prev.booking.paymentDetails,
-              paymentReceived: received,
-            },
-          },
-        };
-      });
-      setError("");
-    } catch (err) {
-      setError(err?.message || "Failed to update payment status");
-    } finally {
-      setProcessing(null);
-    }
-  };
-
-  const PAYMENT_FILTER_OPTIONS = [
-    { value: "all", label: "All pay-after-work" },
-    { value: "pay-after-pending", label: "Pay-after: awaiting payment" },
-    { value: "pay-after-received", label: "Pay-after: payment received" },
-  ];
-
   const BOOKING_STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
-    { value: "pending", label: "Pending" },
-    { value: "approved", label: "Approved" },
-    { value: "assigned", label: "Worker Assigned" },
-    { value: "rejected", label: "Rejected" },
+    { value: "open", label: "Open" },
+    { value: "claim-pending", label: "Claim Pending" },
+    { value: "worker-assigned", label: "Worker Assigned" },
     { value: "completed", label: "Completed" },
+    { value: "cancelled", label: "Cancelled" },
   ];
 
   const getStatusConfig = (status) => {
@@ -561,53 +503,57 @@ export default function Bookings() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard
-          title="Pending"
-          value={stats.pending}
+          title="Open"
+          value={stats.open}
           icon={<Clock size={18} />}
           color="yellow"
-          active={filterStatus === "pending"}
+          active={filterStatus === "open"}
           onClick={() =>
-            setFilterStatus(filterStatus === "pending" ? "all" : "pending")
+            setFilterStatus(filterStatus === "open" ? "all" : "open")
           }
         />
         <StatCard
-          title="Approved"
-          value={stats.approved}
-          icon={<CheckCircle size={18} />}
-          color="green"
-          active={filterStatus === "approved"}
+          title="Claim Pending"
+          value={stats.claimPending}
+          icon={<AlertCircle size={18} />}
+          color="orange"
+          active={filterStatus === "claim-pending"}
           onClick={() =>
-            setFilterStatus(filterStatus === "approved" ? "all" : "approved")
+            setFilterStatus(
+              filterStatus === "claim-pending" ? "all" : "claim-pending",
+            )
           }
         />
         <StatCard
           title="Worker Assigned"
-          value={stats.assigned}
+          value={stats.workerAssigned}
           icon={<UserCheck size={18} />}
-          color="orange"
-          active={filterStatus === "assigned"}
+          color="purple"
+          active={filterStatus === "worker-assigned"}
           onClick={() =>
-            setFilterStatus(filterStatus === "assigned" ? "all" : "assigned")
+            setFilterStatus(
+              filterStatus === "worker-assigned" ? "all" : "worker-assigned",
+            )
           }
         />
         <StatCard
           title="Completed"
           value={stats.completed}
           icon={<CheckCircle size={18} />}
-          color="purple"
+          color="green"
           active={filterStatus === "completed"}
           onClick={() =>
             setFilterStatus(filterStatus === "completed" ? "all" : "completed")
           }
         />
         <StatCard
-          title="Rejected"
-          value={stats.rejected}
+          title="Cancelled"
+          value={stats.cancelled}
           icon={<XCircle size={18} />}
           color="red"
-          active={filterStatus === "rejected"}
+          active={filterStatus === "cancelled"}
           onClick={() =>
-            setFilterStatus(filterStatus === "rejected" ? "all" : "rejected")
+            setFilterStatus(filterStatus === "cancelled" ? "all" : "cancelled")
           }
         />
       </div>
@@ -631,21 +577,6 @@ export default function Bookings() {
         onSort={() => handleSort("createdAt")}
         sortLabel={sort.startsWith("-") ? "Newest first" : "Oldest first"}
       />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <label className="text-sm font-medium text-slate-700">Pay-after-work</label>
-        <select
-          value={paymentFilter}
-          onChange={(e) => setPaymentFilter(e.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
-        >
-          {PAYMENT_FILTER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {loading ? (
@@ -734,52 +665,14 @@ export default function Bookings() {
                       <span className="truncate">{booking.location}</span>
                     </div>
 
-                    {booking.paymentDetails?.paymentMethod && (
-                      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs text-slate-700">
-                        <Receipt
-                          size={14}
-                          className="shrink-0 text-orange-500"
-                        />
-                        <span className="font-medium text-slate-600">
-                          Paid via
-                        </span>
-                        <span className="font-semibold text-slate-900">
-                          {paymentMethodLabel(
-                            booking.paymentDetails.paymentMethod,
-                          )}
-                        </span>
-                      </div>
-                    )}
-
-                    {isPayAfterWorkBooking(booking) && (
-                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs">
-                        <p className="font-semibold text-amber-900">
-                          Payment after work
-                        </p>
-                        {booking.paymentDetails?.paymentReceived ? (
-                          <p className="mt-1 text-emerald-700 font-medium">
-                            Payment received by admin
-                          </p>
-                        ) : booking.workerMarkedDone ? (
-                          <p className="mt-1 text-amber-800">
-                            Awaiting customer payment
-                          </p>
-                        ) : (
-                          <p className="mt-1 text-amber-700">
-                            Confirm payment after worker marks done
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {booking.paymentDetails?.paymentReceipt && (
+                    {booking.paymentDetails?.commissionReceipt && (
                       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
                         <div className="flex min-w-0 flex-1 items-center gap-2 text-xs font-medium text-emerald-800">
                           <Receipt size={14} className="shrink-0" />
-                          <span className="truncate">Payment receipt</span>
+                          <span className="truncate">Commission receipt</span>
                         </div>
                         <ReceiptPreview
-                          receiptPath={booking.paymentDetails.paymentReceipt}
+                          receiptPath={booking.paymentDetails.commissionReceipt}
                           thumbClassName="h-16 w-16"
                         />
                       </div>
@@ -880,7 +773,7 @@ export default function Bookings() {
         )}
       </div>
 
-      {totalPages > 1 && (
+      {totalItems > 0 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}

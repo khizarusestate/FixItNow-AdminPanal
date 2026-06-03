@@ -177,7 +177,7 @@ export default function AdminsActivity() {
         )}
       </div>
 
-      {totalPages > 1 && (
+      {totalItems > 0 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}

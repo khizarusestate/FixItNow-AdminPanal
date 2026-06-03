@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
+import Pagination from "./Pagination";
 
 const EMPTY_FORM = {
   name: "",
@@ -40,6 +41,8 @@ export default function TeamManagement() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
   const [openActionMenuId, setOpenActionMenuId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(9);
 
   const fetchTeam = useCallback(async () => {
     try {
@@ -214,6 +217,14 @@ export default function TeamManagement() {
     return bTime - aTime;
   });
 
+  const totalItems = sortedAdmins.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+  const safePage = Math.min(page, totalPages);
+  const paginatedAdmins = sortedAdmins.slice(
+    (safePage - 1) * limit,
+    safePage * limit,
+  );
+
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     if (String(deleteTarget.id) === String(currentAdmin?.id)) {
@@ -329,7 +340,7 @@ export default function TeamManagement() {
             No admins found.
           </div>
         ) : (
-          sortedAdmins.map((member) => {
+          paginatedAdmins.map((member) => {
             const memberId = String(member.id || member._id || "");
             const isSelf = memberId === String(currentAdmin?.id || "");
             const isSuperRow = member.role === "super_admin";
@@ -403,7 +414,7 @@ export default function TeamManagement() {
                         <MoreVertical size={16} />
                       </button>
                       {openActionMenuId === memberId && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-10">
+                        <div className="admin-action-menu">
                           <button
                             type="button"
                             onClick={() => {
@@ -444,6 +455,20 @@ export default function TeamManagement() {
           })
         )}
       </div>
+
+      {totalItems > 0 && (
+        <Pagination
+          currentPage={safePage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          limit={limit}
+          onLimitChange={(n) => {
+            setLimit(n);
+            setPage(1);
+          }}
+          totalItems={totalItems}
+        />
+      )}
 
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">

@@ -489,7 +489,7 @@ export default function Advertisements() {
                         <MoreVertical size={20} />
                       </button>
                       {openActionMenuId === aid && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50 overflow-hidden">
+                        <div className="admin-action-menu overflow-hidden">
                           {effectiveStatus === "pending" && (
                             <>
                               <button
@@ -531,13 +531,16 @@ export default function Advertisements() {
             );
           })}
         </div>
-        {totalItems > limit && (
+        {totalItems > 0 && (
           <Pagination
             currentPage={safePage}
             totalPages={totalPages}
             onPageChange={setPage}
             limit={limit}
-            onLimitChange={(n) => { setLimit(n); setPage(1); }}
+            onLimitChange={(n) => {
+              setLimit(n);
+              setPage(1);
+            }}
             totalItems={totalItems}
           />
         )}

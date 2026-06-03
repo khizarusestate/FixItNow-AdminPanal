@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Bell, ChevronDown, LogOut, User, X, Moon, Sun } from "lucide-react";
-import { useTheme } from "../context/ThemeContext.jsx";
+import { Bell, ChevronDown, LogOut, User, X } from "lucide-react";
 import { apiRequest, clearAdminToken } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
 import { resolveMediaUrl } from "../lib/media";
@@ -15,7 +14,6 @@ export default function AdminTopBar({
   onOpenProfileSettings,
 }) {
   const { admin, refreshAdmin, isSuperAdmin } = useAdmin();
-  const { isDark, toggleTheme } = useTheme();
   const theme = getTheme(isSuperAdmin);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -127,14 +125,6 @@ export default function AdminTopBar({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
-              aria-label="Toggle theme"
-            >
-              {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
             <button
               type="button"
               onClick={() => setShowNotifications(!showNotifications)}
