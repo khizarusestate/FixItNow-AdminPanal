@@ -78,6 +78,7 @@ const normalizeWorker = (worker = {}) => ({
   longitude: worker.longitude ?? null,
   cnic: worker.cnicNumber || worker.cnic || '',
   profilePicture: worker.profilePicture || '',
+  verificationPhoto: worker.verificationPhoto || '',
   availability: worker.availability ?? true,
   status: worker.status || 'not_approved',
   isDisabled: worker.isDisabled ?? false,
@@ -554,6 +555,7 @@ export default function Workers() {
                     <>
                       <button
                         onClick={() => handleStatusChange(worker._id, 'approved')}
+                        title="Approve worker"
                         className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                         title="Approve"
                       >
@@ -816,7 +818,23 @@ export default function Workers() {
               <DetailItem label="Worker Since" value={formatDateTime(viewingWorker.joinDate)} />
               <DetailItem label="Last Active" value={formatDateTime(viewingWorker.lastActive)} />
               <DetailItem label="Profile Picture" value={viewingWorker.profilePicture ? 'Uploaded' : 'N/A'} />
+              <DetailItem
+                label="Verification photo"
+                value={viewingWorker.verificationPhoto ? 'Uploaded' : 'Not submitted'}
+              />
             </div>
+            {viewingWorker.verificationPhoto && (
+              <div className="mt-4">
+                <p className="text-xs uppercase font-medium text-slate-500 mb-2">
+                  Passport-size verification photo
+                </p>
+                <img
+                  src={resolveMediaUrl(`/uploads/worker-verification/${viewingWorker.verificationPhoto}`)}
+                  alt="Worker verification"
+                  className="max-h-64 rounded-lg border object-contain"
+                />
+              </div>
+            )}
 
             <div className="flex gap-2 pt-6">
               <button
