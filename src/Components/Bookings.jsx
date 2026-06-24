@@ -92,6 +92,8 @@ const STATUS_CONFIG = {
 
 const isAdminControlled = (status) => status === "pending";
 
+const isClaimPending = (status) => status === "claim-pending";
+
 const formatDate = (date) => {
   if (!date) return "N/A";
 
@@ -258,10 +260,19 @@ export default function Bookings() {
         response?.data?.bookings ||
         response?.data ||
         []
-      ).map((booking) => ({
+      ).map((booking) => {
+        const claimWorker = booking?.claimWorkerId;
+        const assignedWorker = booking?.workerId;
+        const workerRef =
+          booking?.status === "claim-pending" && claimWorker
+            ? claimWorker
+            : assignedWorker;
+
+        return {
         id: booking?._id || crypto.randomUUID(),
-        workerId: booking?.workerId?._id || booking?.workerId || null,
-        worker: booking?.workerId || null,
+        workerId: workerRef?._id || workerRef || null,
+        worker: workerRef || null,
+        claimWorkerId: claimWorker?._id || claimWorker || null,
         customer:
           booking?.customerName || booking?.customerId?.fullName || "N/A",
         email: booking?.email || booking?.customerId?.email || "N/A",
@@ -294,7 +305,8 @@ export default function Bookings() {
         updatedAt: booking?.updatedAt,
         date: formatDate(booking?.createdAt),
         time: formatTime(booking?.createdAt),
-      }));
+      };
+      });
 
       const statusOrder = (s) => {
         const order = {
@@ -341,6 +353,28 @@ export default function Bookings() {
 
   useRefresh("bookings", fetchBookings);
 
+  const handleClaimReview = async (id, action, reason = "") => {
+    try {
+      setProcessing(id);
+      await apiRequest(`/admin/bookings/${id}/claim-review`, {
+        method: "PATCH",
+        body: JSON.stringify({ action, reason }),
+      });
+      await fetchBookings();
+      setViewModal((prev) =>
+        prev.open && prev.booking?.id === id ? { open: false, booking: null } : prev,
+      );
+      setError("");
+    } catch (err) {
+      if (err?.details?.refreshRecommended) {
+        await fetchBookings();
+      }
+      setError(err?.message || "Failed to review claim");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   const handleStatusUpdate = async (id, status) => {
     if (!ADMIN_STATUSES.includes(status)) return;
 
@@ -361,7 +395,7 @@ export default function Bookings() {
         
         // After approval/rejection, the status will be changed by the endpoint
         // Refresh the booking data
-        await fetchData();
+        await fetchBookings();
         setViewModal(prev => prev.open ? { ...prev, open: false } : prev);
         return;
       }
@@ -506,6 +540,7 @@ export default function Bookings() {
   const BOOKING_STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
     { value: "pending", label: "Pending" },
+    { value: "claim-pending", label: "Claim Pending" },
     { value: "approved", label: "Approved" },
     { value: "assigned", label: "Worker Assigned" },
     { value: "rejected", label: "Rejected" },
@@ -878,6 +913,28 @@ export default function Bookings() {
                       </>
                     )}
 
+                    {isClaimPending(booking.status) && (
+                      <>
+                        <button
+                          onClick={() => handleClaimReview(booking.id, "approve")}
+                          disabled={processing === booking.id}
+                          className="rounded-xl bg-emerald-500 px-4 py-3 text-white transition-colors hover:bg-emerald-600 disabled:opacity-60"
+                          title="Approve commission claim"
+                        >
+                          <CheckCircle size={20} />
+                        </button>
+
+                        <button
+                          onClick={() => handleClaimReview(booking.id, "reject")}
+                          disabled={processing === booking.id}
+                          className="rounded-xl bg-red-500 px-4 py-3 text-white transition-colors hover:bg-red-600 disabled:opacity-60"
+                          title="Reject commission claim"
+                        >
+                          <XCircle size={20} />
+                        </button>
+                      </>
+                    )}
+
                     {isAdminControlled(booking.status) && (
                       <>
                         <button
@@ -935,6 +992,8 @@ export default function Bookings() {
           }
           onApprove={() => handleStatusUpdate(viewModal.booking.id, "approved")}
           onReject={() => handleStatusUpdate(viewModal.booking.id, "rejected")}
+          onApproveClaim={() => handleClaimReview(viewModal.booking.id, "approve")}
+          onRejectClaim={() => handleClaimReview(viewModal.booking.id, "reject")}
           onPaymentReceived={(received) =>
             handlePaymentReceived(viewModal.booking.id, received)
           }
@@ -1144,11 +1203,18 @@ function BookingModal({
   onClose,
   onApprove,
   onReject,
+  onApproveClaim,
+  onRejectClaim,
   onPaymentReceived,
 }) {
   const receiptUrl = getReceiptImageUrl(booking.paymentDetails?.paymentReceipt);
+  const commissionReceiptUrl = getReceiptImageUrl(
+    booking.paymentDetails?.commissionReceipt,
+  );
   const hasReceipt = Boolean(receiptUrl);
+  const hasCommissionReceipt = Boolean(commissionReceiptUrl);
   const isCompleted = booking.status === "completed";
+  const claimPending = isClaimPending(booking.status);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -1342,6 +1408,31 @@ function BookingModal({
             </div>
           )}
 
+          {hasCommissionReceipt && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Receipt size={18} className="text-amber-600" />
+                <h3 className="font-semibold text-slate-900">
+                  Commission Payment Receipt
+                </h3>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                  Worker claim
+                </span>
+              </div>
+              {booking.paymentDetails?.commissionTransactionId && (
+                <p className="mb-3 text-sm text-slate-600">
+                  <span className="font-medium">Transaction ID: </span>
+                  {booking.paymentDetails.commissionTransactionId}
+                </p>
+              )}
+              <ReceiptPreview
+                receiptPath={booking.paymentDetails?.commissionReceipt}
+                thumbClassName="block h-40 w-full sm:w-44 min-h-[160px]"
+                imgClassName="h-40 w-full object-contain bg-white p-1"
+              />
+            </div>
+          )}
+
           {hasReceipt && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
               <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -1420,6 +1511,25 @@ function BookingModal({
                 Payment received
               </button>
             )}
+          {claimPending && onApproveClaim && onRejectClaim && (
+            <>
+              <button
+                onClick={onApproveClaim}
+                disabled={processing === booking.id}
+                className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-emerald-600 disabled:opacity-60"
+              >
+                Approve claim
+              </button>
+
+              <button
+                onClick={onRejectClaim}
+                disabled={processing === booking.id}
+                className="rounded-xl bg-red-500 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-60"
+              >
+                Reject claim
+              </button>
+            </>
+          )}
           {isAdminControlled(booking.status) && (
             <>
               <button

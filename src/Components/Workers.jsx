@@ -78,6 +78,7 @@ const normalizeWorker = (worker = {}) => ({
   longitude: worker.longitude ?? null,
   cnic: worker.cnicNumber || worker.cnic || '',
   profilePicture: worker.profilePicture || '',
+  verificationPhoto: worker.verificationPhoto || '',
   availability: worker.availability ?? true,
   status: worker.status || 'not_approved',
   isDisabled: worker.isDisabled ?? false,
