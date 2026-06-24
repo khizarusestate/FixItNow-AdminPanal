@@ -19,6 +19,7 @@ import { AdminProvider } from "./context/AdminContext";
 import { useState, useEffect } from "react";
 import { isAdminAuthenticated, clearAdminToken } from "./lib/api";
 import { useAdmin } from "./context/AdminContext";
+import { getTheme } from "./config/theme";
 import LiveNotificationHost from "./Components/shared/LiveNotificationHost.jsx";
 
 function AppContent({ onLogout }) {
@@ -82,7 +83,7 @@ function AppContent({ onLogout }) {
   return (
     <div
       className={`min-h-screen admin-panel-container flex ${
-        isSuperAdmin ? "super-admin-panel bg-slate-950" : "bg-slate-50"
+        isSuperAdmin ? `super-admin-panel ${getTheme(true).pageBg}` : getTheme(false).pageBg
       }`}
     >
       <Sidebar
@@ -139,9 +140,9 @@ export default function App() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-violet-50/50 to-teal-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
           <p className="text-slate-600">Loading...</p>
         </div>
       </div>

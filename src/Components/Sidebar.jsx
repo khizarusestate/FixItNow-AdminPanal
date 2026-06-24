@@ -52,10 +52,8 @@ function NavButton({
           <span
             className={`flex h-5 min-w-5 items-center justify-center rounded-full text-[10px] font-bold px-1.5 ${
               isActive
-                ? "bg-white text-violet-700"
-                : isSuperAdmin
-                  ? "bg-violet-500 text-white animate-pulse"
-                  : "bg-orange-500 text-white animate-pulse"
+                ? theme.badgeActive
+                : `${theme.badge} text-white animate-pulse`
             }`}
           >
             {badgeCount > 9 ? "9+" : badgeCount}

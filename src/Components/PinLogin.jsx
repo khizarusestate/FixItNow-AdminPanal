@@ -84,16 +84,17 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
       markAdminCookieSession();
 
       if (response.admin) {
+        const expectedRole = loginAs === "super_admin" ? "super_admin" : "admin";
         const session = {
           id: String(response.admin.id),
           name: response.admin.name,
           email: response.admin.email,
           phone: response.admin.phone,
-          role: response.admin.role || loginAs,
+          role: response.admin.role || expectedRole,
           isActive: response.admin.isActive ?? true,
           loginAs,
         };
-        if (session.role !== loginAs) {
+        if (session.role !== expectedRole) {
           setError("This account cannot use this login portal.");
           setLoading(false);
           return;
@@ -121,7 +122,7 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
 
   if (!loginAs) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-orange-50/30 to-slate-100 flex items-center justify-center p-4">
+      <div className={`min-h-screen ${ADMIN_THEME.loginPageBg} flex items-center justify-center p-4`}>
         <div className="w-full max-w-lg">
           <div className="text-center mb-8">
             <AdminLogo size="xl" className="mx-auto mb-4" />
@@ -133,19 +134,19 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
             <button
               type="button"
               onClick={() => pickPortal("super_admin")}
-              className="group text-left rounded-2xl border-2 border-violet-300/60 bg-gradient-to-br from-slate-900 via-violet-950 to-indigo-950 p-6 shadow-xl shadow-violet-900/30 hover:scale-[1.02] transition-transform"
+              className={`group text-left rounded-2xl p-6 transition-transform ${SUPER_ADMIN_THEME.portalCard}`}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-violet-500/20 border border-violet-400/30">
-                  <Crown className="text-amber-300" size={28} />
+                <div className={`p-3 rounded-xl ${SUPER_ADMIN_THEME.portalIconBg}`}>
+                  <Crown className={SUPER_ADMIN_THEME.portalIcon} size={28} />
                 </div>
-                <Sparkles className="text-violet-400 ml-auto" size={20} />
+                <Sparkles className="text-fuchsia-400 ml-auto" size={20} />
               </div>
               <h2 className="text-lg font-bold text-white">Super Admin</h2>
-              <p className="text-sm text-violet-300/90 mt-2 leading-relaxed">
+              <p className="text-sm text-violet-200/90 mt-2 leading-relaxed">
                 Full control: all admin tools plus team management & platform settings.
               </p>
-              <p className="text-xs text-violet-400/70 mt-4 font-medium uppercase tracking-wider">
+              <p className="text-xs text-fuchsia-300/80 mt-4 font-medium uppercase tracking-wider">
                 Single owner account
               </p>
             </button>
@@ -153,18 +154,18 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
             <button
               type="button"
               onClick={() => pickPortal("admin")}
-              className="group text-left rounded-2xl border-2 border-orange-200 bg-white p-6 shadow-lg hover:border-orange-400 hover:scale-[1.02] transition-all"
+              className={`group text-left rounded-2xl p-6 hover:scale-[1.02] transition-all ${ADMIN_THEME.portalCard}`}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-orange-100">
-                  <Shield className="text-orange-600" size={28} />
+                <div className={`p-3 rounded-xl ${ADMIN_THEME.portalIconBg}`}>
+                  <Shield className={ADMIN_THEME.portalIcon} size={28} />
                 </div>
               </div>
               <h2 className="text-lg font-bold text-slate-900">Admin</h2>
               <p className="text-sm text-slate-500 mt-2 leading-relaxed">
                 Day-to-day operations: bookings, workers, customers, services & reviews.
               </p>
-              <p className="text-xs text-orange-500 mt-4 font-medium uppercase tracking-wider">
+              <p className={`text-xs ${ADMIN_THEME.accentText} mt-4 font-medium uppercase tracking-wider`}>
                 Team accounts
               </p>
             </button>
@@ -181,22 +182,14 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
   }
 
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center p-4 ${isSuperPortal ? theme.pageBg : "bg-slate-50"}`}
-    >
+    <div className={`min-h-screen flex items-center justify-center p-4 ${theme.loginPageBg}`}>
       <div className="w-full max-w-sm">
-        <div
-          className={`rounded-2xl p-8 border ${
-            isSuperPortal
-              ? "bg-slate-900/80 backdrop-blur border-violet-500/30 shadow-2xl shadow-violet-900/40"
-              : "bg-white shadow-lg border-slate-200"
-          }`}
-        >
+        <div className={`rounded-2xl p-8 border ${theme.loginCard}`}>
           <button
             type="button"
             onClick={() => setLoginAs(null)}
             className={`flex items-center gap-1 text-sm mb-6 ${
-              isSuperPortal ? "text-violet-300 hover:text-white" : "text-slate-500 hover:text-slate-800"
+              isSuperPortal ? "text-fuchsia-300 hover:text-white" : "text-slate-500 hover:text-slate-800"
             }`}
           >
             <ArrowLeft size={16} />
@@ -205,20 +198,16 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
 
           <div className="flex flex-col items-center mb-6">
             {isSuperPortal ? (
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-violet-600/30 to-indigo-600/20 border border-violet-500/30 mb-4">
-                <Crown size={40} className="text-amber-300" />
+              <div className={`p-4 rounded-2xl ${SUPER_ADMIN_THEME.portalIconBg} mb-4`}>
+                <Crown size={40} className={SUPER_ADMIN_THEME.portalIcon} />
               </div>
             ) : (
               <AdminLogo size="xl" className="mb-4" />
             )}
-            <h2
-              className={`text-xl font-bold ${isSuperPortal ? "text-white" : "text-slate-900"}`}
-            >
+            <h2 className={`text-xl font-bold ${isSuperPortal ? "text-white" : "text-slate-900"}`}>
               {theme.loginTitle}
             </h2>
-            <p
-              className={`text-sm mt-1 text-center ${isSuperPortal ? "text-violet-300/80" : "text-slate-500"}`}
-            >
+            <p className={`text-sm mt-1 text-center ${isSuperPortal ? theme.mutedText : "text-slate-500"}`}>
               {theme.loginSubtitle}
             </p>
           </div>
@@ -226,13 +215,13 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
           <form onSubmit={handleSubmit}>
             <div className="mb-5">
               <label
-                className={`block text-sm font-medium mb-2 ${isSuperPortal ? "text-violet-200" : "text-slate-700"}`}
+                className={`block text-sm font-medium mb-2 ${isSuperPortal ? "text-fuchsia-200" : "text-slate-700"}`}
               >
                 Email
               </label>
               <div className="relative">
                 <Mail
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 ${isSuperPortal ? "text-violet-400" : "text-slate-400"}`}
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 ${isSuperPortal ? "text-fuchsia-400" : "text-slate-400"}`}
                   size={18}
                 />
                 <input
@@ -243,8 +232,8 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border outline-none focus:ring-2 transition ${
                     isSuperPortal
-                      ? "bg-slate-800/80 border-violet-700/50 text-white placeholder:text-violet-500 focus:ring-violet-500"
-                      : "border-slate-300 focus:ring-orange-500 focus:border-orange-500"
+                      ? theme.inputRing
+                      : `border-slate-300 ${theme.inputRing}`
                   }`}
                 />
               </div>
@@ -252,7 +241,7 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
 
             <div className="mb-6">
               <label
-                className={`block text-sm font-medium mb-2 ${isSuperPortal ? "text-violet-200" : "text-slate-700"}`}
+                className={`block text-sm font-medium mb-2 ${isSuperPortal ? "text-fuchsia-200" : "text-slate-700"}`}
               >
                 8-digit PIN
               </label>
@@ -270,8 +259,8 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
                     disabled={loading}
                     className={`w-9 h-12 text-center text-xl font-semibold rounded-lg border focus:ring-2 transition ${
                       isSuperPortal
-                        ? "bg-slate-800 border-violet-700/60 text-white focus:ring-violet-500"
-                        : "border-slate-300 focus:ring-orange-500"
+                        ? "bg-slate-900 border-fuchsia-700/60 text-white focus:ring-fuchsia-400"
+                        : `border-slate-300 ${theme.inputRing}`
                     }`}
                   />
                 ))}

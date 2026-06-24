@@ -15,7 +15,7 @@ const FRIENDLY_BY_CODE = {
   ADMIN_DEACTIVATED:
     "Your admin account is Inactive. Contact the super admin.",
   WRONG_LOGIN_PORTAL:
-    "This account cannot use this login portal. Try the other login option.",
+    "Use the correct login portal for this account (Admin vs Super Admin).",
   TOKEN_EXPIRED: "Your session has expired. Please sign in again.",
   INVALID_TOKEN: "Your session is invalid. Please sign in again.",
 };

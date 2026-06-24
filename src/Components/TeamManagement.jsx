@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
+import { getTheme } from "../config/theme";
 import {
   ADMIN_STATUS,
   ADMIN_STATUS_SORT_ORDER,
@@ -38,6 +39,7 @@ const EMPTY_STATS = { total: 0, online: 0, offline: 0, active: 0, inactive: 0 };
 
 export default function TeamManagement() {
   const { admin: currentAdmin, isSuperAdmin } = useAdmin();
+  const theme = getTheme(isSuperAdmin);
   const [admins, setAdmins] = useState([]);
   const [stats, setStats] = useState(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
@@ -211,7 +213,7 @@ export default function TeamManagement() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Users className="text-orange-500" size={22} />
+            <Users className={theme.accentText} size={22} />
             Admin Accounts
           </h2>
           <p className="text-sm text-slate-500 mt-1">
@@ -221,7 +223,7 @@ export default function TeamManagement() {
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:from-orange-600 hover:to-orange-700 transition"
+          className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition ${theme.primary}`}
         >
           <UserPlus size={18} />
           Add Admin
@@ -305,14 +307,14 @@ export default function TeamManagement() {
                 className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-5"
               >
                 <div className="flex items-start gap-3">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold shrink-0">
+                  <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${theme.avatarGradient} flex items-center justify-center text-white font-semibold shrink-0`}>
                     {(member.name || "A").charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-slate-900 truncate">
                       {member.name}
                       {isSelf && (
-                        <span className="ml-2 text-[10px] font-bold uppercase text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">
+                        <span className={`ml-2 text-[10px] font-bold uppercase ${theme.accentText} ${theme.chip} px-1.5 py-0.5 rounded`}>
                           You
                         </span>
                       )}
@@ -459,7 +461,7 @@ export default function TeamManagement() {
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
+                <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${theme.avatarGradient} flex items-center justify-center text-white font-semibold`}>
                   {(viewTarget.name || "A").charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -622,7 +624,7 @@ export default function TeamManagement() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className={`flex-1 py-2.5 rounded-lg text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2 ${theme.primarySolid}`}
                 >
                   {saving && <Loader2 size={16} className="animate-spin" />}
                   {modal === "create" ? "Create" : "Save"}

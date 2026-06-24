@@ -56,7 +56,7 @@ export function getAdminStatusLine(member) {
 
 export function resolveLocalAdminStatus({ isActive = true, connected = false, lastLogin = null } = {}) {
   if (isActive === false) return ADMIN_STATUS.INACTIVE;
-  if (connected) return ADMIN_STATUS.ONLINE;
+  if (connected && lastLogin) return ADMIN_STATUS.ONLINE;
   if (lastLogin) return ADMIN_STATUS.OFFLINE;
   return ADMIN_STATUS.ACTIVE;
 }
