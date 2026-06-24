@@ -74,12 +74,22 @@ const saveBadgesToStorage = (badges) => {
   }
 };
 
+const dispatchTeamUpdated = () => {
+  window.dispatchEvent(new CustomEvent("admin-team-updated"));
+};
+
+const dispatchRefresh = (detail = {}) => {
+  window.dispatchEvent(new CustomEvent("admin-refresh", { detail }));
+};
+
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
+  const [adminJoined, setAdminJoined] = useState(false);
   const [badges, setBadges] = useState(loadBadgesFromStorage);
   const socketRef = useRef(null);
   const lastAdminStatusNotifyRef = useRef({ key: "", at: 0 });
+  const joinRetryTimerRef = useRef(null);
 
   const clearBadge = useCallback((type) => {
     setBadges((prev) => {
@@ -103,14 +113,36 @@ export function SocketProvider({ children }) {
   }, []);
 
   const joinAdminRooms = useCallback((sock) => {
-    if (!sock?.connected) return;
+    if (!sock?.connected) return false;
+
     const token = getToken();
+    const hasSession =
+      token || (USE_HTTPONLY_COOKIES && localStorage.getItem(SESSION_ROLE_KEY));
+
+    if (!hasSession) return false;
+
+    sock.auth = { ...(sock.auth || {}), token: token || "" };
     if (token) {
       sock.emit("join-admin", token);
-    } else if (USE_HTTPONLY_COOKIES && localStorage.getItem(SESSION_ROLE_KEY)) {
+    } else {
       sock.emit("join-admin");
     }
+    return true;
   }, []);
+
+  const scheduleJoinRetry = useCallback(
+    (sock) => {
+      if (joinRetryTimerRef.current) {
+        clearTimeout(joinRetryTimerRef.current);
+      }
+      joinRetryTimerRef.current = setTimeout(() => {
+        if (sock?.connected) {
+          joinAdminRooms(sock);
+        }
+      }, 2500);
+    },
+    [joinAdminRooms],
+  );
 
   const loadInitialBadges = useCallback(async () => {
     if (!getToken() && !(USE_HTTPONLY_COOKIES && localStorage.getItem(SESSION_ROLE_KEY))) {
@@ -130,7 +162,7 @@ export function SocketProvider({ children }) {
         return newBadges;
       });
     } catch {
-      // Ignore badge sync failures during initial connection
+      /* ignore */
     }
   }, []);
 
@@ -144,30 +176,61 @@ export function SocketProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const socketUrl = SOCKET_URL;
+    if (!SOCKET_URL) {
+      console.warn("Admin socket URL is not configured.");
+      return undefined;
+    }
 
-    const newSocket = io(socketUrl, {
+    const newSocket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
       autoConnect: true,
       reconnection: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 8000,
       withCredentials: true,
+      auth: { token: getToken() || "" },
     });
 
     socketRef.current = newSocket;
 
-    newSocket.on("connect", async () => {
+    const handleConnect = async () => {
       setConnected(true);
+      setAdminJoined(false);
       joinAdminRooms(newSocket);
+      scheduleJoinRetry(newSocket);
       await loadInitialBadges();
+    };
+
+    newSocket.on("connect", handleConnect);
+
+    newSocket.io.on("reconnect", () => {
+      setAdminJoined(false);
+      joinAdminRooms(newSocket);
+      scheduleJoinRetry(newSocket);
     });
 
     newSocket.on("disconnect", () => {
       setConnected(false);
+      setAdminJoined(false);
     });
 
     newSocket.on("connect_error", (error) => {
-      console.warn("Admin socket connect error:", error);
+      console.warn("Admin socket connect error:", error?.message || error);
+    });
+
+    newSocket.on("admin-joined", () => {
+      setAdminJoined(true);
+      if (joinRetryTimerRef.current) {
+        clearTimeout(joinRetryTimerRef.current);
+        joinRetryTimerRef.current = null;
+      }
+    });
+
+    newSocket.on("admin-join-error", (payload = {}) => {
+      console.warn("Admin socket join error:", payload?.message || payload);
+      setAdminJoined(false);
+      scheduleJoinRetry(newSocket);
     });
 
     newSocket.on("notification", (data) => {
@@ -216,6 +279,10 @@ export function SocketProvider({ children }) {
       );
     });
 
+    newSocket.on("refresh", (data = {}) => {
+      dispatchRefresh(data);
+    });
+
     newSocket.on("admin-force-logout", (payload) => {
       const myId = String(getStoredAdminSession()?.id || "");
       const targetId = String(payload?.adminId || "");
@@ -234,12 +301,12 @@ export function SocketProvider({ children }) {
     });
 
     newSocket.on("admin-team-updated", () => {
-      window.dispatchEvent(new CustomEvent("admin-team-updated"));
+      dispatchTeamUpdated();
     });
-    newSocket.on("admin-status-updated", async (payload = {}) => {
-      window.dispatchEvent(new CustomEvent("admin-team-updated"));
 
-      // Super admin live feed when an admin comes Online.
+    newSocket.on("admin-status-updated", async (payload = {}) => {
+      dispatchTeamUpdated();
+
       try {
         const me = getStoredAdminSession();
         if (me?.role !== "super_admin") return;
@@ -248,15 +315,13 @@ export function SocketProvider({ children }) {
         if (!adminId) return;
         let adminName = `Admin ${adminId.slice(-4)}`;
 
-        if (adminId) {
-          const res = await apiRequest("/admin/team");
-          const team = Array.isArray(res?.data) ? res.data : [];
-          const match = team.find(
-            (a) => String(a.id || a._id || "") === adminId,
-          );
-          if (!match) return;
-          if (match?.name) adminName = match.name;
-        }
+        const res = await apiRequest("/admin/team");
+        const team = Array.isArray(res?.data) ? res.data : [];
+        const match = team.find(
+          (a) => String(a.id || a._id || "") === adminId,
+        );
+        if (!match) return;
+        if (match?.name) adminName = match.name;
 
         const isOnlineNow = payload?.status === "online";
         if (!isOnlineNow) return;
@@ -280,32 +345,53 @@ export function SocketProvider({ children }) {
           }),
         );
       } catch {
-        /* ignore live status notification failures */
+        /* ignore */
       }
     });
+
     setSocket(newSocket);
 
     return () => {
+      if (joinRetryTimerRef.current) {
+        clearTimeout(joinRetryTimerRef.current);
+      }
       newSocket.disconnect();
       socketRef.current = null;
     };
-  }, [joinAdminRooms]);
+  }, [joinAdminRooms, loadInitialBadges, scheduleJoinRetry]);
 
   useEffect(() => {
     const onReconnectAuth = async () => {
-      if (socketRef.current?.connected) {
-        joinAdminRooms(socketRef.current);
+      const sock = socketRef.current;
+      if (!sock) return;
+      setAdminJoined(false);
+      if (sock.connected) {
+        joinAdminRooms(sock);
+        scheduleJoinRetry(sock);
         await loadInitialBadges();
+      } else {
+        sock.connect();
       }
     };
     window.addEventListener("admin-auth-restored", onReconnectAuth);
     return () =>
       window.removeEventListener("admin-auth-restored", onReconnectAuth);
-  }, [joinAdminRooms, loadInitialBadges]);
+  }, [joinAdminRooms, loadInitialBadges, scheduleJoinRetry]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      const sock = socketRef.current;
+      if (document.visibilityState === "visible" && sock?.connected) {
+        joinAdminRooms(sock);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [joinAdminRooms]);
 
   return (
     <SocketContext.Provider
-      value={{ socket, connected, badges, clearBadge, clearAllBadges }}
+      value={{ socket, connected, adminJoined, badges, clearBadge, clearAllBadges }}
     >
       {children}
     </SocketContext.Provider>
@@ -334,16 +420,29 @@ export function useRefresh(type, callback) {
   const { socket } = useSocket();
 
   useEffect(() => {
-    if (!socket) return;
+    if (!callback) return;
 
-    const handleRefresh = (data) => {
+    const handleRefresh = (data = {}) => {
       if (type === "all" || data.type === type || data.type === "all") {
         callback();
       }
     };
 
-    socket.on("refresh", handleRefresh);
-    return () => socket.off("refresh", handleRefresh);
+    const onWindowRefresh = (event) => {
+      handleRefresh(event.detail || {});
+    };
+
+    if (socket) {
+      socket.on("refresh", handleRefresh);
+    }
+    window.addEventListener("admin-refresh", onWindowRefresh);
+
+    return () => {
+      if (socket) {
+        socket.off("refresh", handleRefresh);
+      }
+      window.removeEventListener("admin-refresh", onWindowRefresh);
+    };
   }, [socket, type, callback]);
 }
 

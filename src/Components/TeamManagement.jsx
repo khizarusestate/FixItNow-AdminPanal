@@ -78,9 +78,13 @@ export default function TeamManagement() {
 
   useEffect(() => {
     const onTeamUpdated = () => fetchTeam();
+    const onRefresh = () => fetchTeam();
     window.addEventListener("admin-team-updated", onTeamUpdated);
-    return () =>
+    window.addEventListener("admin-refresh", onRefresh);
+    return () => {
       window.removeEventListener("admin-team-updated", onTeamUpdated);
+      window.removeEventListener("admin-refresh", onRefresh);
+    };
   }, [fetchTeam]);
 
   const openCreate = () => {

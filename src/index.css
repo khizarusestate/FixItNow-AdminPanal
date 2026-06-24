@@ -142,47 +142,17 @@
   }
 }
 
-/* Super admin: readable text in forms & white cards (avoid inherited light text) */
+/* Super admin panel — bright sky/white shell; cards stay readable */
 .super-admin-panel .super-admin-main {
-  color: rgb(226 232 240);
-}
-
-.super-admin-panel .super-admin-main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-.super-admin-panel .super-admin-main textarea,
-.super-admin-panel .super-admin-main select {
-  color: rgb(15 23 42) !important;
-  background-color: #fff !important;
-}
-
-.super-admin-panel .super-admin-main input::placeholder,
-.super-admin-panel .super-admin-main textarea::placeholder {
-  color: rgb(148 163 184) !important;
-}
-
-.super-admin-panel .super-admin-main .bg-white,
-.super-admin-panel .super-admin-main .bg-slate-50 {
   color: rgb(15 23 42);
 }
 
-.super-admin-panel .super-admin-main .bg-white .text-slate-900,
-.super-admin-panel .super-admin-main .bg-white .text-slate-800,
-.super-admin-panel .super-admin-main .bg-white .text-slate-700,
-.super-admin-panel .super-admin-main .bg-white .text-slate-600,
-.super-admin-panel .super-admin-main .bg-white .text-slate-500,
-.super-admin-panel .super-admin-main .bg-slate-50 .text-slate-900,
-.super-admin-panel .super-admin-main .bg-slate-50 .text-slate-800,
-.super-admin-panel .super-admin-main .bg-slate-50 .text-slate-700,
-.super-admin-panel .super-admin-main .bg-slate-50 .text-slate-600,
-.super-admin-panel .super-admin-main .bg-slate-50 .text-slate-500 {
-  color: inherit;
-}
-
 .super-admin-panel ::-webkit-scrollbar-track {
-  background: #1a0b2e;
+  background: #e0f2fe;
 }
 
 .super-admin-panel ::-webkit-scrollbar-thumb {
-  background: #a855f7;
+  background: #38bdf8;
 }
 
 @keyframes adminBootstrapProgressLtr {
