@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { AlertTriangle, Power, Loader } from 'lucide-react';
-import { apiRequestWithAuth } from '../lib/apiRequest';
+import { apiRequestWithAuth } from '../lib/api';
 
 export default function MaintenanceMode() {
   const [loading, setLoading] = useState(true);
