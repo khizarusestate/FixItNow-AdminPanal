@@ -24,7 +24,7 @@ import { getTheme } from "./config/theme";
 import LiveNotificationHost from "./Components/shared/LiveNotificationHost.jsx";
 
 function AppContent({ onLogout }) {
-  const { isSuperAdmin } = useAdmin();
+  const { isSuperAdmin, admin } = useAdmin();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [profileAutoEdit, setProfileAutoEdit] = useState(false);
 
