@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Bell, ChevronDown, LogOut, User, X } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User, X, AlertTriangle } from "lucide-react";
 import { apiRequest, clearAdminToken } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
 import { resolveMediaUrl } from "../lib/media";
@@ -149,6 +149,20 @@ export default function AdminTopBar({
                 </span>
               )}
             </button>
+
+            {/* Maintenance Mode Button (Super Admin Only) */}
+            {admin?.isSuperAdmin && (
+              <button
+                onClick={() => onNavigate?.("settings")}
+                className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${theme.iconButton} hover:bg-orange-100/20`}
+                title="Maintenance Mode Settings"
+              >
+                <AlertTriangle
+                  size={18}
+                  className="text-orange-500"
+                />
+              </button>
+            )}
 
             <div className="relative">
               <button

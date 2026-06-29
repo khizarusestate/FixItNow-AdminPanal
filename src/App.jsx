@@ -9,6 +9,7 @@ import Revenue from "./Components/Revenue";
 import Advertisements from "./Components/Advertisements";
 import Reviews from "./Components/Reviews";
 import AdminProfile from "./Components/AdminProfile";
+import AdminSettings from "./Components/AdminSettings";
 import TeamManagement from "./Components/TeamManagement";
 import AdminsActivity from "./Components/AdminsActivity";
 import ErrorBoundary from "./Components/ErrorBoundary";
@@ -69,6 +70,13 @@ function AppContent({ onLogout }) {
           <AdminProfile
             autoEdit={profileAutoEdit}
             onAutoEditConsumed={() => setProfileAutoEdit(false)}
+          />
+        );
+      case "settings":
+        return (
+          <AdminSettings
+            admin={admin}
+            onBack={() => setActiveSection("dashboard")}
           />
         );
       case "team":
