@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { AlertTriangle, Power, Loader } from 'lucide-react';
-import { apiRequestWithAuth } from '../lib/api';
+import { apiRequest } from '../lib/api';
 
 export default function MaintenanceMode() {
   const [loading, setLoading] = useState(true);
@@ -25,7 +25,7 @@ export default function MaintenanceMode() {
     try {
       setLoading(true);
       setError('');
-      const result = await apiRequestWithAuth('/admin/maintenance-mode', {
+      const result = await apiRequest('/admin/maintenance-mode', {
         method: 'GET',
       });
 
@@ -47,7 +47,7 @@ export default function MaintenanceMode() {
       setError('');
       setSuccess('');
 
-      const result = await apiRequestWithAuth('/admin/maintenance-mode', {
+      const result = await apiRequest('/admin/maintenance-mode', {
         method: 'PATCH',
         body: JSON.stringify({
           enabled: !maintenanceEnabled,
