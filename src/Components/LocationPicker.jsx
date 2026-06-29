@@ -234,7 +234,7 @@ export default function LocationPicker({
           type="button"
           disabled={disabled}
           onClick={() => setPickerMode("choosing")}
-          className="w-full rounded-xl border-2 border-dashed border-orange-300 bg-orange-50 px-4 py-4 text-sm font-semibold text-orange-700 hover:bg-orange-100 disabled:opacity-50"
+          className="w-full rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 px-4 py-4 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-50"
         >
           <MapPin size={18} className="inline mr-2 -mt-0.5" />
           Select Location
@@ -247,12 +247,12 @@ export default function LocationPicker({
             type="button"
             disabled={disabled || locating}
             onClick={handleUseMyLocation}
-            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:border-orange-400 hover:bg-orange-50 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50"
           >
             {locating ? (
-              <Loader2 size={18} className="animate-spin text-orange-500" />
+              <Loader2 size={18} className="animate-spin text-blue-500" />
             ) : (
-              <Navigation size={18} className="text-orange-500" />
+              <Navigation size={18} className="text-blue-500" />
             )}
             Use Current Location
           </button>
@@ -260,9 +260,9 @@ export default function LocationPicker({
             type="button"
             disabled={disabled}
             onClick={openMapMode}
-            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:border-orange-400 hover:bg-orange-50 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50"
           >
-            <Map size={18} className="text-orange-500" />
+            <Map size={18} className="text-blue-500" />
             Pick on Map
           </button>
         </div>
@@ -281,7 +281,7 @@ export default function LocationPicker({
                 value={searchQuery}
                 disabled={disabled}
                 placeholder="Search address or tap the map"
-                className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-3 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none disabled:bg-slate-100"
+                className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:bg-slate-100"
                 onChange={(e) => {
                   const v = e.target.value;
                   setSearchQuery(v);
@@ -303,7 +303,7 @@ export default function LocationPicker({
                     <li key={`${item.placeId}-${idx}`}>
                       <button
                         type="button"
-                        className="w-full px-3 py-2 text-left hover:bg-orange-50 text-slate-700"
+                        className="w-full px-3 py-2 text-left hover:bg-blue-50 text-slate-700"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => selectSuggestion(item)}
                       >

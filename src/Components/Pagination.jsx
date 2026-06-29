@@ -53,7 +53,7 @@ export default function Pagination({
         <select
           value={limit}
           onChange={(e) => onLimitChange(Number(e.target.value))}
-          className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 bg-white"
+          className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 bg-white"
         >
           <option value={5}>5</option>
           <option value={10}>10</option>
@@ -97,7 +97,7 @@ export default function Pagination({
                 onClick={() => handlePageChange(page)}
                 className={`min-w-[32px] px-2 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   currentPage === page
-                    ? 'bg-orange-500 text-white'
+                    ? 'bg-blue-500 text-white'
                     : 'border border-slate-200 hover:bg-slate-50 text-slate-700'
                 }`}
               >

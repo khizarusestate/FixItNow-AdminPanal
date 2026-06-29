@@ -19,7 +19,7 @@ export default function AdminSettings({ admin, onBack }) {
         <p className="text-slate-600 text-sm">Only super admin can access settings</p>
         <button
           onClick={onBack}
-          className="mt-4 text-orange-500 hover:text-orange-600 text-sm font-medium"
+          className="mt-4 text-blue-500 hover:text-blue-600 text-sm font-medium"
         >
           ← Go Back
         </button>
@@ -37,7 +37,7 @@ export default function AdminSettings({ admin, onBack }) {
         >
           <ArrowLeft size={20} className="text-slate-600" />
         </button>
-        <Settings size={28} className="text-orange-500" />
+        <Settings size={28} className="text-blue-500" />
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Admin Settings</h1>
           <p className="text-sm text-slate-600">Super admin control panel</p>
@@ -50,7 +50,7 @@ export default function AdminSettings({ admin, onBack }) {
           onClick={() => setActiveTab('maintenance')}
           className={`px-4 py-3 font-medium transition-colors border-b-2 ${
             activeTab === 'maintenance'
-              ? 'border-orange-500 text-orange-500'
+              ? 'border-blue-500 text-blue-500'
               : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >

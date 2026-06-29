@@ -136,7 +136,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
         <div className="flex h-full flex-col">
           <div
             className={`p-6 border-b flex flex-col items-center gap-2 ${
-              isSuperAdmin ? "border-violet-800/40" : "border-orange-200"
+              isSuperAdmin ? "border-violet-800/40" : "border-blue-200"
             }`}
           >
             {isSuperAdmin ? (
@@ -244,7 +244,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
 
           <div
             className={`p-4 border-t flex justify-center ${
-              isSuperAdmin ? "border-violet-800/40" : "border-orange-200"
+              isSuperAdmin ? "border-violet-800/40" : "border-blue-200"
             }`}
           >
             {!isSuperAdmin && <AdminLogo size="sm" />}
@@ -255,7 +255,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
       {isMobileMenuOpen && (
         <div
           className={`fixed inset-0 z-30 backdrop-blur-sm lg:hidden ${
-            isSuperAdmin ? "bg-black/50" : "bg-orange-900/20"
+            isSuperAdmin ? "bg-black/50" : "bg-blue-900/20"
           }`}
           onClick={() => setIsMobileMenuOpen(false)}
           role="presentation"

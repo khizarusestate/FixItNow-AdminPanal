@@ -287,7 +287,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-slate-500 mt-4">Loading profile...</p>
       </div>
     )
@@ -317,7 +317,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
         {/* Profile Card */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-b border-orange-200">
+            <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-b border-blue-200">
               <div className="text-center">
                 <div className="relative inline-block">
                   {resolveMediaUrl(profile.profilePicture) ? (
@@ -329,13 +329,13 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                       className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-lg">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-lg">
                       {profile.name?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                   )}
                   
                   {editing && (
-                    <label className="absolute bottom-0 right-0 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-600 transition-colors shadow-lg">
+                    <label className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors shadow-lg">
                       <Camera size={16} className="text-white" />
                       <input
                         type="file"
@@ -351,8 +351,8 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                 <p className="text-sm text-slate-600">{roleLabel(profile.role)}</p>
                 
                 <div className="flex items-center justify-center gap-2 mt-3">
-                  <Shield size={16} className="text-orange-600" />
-                  <span className="text-sm font-medium text-orange-600">
+                  <Shield size={16} className="text-blue-600" />
+                  <span className="text-sm font-medium text-blue-600">
                     {profile.role === 'super_admin' ? 'Super Administrator' : 'Administrator'}
                   </span>
                 </div>
@@ -369,7 +369,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                   aria-label="Notifications"
                   disabled={pushBusy || !isPushSupported()}
                   onClick={handleToggleDevicePush}
-                  className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${devicePushEnabled ? 'bg-orange-500' : 'bg-slate-300'}`}
+                  className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${devicePushEnabled ? 'bg-blue-500' : 'bg-slate-300'}`}
                 >
                   <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform mt-0.5 ${devicePushEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                 </button>
@@ -400,13 +400,13 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
             <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                  <User size={20} className="text-orange-600" />
+                  <User size={20} className="text-blue-600" />
                   {editing ? 'Edit Profile' : 'Profile Information'}
                 </h2>
                 {!editing && (
                   <button
                     onClick={handleEdit}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
                   >
                     <Edit size={16} />
                     Edit Profile
@@ -428,7 +428,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           type="text"
                           value={editForm.name}
                           onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                           placeholder="Enter your full name"
                         />
                       </div>
@@ -438,7 +438,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           type="email"
                           value={editForm.email}
                           onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                           placeholder="Enter your email"
                         />
                       </div>
@@ -448,7 +448,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           type="tel"
                           value={editForm.phone}
                           onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                           placeholder="Enter your phone number"
                         />
                       </div>
@@ -468,7 +468,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                   {/* Password Change */}
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                      <Lock size={20} className="text-orange-600" />
+                      <Lock size={20} className="text-blue-600" />
                       Change Password
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">Leave blank if you don't want to change password</p>
@@ -479,7 +479,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           type={showPassword ? "text" : "password"}
                           value={editForm.currentPassword}
                           onChange={(e) => setEditForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                          className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                          className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                           placeholder="Enter current password"
                         />
                         <button
@@ -496,7 +496,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           type={showNewPassword ? "text" : "password"}
                           value={editForm.newPassword}
                           onChange={(e) => setEditForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                          className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                          className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                           placeholder="Enter new password"
                         />
                         <button
@@ -513,7 +513,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                           type={showNewPassword ? "text" : "password"}
                           value={editForm.confirmPassword}
                           onChange={(e) => setEditForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                          className="w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                           placeholder="Confirm new password"
                         />
                         <button
@@ -532,7 +532,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                       {saving ? (
                         <>

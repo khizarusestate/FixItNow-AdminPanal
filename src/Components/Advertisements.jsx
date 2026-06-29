@@ -180,7 +180,7 @@ export default function Advertisements() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Megaphone size={28} className="text-orange-500" />
+            <Megaphone size={28} className="text-blue-500" />
             Advertisements
           </h2>
           <p className="text-sm text-slate-500 mt-1">
@@ -271,7 +271,7 @@ export default function Advertisements() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, email, phone, or purpose..."
-            className="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+            className="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
           {searchTerm && (
             <button
@@ -295,7 +295,7 @@ export default function Advertisements() {
       {/* Loading */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <Loader2 size={40} className="animate-spin text-orange-500 mb-3" />
+          <Loader2 size={40} className="animate-spin text-blue-500 mb-3" />
           <p className="text-slate-500">Loading advertisements...</p>
         </div>
       ) : filteredAds.length === 0 ? (
@@ -327,7 +327,7 @@ export default function Advertisements() {
             return (
               <div
                 key={aid}
-                className="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-lg"
+                className="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg"
               >
                 <div className="flex flex-1 flex-col p-5 sm:p-6">
                   <div className="mb-4 flex items-start justify-between gap-3">
@@ -336,7 +336,7 @@ export default function Advertisements() {
                         <img
                           src={picUrl}
                           alt=""
-                          className="h-12 w-12 shrink-0 rounded-full border-2 border-orange-100 object-cover"
+                          className="h-12 w-12 shrink-0 rounded-full border-2 border-blue-100 object-cover"
                           onError={() =>
                             setBrokenAvatars((prev) => ({
                               ...prev,
@@ -345,7 +345,7 @@ export default function Advertisements() {
                           }
                         />
                       ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-lg font-bold text-white">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-lg font-bold text-white">
                           {ad.name?.charAt(0)?.toUpperCase() || "?"}
                         </div>
                       )}
@@ -365,25 +365,25 @@ export default function Advertisements() {
 
                   <div className="flex flex-1 flex-col space-y-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-700">
-                      <FileText size={16} className="text-orange-500" />
+                      <FileText size={16} className="text-blue-500" />
                       <span className="truncate">{ad.purpose}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-700">
-                      <Phone size={16} className="text-orange-500" />
+                      <Phone size={16} className="text-blue-500" />
                       <span>{ad.phone}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-700">
-                      <Clock size={16} className="text-orange-500" />
+                      <Clock size={16} className="text-blue-500" />
                       <span>{ad.duration || "1 week"}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-700">
                       {ad.adType === "image" ? (
-                        <ImageIcon size={16} className="text-orange-500" />
+                        <ImageIcon size={16} className="text-blue-500" />
                       ) : (
-                        <Video size={16} className="text-orange-500" />
+                        <Video size={16} className="text-blue-500" />
                       )}
                       <span>{ad.adType === "image" ? "Image" : "Video"}</span>
                     </div>
@@ -564,7 +564,7 @@ export default function Advertisements() {
               onChange={(e) => setReviewNote(e.target.value)}
               placeholder="Enter a reason for rejection..."
               rows={3}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none mb-4"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none mb-4"
             />
             <div className="flex gap-3">
               <button
@@ -605,9 +605,9 @@ export default function Advertisements() {
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
               <div className="flex items-center gap-2">
                 {previewModal.adType === "image" ? (
-                  <ImageIcon size={18} className="text-orange-500" />
+                  <ImageIcon size={18} className="text-blue-500" />
                 ) : (
-                  <Video size={18} className="text-orange-500" />
+                  <Video size={18} className="text-blue-500" />
                 )}
                 <span className="text-sm font-semibold text-slate-900">
                   {previewModal.name}'s Advertisement
@@ -660,8 +660,8 @@ export default function Advertisements() {
                           }
                           className={`w-2 h-2 rounded-full transition-all ${
                             (previewModal.previewIndex || 0) === idx
-                              ? "bg-orange-500 w-6"
-                              : "bg-orange-200 hover:bg-orange-300"
+                              ? "bg-blue-500 w-6"
+                              : "bg-blue-200 hover:bg-blue-300"
                           }`}
                         />
                       ))}

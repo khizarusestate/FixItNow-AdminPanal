@@ -148,7 +148,7 @@ export default function Dashboard({ onNavigate }) {
                     item.id === 'customers' ? 'bg-emerald-100 text-emerald-600 group-hover:bg-emerald-200' :
                     item.id === 'services' ? 'bg-rose-100 text-rose-600 group-hover:bg-rose-200' :
                     item.id === 'team' ? 'bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200' :
-                    'bg-orange-100 text-orange-600 group-hover:bg-orange-200'
+                    'bg-blue-100 text-blue-600 group-hover:bg-blue-200'
                   }`}>
                     <Icon size={20} />
                   </div>
@@ -169,7 +169,7 @@ export default function Dashboard({ onNavigate }) {
                     item.id === 'customers' ? 'text-emerald-400 group-hover:text-emerald-600' :
                     item.id === 'services' ? 'text-rose-400 group-hover:text-rose-600' :
                     item.id === 'team' ? 'text-indigo-400 group-hover:text-indigo-600' :
-                    'text-slate-300 group-hover:text-orange-500'
+                    'text-slate-300 group-hover:text-blue-500'
                   }`}
                 />
               </button>

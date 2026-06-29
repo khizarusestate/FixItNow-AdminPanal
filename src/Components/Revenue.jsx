@@ -107,7 +107,7 @@ export default function Revenue() {
   if (loading) {
     return (
       <div className="flex flex-col items-center py-20">
-        <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-slate-500 mt-4">Loading revenue data...</p>
       </div>
     )
@@ -130,14 +130,14 @@ export default function Revenue() {
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
           >
             <option value="day">Today</option>
             <option value="week">This Week</option>
             <option value="month">This Month</option>
             <option value="year">This Year</option>
           </select>
-          <button onClick={handleExportReport} className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center">
+          <button onClick={handleExportReport} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
             <Download size={20} />
           </button>
         </div>
@@ -218,7 +218,7 @@ export default function Revenue() {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div className="p-6 border-b border-slate-200">
           <h2 className="text-lg font-semibold text-slate-950 flex items-center gap-2">
-            <PieChart size={20} className="text-orange-600" />
+            <PieChart size={20} className="text-blue-600" />
             Service Revenue Breakdown
           </h2>
           <p className="text-sm text-slate-600 mt-1">Revenue distribution by service category</p>
@@ -255,7 +255,7 @@ export default function Revenue() {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div className="p-6 border-b border-slate-200">
           <h2 className="text-lg font-semibold text-slate-950 flex items-center gap-2">
-            <DollarSign size={20} className="text-orange-600" />
+            <DollarSign size={20} className="text-blue-600" />
             Recent Transactions
           </h2>
           <p className="text-sm text-slate-600 mt-1">Latest customer payments and earnings</p>

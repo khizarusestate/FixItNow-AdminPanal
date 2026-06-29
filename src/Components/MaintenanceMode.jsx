@@ -77,7 +77,7 @@ export default function MaintenanceMode() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader size={24} className="animate-spin text-orange-500" />
+        <Loader size={24} className="animate-spin text-blue-500" />
       </div>
     );
   }
@@ -137,7 +137,7 @@ export default function MaintenanceMode() {
             value={message}
             onChange={handleMessageChange}
             placeholder="Enter message users will see..."
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={3}
           />
           <p className="text-xs text-slate-500">
@@ -152,7 +152,7 @@ export default function MaintenanceMode() {
           className={`w-full flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium text-white transition-colors ${
             maintenanceEnabled
               ? 'bg-red-600 hover:bg-red-700 disabled:bg-red-400'
-              : 'bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400'
+              : 'bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400'
           }`}
         >
           {saving ? (

@@ -59,7 +59,7 @@ const STATUS_CONFIG = {
     label: "Approved",
   },
   "pending-confirmation": {
-    color: "bg-orange-100 text-orange-700 border-orange-200",
+    color: "bg-blue-100 text-blue-700 border-blue-200",
     icon: AlertCircle,
     label: "Pending Confirmation",
   },
@@ -610,7 +610,7 @@ export default function Bookings() {
           title="Worker Assigned"
           value={stats.assigned}
           icon={<UserCheck size={18} />}
-          color="orange"
+          color="blue"
           active={filterStatus === "assigned"}
           onClick={() =>
             setFilterStatus(filterStatus === "assigned" ? "all" : "assigned")
@@ -663,7 +663,7 @@ export default function Bookings() {
         <select
           value={paymentFilter}
           onChange={(e) => setPaymentFilter(e.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
         >
           {PAYMENT_FILTER_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -709,7 +709,7 @@ export default function Bookings() {
             return (
               <div
                 key={booking.id}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-orange-200 hover:shadow-lg"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
               >
                 <div className="p-6">
                   <div className="mb-5 flex items-start justify-between gap-3">
@@ -719,10 +719,10 @@ export default function Bookings() {
                           src={booking.customerProfilePicture}
                           alt={booking.customer}
                           referrerPolicy="no-referrer"
-                          className="h-12 w-12 rounded-full border-2 border-orange-100 object-cover"
+                          className="h-12 w-12 rounded-full border-2 border-blue-100 object-cover"
                         />
                       ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-lg font-bold text-white">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-lg font-bold text-white">
                           {booking.customer?.charAt(0)?.toUpperCase() || "?"}
                         </div>
                       )}
@@ -751,12 +751,12 @@ export default function Bookings() {
 
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-700">
-                      <Wrench size={16} className="text-orange-500" />
+                      <Wrench size={16} className="text-blue-500" />
                       <span className="truncate">{booking.service}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-700">
-                      <MapPin size={16} className="text-orange-500" />
+                      <MapPin size={16} className="text-blue-500" />
                       <span className="truncate">{booking.location}</span>
                     </div>
 
@@ -764,7 +764,7 @@ export default function Bookings() {
                       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs text-slate-700">
                         <Receipt
                           size={14}
-                          className="shrink-0 text-orange-500"
+                          className="shrink-0 text-blue-500"
                         />
                         <span className="font-medium text-slate-600">
                           Paid via
@@ -1235,7 +1235,7 @@ function BookingModal({
                   size={20}
                 />
                 <span className="text-slate-600">
-                  <span className="text-orange-600 font-medium">Orange</span> = customer
+                  <span className="text-blue-600 font-medium">Orange</span> = customer
                   {" · "}
                   <span className="text-blue-600 font-medium">Blue</span> = worker
                 </span>
@@ -1603,7 +1603,7 @@ function RankingModal({ rankingModal, onClose, onAssign, assigning }) {
                 >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 font-bold text-white">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 font-bold text-white">
                         {index + 1}
                       </div>
 
@@ -1643,7 +1643,7 @@ function RankingModal({ rankingModal, onClose, onAssign, assigning }) {
                         onClick={() =>
                           onAssign?.(bookingId, worker._id || worker.id)
                         }
-                        className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+                        className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 disabled:opacity-60"
                       >
                         {assigning ? "Assigning..." : "Assign this worker"}
                       </button>

@@ -2,8 +2,8 @@ import { Bell } from "lucide-react";
 
 const VARIANT_STYLES = {
   admin: {
-    panel: "bg-orange-500 border-orange-600",
-    action: "bg-white text-orange-600 hover:bg-orange-50",
+    panel: "bg-blue-500 border-blue-600",
+    action: "bg-white text-blue-600 hover:bg-blue-50",
     dismiss: "bg-white/20 hover:bg-white/30 text-white",
   },
   super_admin: {

@@ -193,7 +193,7 @@ export default function Services() {
         </div>
         <button 
           onClick={handleAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
           <Plus size={20} />
           Add Service
@@ -223,7 +223,7 @@ export default function Services() {
               placeholder="Search services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
             />
           </div>
           <button
@@ -268,8 +268,8 @@ export default function Services() {
             </div>
 
             <div className="text-center">
-              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full">
-                <DollarSign className="text-orange-600" size={32} />
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full">
+                <DollarSign className="text-blue-600" size={32} />
               </div>
               <p className="text-2xl font-bold text-slate-950">₨{avgPrice.toLocaleString()}</p>
               <p className="text-sm text-slate-600">Avg Price</p>
@@ -294,7 +294,7 @@ export default function Services() {
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
                       <span className="text-xl font-bold">{service.name?.[0] || 'S'}</span>
                     </div>
                     <div>
@@ -309,7 +309,7 @@ export default function Services() {
                 <p className="text-sm text-slate-600 mb-2 line-clamp-2">{service.description}</p>
                 <p className="text-xs text-slate-500 mb-2">{service.category || 'N/A'}</p>
                 {service.estimatedDuration && (
-                  <p className="text-xs text-orange-600 mb-2">⏱️ {service.estimatedDuration}</p>
+                  <p className="text-xs text-blue-600 mb-2">⏱️ {service.estimatedDuration}</p>
                 )}
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -341,7 +341,7 @@ export default function Services() {
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => handleEdit(service)}
-                    className="flex-1 px-3 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-1"
                   >
                     <Edit size={16} />
                   </button>
@@ -401,7 +401,7 @@ export default function Services() {
                       icon: pickServiceIcon(name, prev.category),
                     }))
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                   placeholder="e.g. Electrical Repair"
                 />
               </div>
@@ -412,7 +412,7 @@ export default function Services() {
                   required
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400 h-20 resize-none"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 h-20 resize-none"
                   placeholder="Describe the service..."
                 />
               </div>
@@ -430,7 +430,7 @@ export default function Services() {
                       icon: pickServiceIcon(prev.name, category),
                     }))
                   }}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                 >
                   <option value="">Select Category</option>
                   {(categories.length ? categories : FALLBACK_CATEGORIES).map(cat => (
@@ -446,7 +446,7 @@ export default function Services() {
                   min="0"
                   value={formData.price}
                   onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                   placeholder="1500"
                 />
               </div>
@@ -456,7 +456,7 @@ export default function Services() {
                 <select
                   value={formData.icon}
                   onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                 >
                   {SERVICE_ICON_OPTIONS.map(icon => (
                     <option key={icon} value={icon}>{icon}</option>
@@ -471,7 +471,7 @@ export default function Services() {
                   type="text"
                   value={formData.estimatedDuration}
                   onChange={(e) => setFormData(prev => ({ ...prev, estimatedDuration: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                   placeholder="e.g., 2-3 hours"
                 />
               </div>
@@ -482,7 +482,7 @@ export default function Services() {
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                  className="w-4 h-4 text-orange-500 border-slate-300 rounded focus:ring-orange-500"
+                  className="w-4 h-4 text-blue-500 border-slate-300 rounded focus:ring-blue-500"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium text-slate-700">
                   Active Service
@@ -499,7 +499,7 @@ export default function Services() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                 >
                   {editingService ? 'Update' : 'Create'}
                 </button>

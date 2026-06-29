@@ -114,7 +114,7 @@ export default function AdminNotificationSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader size={24} className="animate-spin text-orange-500" />
+        <Loader size={24} className="animate-spin text-blue-500" />
       </div>
     );
   }
@@ -123,7 +123,7 @@ export default function AdminNotificationSettings() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Bell className="text-orange-500" size={24} />
+        <Bell className="text-blue-500" size={24} />
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Notification Settings</h2>
           <p className="text-sm text-slate-600">Control your notification preferences</p>
@@ -159,7 +159,7 @@ export default function AdminNotificationSettings() {
               type="checkbox"
               checked={settings.pushEnabled}
               onChange={(e) => handleToggle('pushEnabled', e.target.checked)}
-              className="w-5 h-5 rounded border-slate-300 text-orange-500"
+              className="w-5 h-5 rounded border-slate-300 text-blue-500"
             />
           </label>
         </div>
@@ -175,7 +175,7 @@ export default function AdminNotificationSettings() {
               type="checkbox"
               checked={settings.inAppEnabled}
               onChange={(e) => handleToggle('inAppEnabled', e.target.checked)}
-              className="w-5 h-5 rounded border-slate-300 text-orange-500"
+              className="w-5 h-5 rounded border-slate-300 text-blue-500"
             />
           </label>
         </div>
@@ -194,7 +194,7 @@ export default function AdminNotificationSettings() {
                   type="checkbox"
                   checked={settings.notificationTypes[notifType] ?? true}
                   onChange={(e) => handleToggle(notifType, e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-orange-500"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-500"
                 />
                 <span className="text-slate-700">
                   {adminNotificationLabels[notifType]}
@@ -210,7 +210,7 @@ export default function AdminNotificationSettings() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-3 font-medium text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-3 font-medium text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {saving ? (
             <>

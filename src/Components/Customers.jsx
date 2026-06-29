@@ -448,13 +448,13 @@ export default function Customers() {
           sortedCustomers.map((c) => (
             <div
               key={c.id}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 group"
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 group"
             >
               {/* Customer Header */}
               <div className="relative p-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
                 <div className="flex items-start gap-4">
                   {resolveMediaUrl(c.profilePicture) ? (
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-orange-100 shadow-sm flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-100 shadow-sm flex-shrink-0">
                       <img
                         src={resolveMediaUrl(c.profilePicture)}
                         alt={c.fullName}
@@ -463,12 +463,12 @@ export default function Customers() {
                       />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-2xl font-bold shadow-sm border-2 border-orange-100 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-sm border-2 border-blue-100 flex-shrink-0">
                       {c.fullName?.charAt(0)?.toUpperCase() || "?"}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-slate-900 truncate group-hover:text-orange-600 transition-colors">
+                    <h3 className="font-bold text-lg text-slate-900 truncate group-hover:text-blue-600 transition-colors">
                       {c.fullName}
                     </h3>
                     <p className="text-sm text-slate-500 truncate">{c.email}</p>
@@ -626,10 +626,10 @@ export default function Customers() {
                     crossOrigin="anonymous"
                     referrerPolicy="no-referrer"
                     alt={viewModal.customer.fullName}
-                    className="h-20 w-20 rounded-full object-cover border-2 border-orange-200"
+                    className="h-20 w-20 rounded-full object-cover border-2 border-blue-200"
                   />
                 ) : (
-                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-3xl font-bold">
+                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
                     {viewModal.customer.fullName?.charAt(0)?.toUpperCase() ||
                       "?"}
                   </div>
@@ -787,7 +787,7 @@ export default function Customers() {
                       customer: { ...prev.customer, fullName: e.target.value },
                     }))
                   }
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                 />
               </div>
 
@@ -804,7 +804,7 @@ export default function Customers() {
                       customer: { ...prev.customer, email: e.target.value },
                     }))
                   }
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                 />
               </div>
 
@@ -821,7 +821,7 @@ export default function Customers() {
                       customer: { ...prev.customer, phone: e.target.value },
                     }))
                   }
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                 />
               </div>
 
@@ -847,7 +847,7 @@ export default function Customers() {
                         customer: { ...prev.customer, status: e.target.value },
                       }))
                     }
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                   >
                     <option value="approved">Approved</option>
                     <option value="not_approved">Pending</option>
@@ -868,7 +868,7 @@ export default function Customers() {
                         },
                       }))
                     }
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-400 outline-none"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                   >
                     <option value={true}>Yes</option>
                     <option value={false}>No</option>
@@ -887,7 +887,7 @@ export default function Customers() {
               <button
                 onClick={handleSaveEdit}
                 disabled={saving}
-                className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {saving ? (
                   <Loader2 size={18} className="animate-spin" />

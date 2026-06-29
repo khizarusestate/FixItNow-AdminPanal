@@ -180,7 +180,7 @@ export default function AdminNotificationBell() {
             <div className="p-3 border-t border-slate-200 text-center">
               <a
                 href="/admin/notifications"
-                className="text-sm font-medium text-orange-500 hover:text-orange-600"
+                className="text-sm font-medium text-blue-500 hover:text-blue-600"
               >
                 View All Notifications →
               </a>

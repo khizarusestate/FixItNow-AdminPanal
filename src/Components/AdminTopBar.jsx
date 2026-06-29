@@ -151,15 +151,15 @@ export default function AdminTopBar({
             </button>
 
             {/* Maintenance Mode Button (Super Admin Only) */}
-            {admin?.isSuperAdmin && (
+            {isSuperAdmin && (
               <button
                 onClick={() => onNavigate?.("settings")}
-                className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${theme.iconButton} hover:bg-orange-100/20`}
+                className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${theme.iconButton} hover:bg-blue-100/20`}
                 title="Maintenance Mode Settings"
               >
                 <AlertTriangle
                   size={18}
-                  className="text-orange-500"
+                  className="text-blue-500"
                 />
               </button>
             )}
@@ -235,8 +235,8 @@ export default function AdminTopBar({
       </div>
 
       {showNotifications && (
-        <div className="fixed top-16 right-6 w-80 bg-white rounded-xl shadow-xl border border-orange-100 z-50 overflow-y-auto">
-          <div className="flex items-center justify-between p-4 border-b border-orange-100">
+        <div className="fixed top-16 right-6 w-80 bg-white rounded-xl shadow-xl border border-blue-100 z-50 overflow-y-auto">
+          <div className="flex items-center justify-between p-4 border-b border-blue-100">
             <h3 className="font-semibold text-slate-900">Notifications</h3>
             <div className="flex items-center gap-2">
               {(unreadNotifications > 0 || totalBadges > 0) && (
@@ -246,7 +246,7 @@ export default function AdminTopBar({
                     await markAllNotificationsRead();
                     setShowNotifications(false);
                   }}
-                  className="text-xs text-orange-600 hover:text-orange-700"
+                  className="text-xs text-blue-600 hover:text-blue-700"
                 >
                   Mark all read
                 </button>
@@ -279,7 +279,7 @@ export default function AdminTopBar({
                     className={`rounded-lg p-3 text-sm ${
                       item.isRead
                         ? "bg-slate-50 text-slate-600"
-                        : "bg-orange-50 text-slate-800"
+                        : "bg-blue-50 text-slate-800"
                     }`}
                   >
                     <p className="font-medium">

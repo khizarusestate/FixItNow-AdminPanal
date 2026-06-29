@@ -1,10 +1,9 @@
 import { Search, ArrowUpDown, Calendar, X } from "lucide-react";
 
-export function StatCard({ title, value, icon, color = "orange", onClick, active }) {
+export function StatCard({ title, value, icon, color = "blue", onClick, active }) {
   const colors = {
     yellow: "bg-amber-50 text-amber-700 border-amber-200",
     green: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    orange: "bg-orange-50 text-orange-700 border-orange-200",
     blue: "bg-blue-50 text-blue-700 border-blue-200",
     purple: "bg-violet-50 text-violet-700 border-violet-200",
     red: "bg-red-50 text-red-700 border-red-200",
@@ -17,9 +16,9 @@ export function StatCard({ title, value, icon, color = "orange", onClick, active
       onClick={onClick}
       disabled={!onClick}
       className={`rounded-2xl border p-4 text-left transition-all ${
-        colors[color] || colors.orange
+        colors[color] || colors.blue
       } ${onClick ? "hover:shadow-md cursor-pointer" : "cursor-default"} ${
-        active ? "ring-2 ring-orange-400 ring-offset-1" : ""
+        active ? "ring-2 ring-blue-400 ring-offset-1" : ""
       }`}
     >
       <div className="flex items-center justify-between gap-2">
@@ -62,7 +61,7 @@ export default function ListToolbar({
             placeholder={searchPlaceholder}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 outline-none transition-all focus:border-orange-400 focus:ring-4 focus:ring-orange-100"
+            className="w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
           />
         </div>
 
@@ -71,7 +70,7 @@ export default function ListToolbar({
             <select
               value={filterStatus}
               onChange={(e) => onFilterChange(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none transition-all focus:border-orange-400 focus:ring-4 focus:ring-orange-100 sm:min-w-[180px]"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100 sm:min-w-[180px]"
             >
               {statusOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>

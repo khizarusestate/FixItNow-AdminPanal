@@ -207,12 +207,12 @@ export default function Reviews() {
           </div>
           <p className="text-2xl font-bold text-red-900">{stats.rejected}</p>
         </div>
-        <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 shadow-sm">
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <Star size={20} className="text-orange-600" />
-            <span className="text-sm font-medium text-orange-700">Avg Rating</span>
+            <Star size={20} className="text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">Avg Rating</span>
           </div>
-          <p className="text-2xl font-bold text-orange-900">{Number(stats.averageRating ?? 0).toFixed(1)}</p>
+          <p className="text-2xl font-bold text-blue-900">{Number(stats.averageRating ?? 0).toFixed(1)}</p>
         </div>
       </div>
 
@@ -225,7 +225,7 @@ export default function Reviews() {
             placeholder="Search reviews..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -233,7 +233,7 @@ export default function Reviews() {
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+            className="px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             <option value="all">All Reviews</option>
             <option value="pending">Pending</option>
@@ -289,7 +289,7 @@ export default function Reviews() {
             return (
               <div
                 key={rid}
-                className="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-lg"
+                className="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg"
               >
                 <div className="flex flex-1 flex-col p-5 sm:p-6">
                   <div className="mb-4 flex items-start justify-between gap-3">
@@ -298,13 +298,13 @@ export default function Reviews() {
                         <img
                           src={picUrl}
                           alt=""
-                          className="h-12 w-12 shrink-0 rounded-full border-2 border-orange-100 object-cover"
+                          className="h-12 w-12 shrink-0 rounded-full border-2 border-blue-100 object-cover"
                           onError={() =>
                             setBrokenAvatars((prev) => ({ ...prev, [rid]: true }))
                           }
                         />
                       ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-lg font-bold text-white">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-lg font-bold text-white">
                           {review.name?.charAt(0)?.toUpperCase() || "?"}
                         </div>
                       )}
@@ -324,7 +324,7 @@ export default function Reviews() {
 
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-700">
-                      <Star size={16} className="text-orange-500" />
+                      <Star size={16} className="text-blue-500" />
                       <div className="flex gap-0.5">
                         {renderStars(review.rating)}
                       </div>
@@ -332,12 +332,12 @@ export default function Reviews() {
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-700">
-                      <FileText size={16} className="text-orange-500" />
+                      <FileText size={16} className="text-blue-500" />
                       <span className="line-clamp-2">{review.comment}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-700">
-                      <Phone size={16} className="text-orange-500" />
+                      <Phone size={16} className="text-blue-500" />
                       <span>{review.phone || 'N/A'}</span>
                     </div>
 
@@ -482,7 +482,7 @@ export default function Reviews() {
                   placeholder="Reason for rejection..."
                   rows={3}
                   maxLength={500}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200 resize-none"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
                 />
                 <p className="mt-1 text-right text-xs text-slate-400">{reviewNote.length}/500</p>
               </div>
@@ -526,10 +526,10 @@ export default function Reviews() {
                     <img
                       src={getImageUrl(previewModal.submitterProfilePicture)}
                       alt={previewModal.name}
-                      className="h-12 w-12 rounded-full border-2 border-orange-100 object-cover"
+                      className="h-12 w-12 rounded-full border-2 border-blue-100 object-cover"
                     />
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-lg font-bold text-white">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-lg font-bold text-white">
                       {previewModal.name?.charAt(0)?.toUpperCase() || "?"}
                     </div>
                   )}

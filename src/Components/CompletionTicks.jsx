@@ -34,7 +34,7 @@ export default function CompletionTicks({
         strokeWidth={2.75}
         className={
           customerMarkedDone
-            ? "text-orange-500"
+            ? "text-blue-500"
             : "text-slate-300"
         }
       />

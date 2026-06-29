@@ -186,7 +186,7 @@ function WorkerAvatar({ worker, size = 'md' }) {
   const pic = resolveMediaUrl(worker?.profilePicture)
   if (pic) {
     return (
-      <div className={`${sizeClass} rounded-full overflow-hidden border-2 border-orange-100 shadow-sm flex-shrink-0`}>
+      <div className={`${sizeClass} rounded-full overflow-hidden border-2 border-blue-100 shadow-sm flex-shrink-0`}>
         <img
           src={pic}
           alt={worker.fullName || 'Worker'}
@@ -199,7 +199,7 @@ function WorkerAvatar({ worker, size = 'md' }) {
   }
 
   return (
-    <div className={`${sizeClass} rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-sm border-2 border-orange-100`}>
+    <div className={`${sizeClass} rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0 shadow-sm border-2 border-blue-100`}>
       {worker?.fullName?.charAt(0)?.toUpperCase() || '?'}
     </div>
   )
@@ -418,7 +418,7 @@ export default function Workers() {
         <button
           type="button"
           onClick={openAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         >
           <Plus size={20} />
           Add Worker
@@ -502,13 +502,13 @@ export default function Workers() {
           </div>
         ) : (
           workers.map((worker) => (
-            <div key={worker._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 group">
+            <div key={worker._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 group">
               {/* Worker Header */}
               <div className="relative p-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
                 <div className="flex items-start gap-4">
                   <WorkerAvatar worker={worker} size="lg" />
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-slate-900 truncate group-hover:text-orange-600 transition-colors">
+                    <h3 className="font-bold text-lg text-slate-900 truncate group-hover:text-blue-600 transition-colors">
                       {worker.fullName}
                     </h3>
                     <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
@@ -654,7 +654,7 @@ export default function Workers() {
                   required
                   value={formData.fullName}
                   onChange={(event) => setFormData((prev) => ({ ...prev, fullName: event.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                   placeholder="Worker full name"
                 />
               </div>
@@ -667,7 +667,7 @@ export default function Workers() {
                     required
                     value={formData.email}
                     onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                     placeholder="email@example.com"
                   />
                 </div>
@@ -678,7 +678,7 @@ export default function Workers() {
                     required
                     value={formData.phoneNumber}
                     onChange={(event) => setFormData((prev) => ({ ...prev, phoneNumber: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                     placeholder="03XX-XXXXXXX"
                   />
                 </div>
@@ -691,7 +691,7 @@ export default function Workers() {
                     required
                     value={formData.serviceCategory}
                     onChange={(event) => setFormData((prev) => ({ ...prev, serviceCategory: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400 bg-white"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"
                   >
                     <option value="">Select Work</option>
                     {serviceOptions.map((service) => (
@@ -704,7 +704,7 @@ export default function Workers() {
                   <select
                     value={formData.status}
                     onChange={(event) => setFormData((prev) => ({ ...prev, status: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400 bg-white"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"
                   >
                     <option value="not_approved">Pending</option>
                     <option value="approved">Approved</option>
@@ -729,7 +729,7 @@ export default function Workers() {
                   required
                   value={formData.cnic}
                   onChange={(event) => setFormData((prev) => ({ ...prev, cnic: event.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                   placeholder="XXXXX-XXXXXXX-X"
                 />
               </div>
@@ -740,7 +740,7 @@ export default function Workers() {
                     type="checkbox"
                     checked={formData.availability}
                     onChange={(event) => setFormData((prev) => ({ ...prev, availability: event.target.checked }))}
-                    className="h-4 w-4 rounded border-slate-300 text-orange-500"
+                    className="h-4 w-4 rounded border-slate-300 text-blue-500"
                   />
                   Available for work
                 </label>
@@ -755,7 +755,7 @@ export default function Workers() {
                   required={!editingWorker}
                   value={formData.password}
                   onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                   placeholder={editingWorker ? 'Keep current password' : 'Set password'}
                 />
               </div>
@@ -771,7 +771,7 @@ export default function Workers() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                   {editingWorker ? 'Update' : 'Create'}
@@ -865,7 +865,7 @@ export default function Workers() {
                   setViewingWorker(null)
                   handleEdit(currentWorker)
                 }}
-                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
                 Edit Worker
               </button>
