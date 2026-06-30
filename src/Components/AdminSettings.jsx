@@ -11,7 +11,7 @@ import MaintenanceMode from './MaintenanceMode';
 export default function AdminSettings({ admin, onBack }) {
   const [activeTab, setActiveTab] = useState('maintenance');
 
-  if (!admin?.isSuperAdmin) {
+  if (admin?.role !== 'super_admin') {
     return (
       <div className="p-6 text-center">
         <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
