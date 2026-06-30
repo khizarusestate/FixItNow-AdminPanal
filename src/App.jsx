@@ -73,6 +73,9 @@ function AppContent({ onLogout }) {
           />
         );
       case "settings":
+        if (admin?.role !== "super_admin") {
+          return <Dashboard onNavigate={setActiveSection} />;
+        }
         return (
           <AdminSettings
             admin={admin}
