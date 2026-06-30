@@ -89,7 +89,7 @@ export default function MaintenanceMode() {
         <AlertTriangle className="text-red-500" size={28} />
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Maintenance Mode</h2>
-          <p className="text-sm text-slate-600">Super admin only - blocks user access</p>
+          <p className="text-sm text-slate-600">Super admin only — customer site overlay</p>
         </div>
       </div>
 
@@ -114,7 +114,9 @@ export default function MaintenanceMode() {
           <div>
             <p className="font-semibold text-slate-900">Status</p>
             <p className="text-sm text-slate-600">
-              {maintenanceEnabled ? 'Enabled - App is blocked' : 'Disabled - App is running'}
+              {maintenanceEnabled
+                ? "Enabled — customer site shows blur overlay"
+                : "Disabled — site runs normally"}
             </p>
           </div>
           <div
@@ -176,10 +178,9 @@ export default function MaintenanceMode() {
           Important
         </p>
         <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
-          <li>When enabled, all users except super admin will be blocked</li>
-          <li>API access will return 503 Service Unavailable</li>
-          <li>Users will see your custom maintenance message</li>
-          <li>Super admin access remains unrestricted</li>
+          <li>Admin and Super Admin panels keep working normally</li>
+          <li>Customer FixItNow site blurs and shows your message above the page</li>
+          <li>Scrolling is disabled on the customer site while maintenance is on</li>
           <li>Use during app updates or critical maintenance only</li>
         </ul>
       </div>
@@ -187,9 +188,9 @@ export default function MaintenanceMode() {
       {/* Info Box */}
       {maintenanceEnabled && (
         <div className="rounded-lg border border-red-300 bg-red-100 p-4 space-y-2">
-          <p className="font-semibold text-red-900">⚠️ Maintenance Active</p>
+          <p className="font-semibold text-red-900">Maintenance overlay active</p>
           <p className="text-sm text-red-800">
-            Users are currently blocked from accessing the app. Remember to disable maintenance mode when finished!
+            The customer website is showing your maintenance message. Admin panel access is not affected.
           </p>
         </div>
       )}
