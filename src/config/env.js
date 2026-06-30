@@ -1,8 +1,8 @@
 export const PRODUCTION_API_BASE_URL =
-  "https://fixitnow-backand-production.up.railway.app/api";
+  "https://fixitnow.pk/api";
 
 export const PRODUCTION_SOCKET_URL =
-  "https://fixitnow-backand-production.up.railway.app";
+  "https://fixitnow.pk";
 
 const DEV_API_BASE_URL = "http://localhost:5000/api";
 
