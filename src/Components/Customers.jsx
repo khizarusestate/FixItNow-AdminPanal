@@ -261,7 +261,7 @@ export default function Customers() {
     if (!deleteConfirm.customer) return;
 
     try {
-      await apiRequest(`/admin/users/${deleteConfirm.customer.id}`, {
+      await apiRequest(`/admin/customers/${deleteConfirm.customer.id}`, {
         method: "DELETE",
       });
       setCustomers((prev) =>
