@@ -990,8 +990,6 @@ export default function Bookings() {
               booking: null,
             })
           }
-          onApprove={() => handleStatusUpdate(viewModal.booking.id, "approved")}
-          onReject={() => handleStatusUpdate(viewModal.booking.id, "rejected")}
           onApproveClaim={() => handleClaimReview(viewModal.booking.id, "approve")}
           onRejectClaim={() => handleClaimReview(viewModal.booking.id, "reject")}
           onPaymentReceived={(received) =>
@@ -1527,25 +1525,6 @@ function BookingModal({
                 className="rounded-xl bg-red-500 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-60"
               >
                 Reject claim
-              </button>
-            </>
-          )}
-          {isAdminControlled(booking.status) && (
-            <>
-              <button
-                onClick={onApprove}
-                disabled={processing === booking.id}
-                className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-emerald-600 disabled:opacity-60"
-              >
-                Approve
-              </button>
-
-              <button
-                onClick={onReject}
-                disabled={processing === booking.id}
-                className="rounded-xl bg-red-500 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-60"
-              >
-                Reject
               </button>
             </>
           )}
