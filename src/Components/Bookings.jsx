@@ -33,10 +33,11 @@ import { resolveMediaUrl } from "../lib/media";
 
 const ADMIN_STATUSES = [
   "pending",
+  "claim-pending",
   "approved",
   "rejected",
   "pending-confirmation",
-  "assigned",
+  "worker-assigned",
   "in-progress",
   "completed",
   "cancelled",
@@ -67,6 +68,11 @@ const STATUS_CONFIG = {
     color: "bg-purple-100 text-purple-700 border-purple-200",
     icon: UserCheck,
     label: "Assigned",
+  },
+  "worker-assigned": {
+    color: "bg-purple-100 text-purple-700 border-purple-200",
+    icon: UserCheck,
+    label: "Worker Assigned",
   },
   "in-progress": {
     color: "bg-blue-100 text-blue-700 border-blue-200",
@@ -311,13 +317,15 @@ export default function Bookings() {
       const statusOrder = (s) => {
         const order = {
           pending: 0,
+          "claim-pending": 1,
           "pending-confirmation": 0,
           approved: 1,
+          "worker-assigned": 2,
           assigned: 2,
-          "in-progress": 2,
-          completed: 3,
-          rejected: 4,
-          cancelled: 5,
+          "in-progress": 3,
+          completed: 4,
+          rejected: 5,
+          cancelled: 6,
         };
         return order[s] ?? 99;
       };
@@ -356,10 +364,21 @@ export default function Bookings() {
   const handleClaimReview = async (id, action, reason = "") => {
     try {
       setProcessing(id);
-      await apiRequest(`/admin/bookings/${id}/claim-review`, {
-        method: "PATCH",
-        body: JSON.stringify({ action, reason }),
-      });
+      
+      // Use new approve-claim endpoint for approval
+      if (action === "approve") {
+        await apiRequest(`/admin/bookings/${id}/approve-claim`, {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+      } else {
+        // Keep existing reject flow
+        await apiRequest(`/admin/bookings/${id}/claim-review`, {
+          method: "PATCH",
+          body: JSON.stringify({ action, reason }),
+        });
+      }
+      
       await fetchBookings();
       setViewModal((prev) =>
         prev.open && prev.booking?.id === id ? { open: false, booking: null } : prev,
@@ -384,17 +403,27 @@ export default function Bookings() {
       // Get current booking to check if it's a claim-pending
       const currentBooking = bookings.find(b => b.id === id);
       
-      // If booking is claim-pending, use the claim-review endpoint
-      if (currentBooking?.status === 'claim-pending') {
-        const action = status === 'approved' ? 'approve' : 'reject';
-        
-        await apiRequest(`/admin/bookings/${id}/claim-review`, {
-          method: "PATCH",
-          body: JSON.stringify({ action, reason: '' }),
+      // If booking is claim-pending and status is being set to approved, use new endpoint
+      if (currentBooking?.status === 'claim-pending' && status === 'approved') {
+        await apiRequest(`/admin/bookings/${id}/approve-claim`, {
+          method: "POST",
+          body: JSON.stringify({}),
         });
         
-        // After approval/rejection, the status will be changed by the endpoint
-        // Refresh the booking data
+        // After approval, refresh the booking data
+        await fetchBookings();
+        setViewModal(prev => prev.open ? { ...prev, open: false } : prev);
+        return;
+      }
+      
+      // If booking is claim-pending and being rejected, use old endpoint
+      if (currentBooking?.status === 'claim-pending' && status === 'rejected') {
+        await apiRequest(`/admin/bookings/${id}/claim-review`, {
+          method: "PATCH",
+          body: JSON.stringify({ action: 'reject', reason: '' }),
+        });
+        
+        // After rejection, refresh the booking data
         await fetchBookings();
         setViewModal(prev => prev.open ? { ...prev, open: false } : prev);
         return;
