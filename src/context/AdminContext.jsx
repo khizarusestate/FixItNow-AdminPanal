@@ -12,17 +12,31 @@ const AdminContext = createContext(null);
 
 function buildSession(data, stored = null) {
   const id = String(data._id || data.id || "");
+  
+  // Ensure role is properly extracted and defaulted
+  let role = data.role;
+  
+  // If no role, check if this is a super admin from loginAs
+  if (!role && stored?.loginAs === "super_admin") {
+    role = "super_admin";
+  }
+  
+  // Final default is "admin"
+  if (!role) {
+    role = "admin";
+  }
+  
   return {
     id,
     name: data.name,
     email: data.email,
     phone: data.phone,
-    role: data.role || "admin",
+    role,  // CRITICAL: Must preserve super_admin
     // NOTE: Deactivation is enforced by backend 403 (ADMIN_DEACTIVATED).
     // Keep this field defensive to avoid false negatives from malformed responses.
     isActive: data.isActive !== false,
     profilePicture: data.profilePicture || "",
-    loginAs: stored?.loginAs || (data.role === "super_admin" ? "super_admin" : "admin"),
+    loginAs: stored?.loginAs || (role === "super_admin" ? "super_admin" : "admin"),
   };
 }
 

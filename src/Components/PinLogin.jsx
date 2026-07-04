@@ -83,22 +83,45 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
       if (response.refreshToken) setAdminRefreshToken(response.refreshToken);
       markAdminCookieSession();
 
-      if (response.admin) {
+      // Extract admin data - handle different response structures
+      const adminData = response.admin || response.data?.admin;
+      
+      if (adminData) {
         const expectedRole = loginAs === "super_admin" ? "super_admin" : "admin";
+        
+        // CRITICAL: Ensure role is preserved
+        const adminRole = adminData.role || expectedRole;
+        
         const session = {
-          id: String(response.admin.id),
-          name: response.admin.name,
-          email: response.admin.email,
-          phone: response.admin.phone,
-          role: response.admin.role || expectedRole,
-          isActive: response.admin.isActive ?? true,
+          id: String(adminData.id),
+          name: adminData.name,
+          email: adminData.email,
+          phone: adminData.phone,
+          role: adminRole,  // Must be "super_admin" or "admin"
+          isActive: adminData.isActive ?? true,
           loginAs,
         };
+        
+        // Verify the role matches what was requested
         if (session.role !== expectedRole) {
           setError("This account cannot use this login portal.");
           setLoading(false);
           return;
         }
+        
+        setStoredAdminSession(session);
+        setAdminSession(session);
+      } else if (loginAs === "super_admin") {
+        // Super admin login might not return admin object, create session
+        const session = {
+          id: "super_admin",
+          name: "Super Admin",
+          email: email.toLowerCase().trim(),
+          phone: "",
+          role: "super_admin",
+          isActive: true,
+          loginAs: "super_admin",
+        };
         setStoredAdminSession(session);
         setAdminSession(session);
       }
