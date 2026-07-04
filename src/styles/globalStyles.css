@@ -1,0 +1,102 @@
+/**
+ * Global Styles - Custom Cursor & Polish for Admin Panel
+ */
+
+:root {
+  --cursor-color: #1e3a8a;
+}
+
+/* Default cursor */
+* {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%231e3a8a" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>') 12 5, auto !important;
+}
+
+/* Pointer for clickable elements */
+button,
+[role="button"],
+a,
+input[type="checkbox"],
+input[type="radio"],
+select,
+[onclick],
+.cursor-pointer {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231e3a8a"><circle cx="12" cy="12" r="3"/></svg>') 12 12, pointer !important;
+}
+
+/* Text selection cursor */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231e3a8a"><line x1="12" y1="2" x2="12" y2="22" stroke="%231e3a8a" stroke-width="2"/></svg>') 12 12, text !important;
+}
+
+/* Disabled cursor */
+[disabled],
+[aria-disabled="true"],
+.disabled {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23999999"><circle cx="12" cy="12" r="2" fill="%23999999"/></svg>') 12 12, not-allowed !important;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+::-moz-selection {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+/* Focus ring for accessibility */
+*:focus-visible {
+  outline: 2px solid #1e3a8a;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Smooth button press */
+button:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease-out;
+}
+
+/* Modal animations */
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

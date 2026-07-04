@@ -22,11 +22,16 @@ import { isAdminAuthenticated, clearAdminToken } from "./lib/api";
 import { useAdmin } from "./context/AdminContext";
 import { getTheme } from "./config/theme";
 import LiveNotificationHost from "./Components/shared/LiveNotificationHost.jsx";
+import { useGlobalButtonSounds } from "./hooks/useGlobalButtonSounds.js";
+import "./styles/globalStyles.css";
 
 function AppContent({ onLogout }) {
   const { isSuperAdmin, admin } = useAdmin();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [profileAutoEdit, setProfileAutoEdit] = useState(false);
+
+  // Add global button sounds
+  useGlobalButtonSounds();
 
   const handleLogout = () => {
     clearAdminToken();
