@@ -106,7 +106,24 @@ export default function PinLogin({ onLogin, sessionExpired = false, logoutMessag
       window.dispatchEvent(new Event("admin-auth-restored"));
       onLogin?.();
     } catch (err) {
-      setError(err.message || "Login failed. Please check your credentials.");
+      // Handle different types of errors
+      let errorMsg = "Login failed. Please check your credentials.";
+      
+      if (!err) {
+        errorMsg = "Network error - please check your connection.";
+      } else if (err.message?.includes("Failed to fetch")) {
+        errorMsg = "Cannot connect to server. Check if backend is running.";
+      } else if (err.message?.includes("401") || err.message?.includes("Unauthorized")) {
+        errorMsg = "Invalid email or PIN.";
+      } else if (err.message?.includes("403")) {
+        errorMsg = "Access denied. This account cannot use this portal.";
+      } else if (err.message?.includes("500")) {
+        errorMsg = "Server error - please try again later.";
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      
+      setError(errorMsg);
       resetPin();
     } finally {
       setLoading(false);
