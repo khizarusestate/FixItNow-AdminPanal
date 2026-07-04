@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Phone,
   MapPin,
-  MoreVertical
+  MoreVertical,
+  ChevronDown
 } from 'lucide-react'
 import { useEffect, useState, useCallback } from 'react'
 import { apiRequest, paginatedRequest } from '../lib/api'
@@ -21,6 +22,7 @@ import { resolveMediaUrl } from '../lib/media'
 import { useRefresh } from '../context/SocketContext'
 import LocationPicker from './LocationPicker.jsx'
 import { geoFromUser } from '../utils/location.js'
+import { getTradesDisplay, getTradeName } from '../utils/tradesDisplay.js'
 
 const emptyGeo = { location: '', latitude: null, longitude: null, placeId: '' }
 import Pagination from './Pagination'
@@ -218,6 +220,7 @@ export default function Workers() {
   const [viewingWorker, setViewingWorker] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, worker: null })
   const [rejectConfirm, setRejectConfirm] = useState({ open: false, worker: null, reason: '' })
+  const [expandedTradesId, setExpandedTradesId] = useState(null)
   const [formData, setFormData] = useState(blankForm)
   const [workerGeo, setWorkerGeo] = useState(emptyGeo)
   const [serviceOptions, setServiceOptions] = useState(SERVICE_CATEGORIES)
@@ -550,10 +553,50 @@ export default function Workers() {
                       {worker.fullName}
                     </h3>
                     <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                        {worker.service || 'N/A'}
-                      </span>
+                    <div className="flex items-center gap-2 mt-3">
+                      {worker.services && worker.services.length > 0 ? (
+                        <>
+                          <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                            {getTradeName(worker.services[0])}
+                          </span>
+                          {worker.services.length > 1 && (
+                            <div className="relative">
+                              <button
+                                onClick={() =>
+                                  setExpandedTradesId(
+                                    expandedTradesId === worker._id ? null : worker._id
+                                  )
+                                }
+                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+                              >
+                                +{worker.services.length - 1}
+                                <ChevronDown
+                                  size={12}
+                                  className={`transition-transform ${
+                                    expandedTradesId === worker._id ? 'rotate-180' : ''
+                                  }`}
+                                />
+                              </button>
+                              {expandedTradesId === worker._id && (
+                                <div className="absolute top-full mt-1 left-0 min-w-max bg-white border border-slate-200 rounded-lg shadow-lg z-10">
+                                  {worker.services.slice(1).map((trade, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                                    >
+                                      {getTradeName(trade)}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded-full">
+                          {worker.service || 'N/A'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
