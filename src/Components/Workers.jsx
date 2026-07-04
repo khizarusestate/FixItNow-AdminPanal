@@ -210,13 +210,14 @@ export default function Workers() {
   const [filterStatus, setFilterStatus] = useState('all')
   const [error, setError] = useState('')
   const [workers, setWorkers] = useState([])
-  const [, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingWorker, setEditingWorker] = useState(null)
   const [viewingWorker, setViewingWorker] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, worker: null })
+  const [rejectConfirm, setRejectConfirm] = useState({ open: false, worker: null, reason: '' })
   const [formData, setFormData] = useState(blankForm)
   const [workerGeo, setWorkerGeo] = useState(emptyGeo)
   const [serviceOptions, setServiceOptions] = useState(SERVICE_CATEGORIES)
@@ -334,6 +335,43 @@ export default function Workers() {
     }
   }
 
+  const handleApproveWorker = async (id) => {
+    try {
+      setLoading(true)
+      await apiRequest(`/admin/workers/${id}/approve-account`, {
+        method: 'POST',
+        body: JSON.stringify({})
+      })
+      await fetchWorkers()
+      setError('')
+      setLoading(false)
+    } catch (err) {
+      setError(err.message || 'Failed to approve worker')
+      setLoading(false)
+    }
+  }
+
+  const handleRejectWorker = async (id, reason) => {
+    if (!reason || reason.trim().length === 0) {
+      setError('Rejection reason is required')
+      return
+    }
+    try {
+      setLoading(true)
+      await apiRequest(`/admin/workers/${id}/reject-account`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: reason.trim() })
+      })
+      await fetchWorkers()
+      setRejectConfirm({ open: false, worker: null, reason: '' })
+      setError('')
+      setLoading(false)
+    } catch (err) {
+      setError(err.message || 'Failed to reject worker')
+      setLoading(false)
+    }
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     setSaving(true)
@@ -410,7 +448,7 @@ export default function Workers() {
   }
 
   const isWorkerApproved = (worker) =>
-    ['approved', 'active', 'inactive'].includes(worker.status)
+    worker.approvalStatus === 'approved' && ['active', 'inactive', 'suspended'].includes(worker.status)
 
   return (
     <div className="space-y-6">
@@ -554,18 +592,20 @@ export default function Workers() {
                   {!isWorkerApproved(worker) ? (
                     <>
                       <button
-                        onClick={() => handleStatusChange(worker._id, 'approved')}
+                        onClick={() => handleApproveWorker(worker._id)}
                         className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                         title="Approve"
+                        disabled={loading}
                       >
                         <CheckCircle size={16} />
                       </button>
                       <button
-                        onClick={() => setDeleteConfirm({ open: true, worker })}
+                        onClick={() => setRejectConfirm({ open: true, worker, reason: '' })}
                         className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                        title="Delete account"
+                        title="Reject"
+                        disabled={loading}
                       >
-                        <Trash2 size={16} />
+                        <XCircle size={16} />
                       </button>
                     </>
                   ) : (
@@ -904,6 +944,46 @@ export default function Workers() {
                 className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
               >
                 {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rejectConfirm.open && rejectConfirm.worker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Reject Worker Application?</h2>
+            <p className="text-slate-600 mb-4">
+              Rejecting <strong>{rejectConfirm.worker.fullName}</strong>'s application will prevent them from using the platform.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Rejection Reason (Required) *
+              </label>
+              <textarea
+                value={rejectConfirm.reason}
+                onChange={(e) => setRejectConfirm(prev => ({ ...prev, reason: e.target.value }))}
+                placeholder="E.g., CNIC verification failed, document quality issues, etc."
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                rows="3"
+                disabled={loading}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setRejectConfirm({ open: false, worker: null, reason: '' })}
+                className="px-6 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium transition-colors"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleRejectWorker(rejectConfirm.worker._id, rejectConfirm.reason)}
+                disabled={loading || !rejectConfirm.reason.trim()}
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
+              >
+                {loading ? 'Rejecting...' : 'Reject'}
               </button>
             </div>
           </div>
