@@ -962,31 +962,7 @@ export default function Bookings() {
                           <XCircle size={20} />
                         </button>
                       </>
-                    )}
-
-                    {isAdminControlled(booking.status) && (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleStatusUpdate(booking.id, "approved")
-                          }
-                          disabled={processing === booking.id}
-                          className="rounded-xl bg-emerald-500 px-4 py-3 text-white transition-colors hover:bg-emerald-600 disabled:opacity-60"
-                        >
-                          <CheckCircle size={20} />
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            handleStatusUpdate(booking.id, "rejected")
-                          }
-                          disabled={processing === booking.id}
-                          className="rounded-xl bg-red-500 px-4 py-3 text-white transition-colors hover:bg-red-600 disabled:opacity-60"
-                        >
-                          <XCircle size={20} />
-                        </button>
-                      </>
-                    )}
+                    )}}
                   </div>
                 </div>
               </div>
