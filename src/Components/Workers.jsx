@@ -344,6 +344,8 @@ export default function Workers() {
         body: JSON.stringify({})
       })
       await fetchWorkers()
+      // Close the modal after successful approval
+      setViewingWorker(null)
       setError('')
       setLoading(false)
     } catch (err) {
@@ -449,7 +451,7 @@ export default function Workers() {
   }
 
   const isWorkerApproved = (worker) =>
-    worker.approvalStatus === 'approved' && ['active', 'inactive', 'suspended'].includes(worker.status)
+    worker.approvalStatus === 'approved'
 
   return (
     <div className="space-y-6">
