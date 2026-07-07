@@ -79,6 +79,7 @@ const normalizeWorker = (worker = {}) => ({
   verificationPhoto: worker.verificationPhoto || '',
   availability: worker.availability ?? true,
   status: worker.status || 'not_approved',
+  approvalStatus: worker.approvalStatus || 'pending_approval',
   isDisabled: worker.isDisabled ?? false,
   isOnline: worker.isOnline ?? false,
   joinDate: worker.joinDate || worker.createdAt,
