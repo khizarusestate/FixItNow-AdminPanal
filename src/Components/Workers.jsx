@@ -59,7 +59,6 @@ const blankForm = {
   email: '',
   phoneNumber: '',
   serviceCategory: '',
-  serviceArea: '',
   password: '',
   cnic: '',
   availability: true,
@@ -72,8 +71,7 @@ const normalizeWorker = (worker = {}) => ({
   email: worker.emailAddress || worker.email || '',
   phone: worker.phoneNumber || worker.phone || '',
   service: worker.serviceCategory || worker.service || '',
-  location: worker.location || worker.serviceArea || '',
-  serviceArea: worker.serviceArea || worker.location || '',
+  location: worker.location || '',
   latitude: worker.latitude ?? null,
   longitude: worker.longitude ?? null,
   cnic: worker.cnicNumber || worker.cnic || '',
@@ -611,7 +609,6 @@ export default function Workers() {
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin size={14} className="text-slate-400" />
-                    <span className="text-slate-600 truncate">{worker.serviceArea || 'N/A'}</span>
                   </div>
                 </div>
 
@@ -893,7 +890,6 @@ export default function Workers() {
               <DetailItem label="Full Name" value={viewingWorker.fullName || 'N/A'} />
               <DetailItem label="Email Address" value={viewingWorker.email || 'N/A'} />
               <DetailItem label="Phone Number" value={viewingWorker.phone || 'N/A'} />
-              <DetailItem label="Location" value={viewingWorker.location || viewingWorker.serviceArea || 'N/A'} />
               <DetailItem label="Selected Work" value={viewingWorker.service || 'N/A'} />
               <DetailItem label="CNIC" value={viewingWorker.cnic || 'N/A'} />
               <DetailItem label="Availability" value={viewingWorker.availability ? 'Available' : 'Not Available'} />

@@ -1116,7 +1116,7 @@ export default function Bookings() {
                         <div className="flex justify-between">
                           <span className="text-slate-600">Service Area:</span>
                           <span className="font-medium">
-                            {workerDetailsModal.worker.serviceArea || "N/A"}
+                            
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -1172,7 +1172,6 @@ export default function Bookings() {
                   {/* Location Information */}
                   {(workerDetailsModal.worker.location ||
                     workerDetailsModal.worker.address ||
-                    workerDetailsModal.worker.serviceArea) && (
                     <div className="rounded-xl border border-slate-200 p-4">
                       <h4 className="font-semibold text-slate-900 mb-3">
                         Location
@@ -1180,7 +1179,7 @@ export default function Bookings() {
                       <p className="text-sm text-slate-600">
                         {workerDetailsModal.worker.location ||
                           workerDetailsModal.worker.address ||
-                          workerDetailsModal.worker.serviceArea}
+                          workerDetailsModal.worker.location}
                       </p>
                     </div>
                   )}
