@@ -2,7 +2,6 @@ import {
   Search,
   Eye,
   CheckCircle,
-  Clock,
   XCircle,
   X,
   MapPin,
@@ -45,9 +44,12 @@ const ADMIN_STATUSES = [
 
 const STATUS_CONFIG = {
   pending: {
-    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-    icon: Clock,
-    label: "Pending",
+    // Bookings are approved by default as soon as they're created (they go
+    // straight to the worker dashboard), so we show them as "Approved"
+    // rather than "Pending" — there is no manual admin approval step.
+    color: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    icon: CheckCircle,
+    label: "Approved",
   },
   "claim-pending": {
     color: "bg-yellow-100 text-yellow-700 border-yellow-200",
@@ -95,8 +97,6 @@ const STATUS_CONFIG = {
     label: "Cancelled",
   },
 };
-
-const isAdminControlled = (status) => status === "pending";
 
 const isClaimPending = (status) => status === "claim-pending";
 
@@ -219,7 +219,6 @@ export default function Bookings() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [stats, setStats] = useState({
-    pending: 0,
     approved: 0,
     assigned: 0,
     rejected: 0,
@@ -340,7 +339,16 @@ export default function Bookings() {
       setTotalPages(response?.pagination?.totalPages || 1);
       setTotalItems(response?.pagination?.total || 0);
       if (response?.stats) {
-        setStats(response.stats);
+        const raw = response.stats;
+        // Backend groups "pending" (open/live) and legacy "approved" bookings
+        // together — there's no separate manual-approval step, so we surface
+        // them as a single "Approved" count in the UI.
+        setStats({
+          approved: raw.open ?? (raw.pending || 0) + (raw.approved || 0),
+          assigned: raw.workerAssigned ?? raw.assigned ?? 0,
+          rejected: raw.cancelled ?? raw.rejected ?? 0,
+          completed: raw.completed ?? 0,
+        });
       }
     } catch (err) {
       console.error(err);
@@ -568,9 +576,8 @@ export default function Bookings() {
 
   const BOOKING_STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
-    { value: "pending", label: "Pending" },
+    { value: "pending", label: "Approved" },
     { value: "claim-pending", label: "Claim Pending" },
-    { value: "approved", label: "Approved" },
     { value: "assigned", label: "Worker Assigned" },
     { value: "rejected", label: "Rejected" },
     { value: "completed", label: "Completed" },
@@ -614,25 +621,15 @@ export default function Bookings() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatCard
-          title="Pending"
-          value={stats.pending}
-          icon={<Clock size={18} />}
-          color="yellow"
-          active={filterStatus === "pending"}
-          onClick={() =>
-            setFilterStatus(filterStatus === "pending" ? "all" : "pending")
-          }
-        />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           title="Approved"
           value={stats.approved}
           icon={<CheckCircle size={18} />}
           color="green"
-          active={filterStatus === "approved"}
+          active={filterStatus === "pending"}
           onClick={() =>
-            setFilterStatus(filterStatus === "approved" ? "all" : "approved")
+            setFilterStatus(filterStatus === "pending" ? "all" : "pending")
           }
         />
         <StatCard
