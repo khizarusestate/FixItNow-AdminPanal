@@ -155,7 +155,7 @@ export function SocketProvider({ children }) {
       setBadges((prev) => {
         const newBadges = {
           ...prev,
-          bookings: summary.pendingBookings || 0,
+          bookings: summary.claimPendingBookings || 0,
           workers: summary.pendingWorkers || 0,
         };
         saveBadgesToStorage(newBadges);

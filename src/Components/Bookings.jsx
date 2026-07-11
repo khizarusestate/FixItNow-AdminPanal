@@ -30,18 +30,6 @@ import ListToolbar, { StatCard } from "./shared/ListToolbar";
 import CompletionTicks from "./CompletionTicks";
 import { resolveMediaUrl } from "../lib/media";
 
-const ADMIN_STATUSES = [
-  "pending",
-  "claim-pending",
-  "approved",
-  "rejected",
-  "pending-confirmation",
-  "worker-assigned",
-  "in-progress",
-  "completed",
-  "cancelled",
-];
-
 const STATUS_CONFIG = {
   pending: {
     // Bookings are approved by default as soon as they're created (they go
@@ -402,96 +390,6 @@ export default function Bookings() {
     }
   };
 
-  const handleStatusUpdate = async (id, status) => {
-    if (!ADMIN_STATUSES.includes(status)) return;
-
-    try {
-      setProcessing(id);
-      
-      // Get current booking to check if it's a claim-pending
-      const currentBooking = bookings.find(b => b.id === id);
-      
-      // If booking is claim-pending and status is being set to approved, use new endpoint
-      if (currentBooking?.status === 'claim-pending' && status === 'approved') {
-        await apiRequest(`/admin/bookings/${id}/approve-claim`, {
-          method: "POST",
-          body: JSON.stringify({}),
-        });
-        
-        // After approval, refresh the booking data
-        await fetchBookings();
-        setViewModal(prev => prev.open ? { ...prev, open: false } : prev);
-        return;
-      }
-      
-      // If booking is claim-pending and being rejected, use old endpoint
-      if (currentBooking?.status === 'claim-pending' && status === 'rejected') {
-        await apiRequest(`/admin/bookings/${id}/claim-review`, {
-          method: "PATCH",
-          body: JSON.stringify({ action: 'reject', reason: '' }),
-        });
-        
-        // After rejection, refresh the booking data
-        await fetchBookings();
-        setViewModal(prev => prev.open ? { ...prev, open: false } : prev);
-        return;
-      }
-
-      // Normal status update for non-claim bookings
-      await apiRequest(`/admin/bookings/${id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-      });
-
-      setBookings((prev) =>
-        prev.map((booking) =>
-          booking.id === id
-            ? {
-                ...booking,
-                status,
-              }
-            : booking,
-        ),
-      );
-
-      setViewModal((prev) => {
-        if (!prev.open || prev.booking?.id !== id) return prev;
-
-        return {
-          ...prev,
-          booking: {
-            ...prev.booking,
-            status,
-          },
-        };
-      });
-
-      setError("");
-    } catch (err) {
-      if (err?.details?.refreshRecommended) {
-        await fetchBookings();
-      }
-      setError(err?.message || "Failed to update booking status");
-    } finally {
-      setProcessing(null);
-    }
-  };
-
-  const handleAutoAssign = async (booking) => {
-    try {
-      setProcessing(booking.id);
-      await apiRequest(`/admin/bookings/${booking.id}/auto-assign`, {
-        method: "PATCH",
-      });
-      await fetchBookings();
-      setError("");
-    } catch (err) {
-      setError(err?.message || "Auto-assign failed");
-    } finally {
-      setProcessing(null);
-    }
-  };
-
   const handleAssignWorker = async (bookingId, workerId) => {
     try {
       setProcessing(bookingId);
@@ -578,7 +476,7 @@ export default function Bookings() {
     { value: "all", label: "All Status" },
     { value: "pending", label: "Approved" },
     { value: "claim-pending", label: "Claim Pending" },
-    { value: "assigned", label: "Worker Assigned" },
+    { value: "worker-assigned", label: "Worker Assigned" },
     { value: "rejected", label: "Rejected" },
     { value: "completed", label: "Completed" },
   ];
@@ -637,9 +535,11 @@ export default function Bookings() {
           value={stats.assigned}
           icon={<UserCheck size={18} />}
           color="blue"
-          active={filterStatus === "assigned"}
+          active={filterStatus === "worker-assigned"}
           onClick={() =>
-            setFilterStatus(filterStatus === "assigned" ? "all" : "assigned")
+            setFilterStatus(
+              filterStatus === "worker-assigned" ? "all" : "worker-assigned",
+            )
           }
         />
         <StatCard
@@ -918,16 +818,9 @@ export default function Bookings() {
                         </button>
                       )}
 
-                    {booking.status === "approved" && !booking.workerId && (
-                      <>
-                        <button
-                          onClick={() => handleAutoAssign(booking)}
-                          disabled={processing === booking.id}
-                          title="Auto-assign best worker"
-                          className="rounded-xl bg-emerald-500 px-3 py-3 text-white transition-colors hover:bg-emerald-600 disabled:opacity-60 text-xs font-semibold"
-                        >
-                          Auto
-                        </button>
+                    {(booking.status === "pending" ||
+                      booking.status === "approved") &&
+                      !booking.workerId && (
                         <button
                           onClick={() => handleShowRanking(booking)}
                           disabled={processing === booking.id}
@@ -936,8 +829,7 @@ export default function Bookings() {
                         >
                           <Trophy size={20} />
                         </button>
-                      </>
-                    )}
+                      )}
 
                     {isClaimPending(booking.status) && (
                       <>
@@ -1200,8 +1092,6 @@ function BookingModal({
   booking,
   processing,
   onClose,
-  onApprove,
-  onReject,
   onApproveClaim,
   onRejectClaim,
   onPaymentReceived,

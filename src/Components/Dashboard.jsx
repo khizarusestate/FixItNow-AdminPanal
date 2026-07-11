@@ -8,7 +8,7 @@ import { ADMIN_MENU_ITEMS } from "../config/navigation";
 export default function Dashboard({ onNavigate }) {
   const [summary, setSummary] = useState({
     totalBookings: 0,
-    pendingBookings: 0,
+    claimPendingBookings: 0,
     totalWorkers: 0,
     pendingWorkers: 0,
     totalCustomers: 0,
@@ -44,8 +44,8 @@ export default function Dashboard({ onNavigate }) {
 
   const quickStats = [
     {
-      label: "Pending bookings",
-      value: summary.pendingBookings || 0,
+      label: "Claims to review",
+      value: summary.claimPendingBookings || 0,
       action: () => onNavigate?.("bookings"),
     },
     {
@@ -62,7 +62,7 @@ export default function Dashboard({ onNavigate }) {
 
   const navItems = ADMIN_MENU_ITEMS.filter((item) => item.id !== "dashboard");
   const hasPending =
-    (summary.pendingBookings || 0) > 0 || (summary.pendingWorkers || 0) > 0;
+    (summary.claimPendingBookings || 0) > 0 || (summary.pendingWorkers || 0) > 0;
 
   return (
     <div className="space-y-6">
@@ -192,9 +192,9 @@ export default function Dashboard({ onNavigate }) {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="flex items-center justify-between rounded-xl bg-white/30 backdrop-blur-sm px-4 py-3 hover:bg-white/40 transition-colors border border-white/20 font-semibold">
-            <span className="text-sm">Pending bookings</span>
+            <span className="text-sm">Claims to review</span>
             <span className="text-2xl font-bold">
-              {summary.pendingBookings || 0}
+              {summary.claimPendingBookings || 0}
             </span>
           </div>
           <div className="flex items-center justify-between rounded-xl bg-white/30 backdrop-blur-sm px-4 py-3 hover:bg-white/40 transition-colors border border-white/20 font-semibold">
@@ -209,7 +209,7 @@ export default function Dashboard({ onNavigate }) {
             type="button"
             onClick={() =>
               onNavigate?.(
-                summary.pendingBookings > 0 ? "bookings" : "workers",
+                summary.claimPendingBookings > 0 ? "bookings" : "workers",
               )
             }
             className="mt-4 w-full rounded-lg bg-white text-sm font-bold py-3 shadow-lg hover:shadow-xl hover:bg-blue-50 transition-all text-transparent bg-gradient-to-r from-blue-600 to-pink-600 bg-clip-text hover:from-blue-700 hover:to-pink-700"
