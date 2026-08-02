@@ -48,10 +48,12 @@ const getServiceNames = (payload) => {
 const STATUS_LABELS = {
   not_approved: 'Pending',
   pending: 'Pending',
+  pending_approval: 'Pending',
   approved: 'Approved',
   rejected: 'Rejected',
   active: 'Online',
-  inactive: 'Offline'
+  inactive: 'Offline',
+  suspended: 'Suspended'
 }
 
 const blankForm = {
@@ -62,7 +64,7 @@ const blankForm = {
   password: '',
   cnic: '',
   availability: true,
-  status: 'approved',
+  status: 'active',
 }
 
 const normalizeWorker = (worker = {}) => ({
@@ -89,11 +91,10 @@ const normalizeWorker = (worker = {}) => ({
 })
 
 const workerSortPriority = (worker) => {
-  const status = worker.status
-  if (status === 'not_approved' || status === 'pending') return 0
-  if (status === 'approved' || status === 'active') return 1
-  if (status === 'rejected') return 2
-  if (status === 'inactive') return 3
+  if (worker.approvalStatus === 'pending_approval') return 0
+  if (worker.approvalStatus === 'approved' || worker.status === 'active') return 1
+  if (worker.approvalStatus === 'rejected') return 2
+  if (worker.status === 'inactive') return 3
   return 4
 }
 
@@ -109,9 +110,9 @@ const sortWorkerList = (list) =>
 
 const getPresenceLabel = (worker) => {
   if (worker.isDisabled) return 'Non-active'
-  if (worker.status === 'not_approved' || worker.status === 'pending') return 'Pending'
-  if (worker.status === 'rejected') return 'Rejected'
-  if (worker.status === 'approved' || worker.status === 'active' || worker.status === 'inactive') {
+  if (worker.approvalStatus === 'pending_approval') return 'Pending'
+  if (worker.approvalStatus === 'rejected') return 'Rejected'
+  if (worker.approvalStatus === 'approved') {
     return worker.isOnline ? 'Online' : 'Offline'
   }
   return STATUS_LABELS[worker.status] || worker.status
@@ -304,7 +305,7 @@ export default function Workers() {
       password: '',
       cnic: worker.cnic || '',
       availability: worker.availability ?? true,
-      status: worker.status || 'approved',
+      status: ['active', 'inactive', 'suspended'].includes(worker.status) ? worker.status : 'active',
     })
     setWorkerGeo(geoFromUser(worker))
     setIsModalOpen(true)
@@ -379,21 +380,24 @@ export default function Workers() {
     setSaving(true)
     setError('')
 
-    const statusToSave =
-      formData.status === 'pending' ? 'not_approved' : formData.status
-
     const submitData = {
       fullName: formData.fullName,
       emailAddress: formData.email,
       phoneNumber: formData.phoneNumber,
-      serviceCategory: formData.serviceCategory,
+      primaryServiceCategory: formData.serviceCategory,
       location: workerGeo.location?.trim() || '',
       latitude: workerGeo.latitude,
       longitude: workerGeo.longitude,
       placeId: workerGeo.placeId,
       cnicNumber: formData.cnic,
       availability: formData.availability,
-      status: statusToSave,
+    }
+
+    // Online/offline/suspended state only applies to editing an existing worker —
+    // new workers are always created active + approved. Approval/rejection is a
+    // separate decision made via the dedicated Approve/Reject actions, not this form.
+    if (editingWorker) {
+      submitData.status = formData.status
     }
 
     if (formData.password) {
@@ -782,17 +786,27 @@ export default function Workers() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, status: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"
-                  >
-                    <option value="not_approved">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="active">Online</option>
-                    <option value="inactive">Offline</option>
-                  </select>
+                  {editingWorker ? (
+                    <>
+                      <select
+                        value={formData.status}
+                        onChange={(event) => setFormData((prev) => ({ ...prev, status: event.target.value }))}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"
+                      >
+                        <option value="active">Online</option>
+                        <option value="inactive">Offline</option>
+                        <option value="suspended">Suspended</option>
+                      </select>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Approval: {STATUS_LABELS[editingWorker.approvalStatus] || editingWorker.approvalStatus}.
+                        {editingWorker.approvalStatus === 'pending_approval' && ' Use Approve/Reject to change this.'}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-slate-500 px-3 py-2 border border-dashed border-slate-200 rounded-lg bg-slate-50">
+                      New workers are created Approved &amp; Online
+                    </p>
+                  )}
                 </div>
               </div>
 
