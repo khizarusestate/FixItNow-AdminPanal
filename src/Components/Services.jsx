@@ -30,6 +30,7 @@ export default function Services() {
     category: '',
     price: '',
     icon: 'Wrench',
+    image: '',
     estimatedDuration: '',
     requirements: [],
     isActive: true
@@ -40,6 +41,7 @@ export default function Services() {
   const [sort, setSort] = useState('-createdAt')
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
+  const [requirementInput, setRequirementInput] = useState('')
 
   // Fetch services
   const fetchServices = useCallback(async () => {
@@ -91,6 +93,7 @@ export default function Services() {
       requirements: [],
       isActive: true
     })
+    setRequirementInput('')
     setIsModalOpen(true)
   }
 
@@ -102,10 +105,12 @@ export default function Services() {
       category: service.category || '',
       price: service.price || '',
       icon: service.icon || pickServiceIcon(service.name, service.category),
+      image: service.image || '',
       estimatedDuration: service.estimatedDuration || '',
       requirements: service.requirements || [],
       isActive: service.isActive !== false
     })
+    setRequirementInput('')
     setIsModalOpen(true)
   }
 
@@ -135,7 +140,6 @@ export default function Services() {
         icon: formData.icon || pickServiceIcon(formData.name, formData.category),
         price: Number(formData.price) || 0
       }
-      delete payload.image
       
       if (editingService) {
         const res = await apiRequest(`/admin/services/${editingService.id || editingService._id}`, {
@@ -419,8 +423,10 @@ export default function Services() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                <select
+                <input
+                  type="text"
                   required
+                  list="service-category-suggestions"
                   value={formData.category}
                   onChange={(e) => {
                     const category = e.target.value
@@ -431,12 +437,14 @@ export default function Services() {
                     }))
                   }}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
-                >
-                  <option value="">Select Category</option>
+                  placeholder="Select an existing category or type a new one"
+                />
+                <datalist id="service-category-suggestions">
                   {(categories.length ? categories : FALLBACK_CATEGORIES).map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat} />
                   ))}
-                </select>
+                </datalist>
+                <p className="text-xs text-slate-500 mt-1">Pick a suggestion or type a brand-new category name.</p>
               </div>
 
               <div>
@@ -474,6 +482,57 @@ export default function Services() {
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
                   placeholder="e.g., 2-3 hours"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Image URL</label>
+                <input
+                  type="url"
+                  value={formData.image || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
+                  placeholder="https://example.com/photo.jpg"
+                />
+                <p className="text-xs text-slate-500 mt-1">Optional — leave blank to use the icon instead.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Requirements</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={requirementInput}
+                    onChange={(e) => setRequirementInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        const val = requirementInput.trim()
+                        if (val && !formData.requirements.includes(val)) {
+                          setFormData(prev => ({ ...prev, requirements: [...prev.requirements, val] }))
+                        }
+                        setRequirementInput('')
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
+                    placeholder="e.g., Ladder access — press Enter to add"
+                  />
+                </div>
+                {formData.requirements.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.requirements.map((req, idx) => (
+                      <span key={`${req}-${idx}`} className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-full">
+                        {req}
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, requirements: prev.requirements.filter((_, i) => i !== idx) }))}
+                          className="hover:text-red-600"
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
