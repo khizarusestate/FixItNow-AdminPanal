@@ -4,8 +4,10 @@ import { apiRequest } from "../lib/api";
 import { getCachedAdminSummary } from "../utils/adminBootstrap";
 import { useRefresh } from "../context/SocketContext";
 import { ADMIN_MENU_ITEMS } from "../config/navigation";
+import { useAdmin } from "../context/AdminContext";
 
 export default function Dashboard({ onNavigate }) {
+  const { isSuperAdmin } = useAdmin();
   const [summary, setSummary] = useState({
     totalBookings: 0,
     claimPendingBookings: 0,
@@ -53,11 +55,15 @@ export default function Dashboard({ onNavigate }) {
       value: summary.pendingWorkers || 0,
       action: () => onNavigate?.("workers"),
     },
-    {
-      label: "Revenue",
-      value: `₨${(summary.revenue || 0).toLocaleString()}`,
-      action: () => onNavigate?.("revenue"),
-    },
+    ...(isSuperAdmin
+      ? [
+          {
+            label: "Revenue",
+            value: `₨${(summary.revenue || 0).toLocaleString()}`,
+            action: () => onNavigate?.("revenue"),
+          },
+        ]
+      : []),
   ];
 
   const navItems = ADMIN_MENU_ITEMS.filter((item) => item.id !== "dashboard");
@@ -72,7 +78,7 @@ export default function Dashboard({ onNavigate }) {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={`grid gap-4 ${quickStats.length >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {quickStats.map((item, idx) => {
           const colorSchemes = [
             {

@@ -12,8 +12,8 @@ import {
   UserCog,
 } from "lucide-react";
 
-/** Full menu for regular admins */
-export const ADMIN_MENU_ITEMS = [
+/** Shared between the regular-admin sidebar and super admin's Platform Operations hub */
+const SHARED_MENU_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: Home, badgeKey: null },
   { id: "bookings", label: "Bookings", icon: Calendar, badgeKey: "bookings" },
   { id: "workers", label: "Workers", icon: UserCheck, badgeKey: "workers" },
@@ -26,8 +26,10 @@ export const ADMIN_MENU_ITEMS = [
     badgeKey: "advertisements",
   },
   { id: "reviews", label: "Reviews", icon: Star, badgeKey: "reviews" },
-  { id: "revenue", label: "Revenue", icon: DollarSign, badgeKey: null },
 ];
+
+/** Full menu for regular admins — no Revenue (super admin only, sensitive financial data) */
+export const ADMIN_MENU_ITEMS = SHARED_MENU_ITEMS;
 
 /** Super admin — top-level sidebar (3 items) */
 export const SUPER_ADMIN_ROOT_ITEMS = [
@@ -48,10 +50,12 @@ export const SUPER_ADMIN_ROOT_ITEMS = [
   },
 ];
 
-/** Shown under Platform Operations for super admin */
-export const OPERATIONS_MENU_ITEMS = [...ADMIN_MENU_ITEMS].filter(
-  (item) => item.id !== "dashboard",
-);
+/** Shown under Platform Operations for super admin — includes Revenue, which
+ * regular admins never see (in the sidebar or the underlying API). */
+export const OPERATIONS_MENU_ITEMS = [
+  ...SHARED_MENU_ITEMS.filter((item) => item.id !== "dashboard"),
+  { id: "revenue", label: "Revenue", icon: DollarSign, badgeKey: null },
+];
 
 export const OPERATIONS_SECTION_IDS = OPERATIONS_MENU_ITEMS.map(
   (item) => item.id,
@@ -63,6 +67,9 @@ export function isOperationsSection(sectionId) {
 
 export const SECTION_TITLES = {
   ...Object.fromEntries(ADMIN_MENU_ITEMS.map((item) => [item.id, item.label])),
+  ...Object.fromEntries(
+    OPERATIONS_MENU_ITEMS.map((item) => [item.id, item.label]),
+  ),
   ...Object.fromEntries(
     SUPER_ADMIN_ROOT_ITEMS.map((item) => [item.id, item.label]),
   ),

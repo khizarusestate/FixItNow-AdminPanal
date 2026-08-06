@@ -65,6 +65,9 @@ function AppContent({ onLogout }) {
       case "services":
         return <Services />;
       case "revenue":
+        if (!isSuperAdmin) {
+          return <Dashboard onNavigate={setActiveSection} />;
+        }
         return <Revenue />;
       case "advertisements":
         return <Advertisements />;
