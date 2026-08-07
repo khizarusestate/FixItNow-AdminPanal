@@ -109,10 +109,21 @@ export default function Services() {
 
   useRefresh('service-requests', fetchServiceRequests)
 
+  const [approvePriceOverrides, setApprovePriceOverrides] = useState({})
+
   const handleApproveRequest = async (id) => {
     setRequestActionId(id)
     try {
-      await apiRequest(`/admin/service-requests/${id}/approve`, { method: 'POST' })
+      const priceOverride = approvePriceOverrides[id]
+      await apiRequest(`/admin/service-requests/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify(priceOverride !== undefined ? { price: Number(priceOverride) } : {})
+      })
+      setApprovePriceOverrides((prev) => {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
       await fetchServiceRequests()
       await fetchServices()
     } catch (err) {
@@ -508,8 +519,24 @@ export default function Services() {
                       </span>
                     </div>
                     <p className="text-sm text-slate-600 mb-3">{reqItem.description}</p>
+                    <div className="mb-3">
+                      <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                        Price (PKR) {!reqItem.price && <span className="text-amber-600">— worker didn't set one, required to approve</span>}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={approvePriceOverrides[id] ?? reqItem.price ?? ''}
+                        onChange={(e) => setApprovePriceOverrides((prev) => ({ ...prev, [id]: e.target.value }))}
+                        placeholder="Set a price"
+                        className={`w-full px-3 py-1.5 border rounded-lg text-sm focus:outline-none ${
+                          !(approvePriceOverrides[id] ?? reqItem.price)
+                            ? 'border-amber-300 bg-amber-50 focus:border-amber-400'
+                            : 'border-slate-200 focus:border-blue-400'
+                        }`}
+                      />
+                    </div>
                     <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 mb-3">
-                      {reqItem.price > 0 && <span>Price: PKR {reqItem.price}</span>}
                       {reqItem.estimatedDuration && <span>Duration: {reqItem.estimatedDuration}</span>}
                     </div>
                     {reqItem.requirements?.length > 0 && (
@@ -528,8 +555,9 @@ export default function Services() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleApproveRequest(id)}
-                        disabled={isActing}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-60"
+                        disabled={isActing || !(approvePriceOverrides[id] ?? reqItem.price)}
+                        title={!(approvePriceOverrides[id] ?? reqItem.price) ? 'Set a price before approving' : ''}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {isActing ? <Loader2 size={14} className="animate-spin" /> : 'Approve'}
                       </button>
