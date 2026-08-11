@@ -9,11 +9,8 @@ import {
   Loader2,
   AlertTriangle,
   Image as ImageIcon,
-  Video,
-  User,
-  Mail,
-  Phone,
   FileText,
+  Phone,
   Clock,
   Filter,
   Search,
@@ -117,13 +114,14 @@ export default function Advertisements() {
   const filteredAds = ads.filter((ad) => {
     const matchesFilter = filter === "all" || ad.status === filter;
     const searchLower = searchTerm.toLowerCase();
+    const submitterName = ad.workerId?.fullName || ad.customerId?.fullName || "";
     const matchesSearch =
       !searchTerm ||
-      ad.name?.toLowerCase().includes(searchLower) ||
+      submitterName.toLowerCase().includes(searchLower) ||
+      ad.title?.toLowerCase().includes(searchLower) ||
       ad.email?.toLowerCase().includes(searchLower) ||
-      ad.phone?.toLowerCase().includes(searchLower) ||
-      ad.purpose?.toLowerCase().includes(searchLower) ||
-      ad.duration?.toLowerCase().includes(searchLower);
+      ad.phoneNumber?.toLowerCase().includes(searchLower) ||
+      ad.description?.toLowerCase().includes(searchLower);
     return matchesFilter && matchesSearch;
   });
 
@@ -319,10 +317,14 @@ export default function Advertisements() {
               ad.status === "pending"
                 ? ad.status
                 : "pending";
-            const picUrl = ad.submitterProfilePicture
-              ? getImageUrl(ad.submitterProfilePicture)
+            const submitter = ad.workerId || ad.customerId || null;
+            const submitterName = submitter?.fullName || "Advertiser";
+            const submitterType = ad.workerId ? "worker" : ad.customerId ? "customer" : "guest";
+            const picUrl = submitter?.profilePicture
+              ? getImageUrl(submitter.profilePicture)
               : "";
             const showPic = picUrl && !brokenAvatars[aid];
+            const images = ad.images || [];
 
             return (
               <div
@@ -346,13 +348,13 @@ export default function Advertisements() {
                         />
                       ) : (
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-lg font-bold text-white">
-                          {ad.name?.charAt(0)?.toUpperCase() || "?"}
+                          {submitterName.charAt(0).toUpperCase()}
                         </div>
                       )}
 
                       <div className="min-w-0">
                         <h3 className="truncate font-semibold text-slate-900">
-                          {ad.name}
+                          {submitterName}
                         </h3>
                         <p className="truncate text-sm text-slate-500">
                           {ad.email}
@@ -366,62 +368,49 @@ export default function Advertisements() {
                   <div className="flex flex-1 flex-col space-y-3 text-sm">
                     <div className="flex items-center gap-2 text-slate-700">
                       <FileText size={16} className="text-blue-500" />
-                      <span className="truncate">{ad.purpose}</span>
+                      <span className="truncate">{ad.title}</span>
                     </div>
+
+                    <p className="line-clamp-2 text-slate-600">{ad.description}</p>
 
                     <div className="flex items-center gap-2 text-slate-700">
                       <Phone size={16} className="text-blue-500" />
-                      <span>{ad.phone}</span>
+                      <span>{ad.phoneNumber || "—"}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-slate-700">
                       <Clock size={16} className="text-blue-500" />
-                      <span>{ad.duration || "1 week"}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-slate-700">
-                      {ad.adType === "image" ? (
-                        <ImageIcon size={16} className="text-blue-500" />
-                      ) : (
-                        <Video size={16} className="text-blue-500" />
-                      )}
-                      <span>{ad.adType === "image" ? "Image" : "Video"}</span>
+                      <span>
+                        Expires{" "}
+                        {ad.expiresAt
+                          ? new Date(ad.expiresAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "—"}
+                      </span>
                     </div>
 
                     {/* Media Preview Thumbnail */}
                     <div className="mt-3">
-                      {ad.adFileUrls && ad.adFileUrls.length > 0 ? (
+                      {images.length > 0 ? (
                         <div className="grid grid-cols-3 gap-2">
-                          {ad.adFileUrls.slice(0, 3).map((url, idx) => (
+                          {images.slice(0, 3).map((url, idx) => (
                             <div key={idx} className="relative">
-                              {ad.adType === "image" ? (
-                                <img
-                                  src={getImageUrl(url)}
-                                  alt={`Advertisement ${idx + 1}`}
-                                  className="w-full h-20 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity"
-                                  onClick={() =>
-                                    setPreviewModal({
-                                      ...ad,
-                                      previewIndex: idx,
-                                    })
-                                  }
-                                />
-                              ) : (
-                                <div
-                                  className="w-full h-20 rounded-lg bg-slate-900 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity border border-slate-200"
-                                  onClick={() =>
-                                    setPreviewModal({
-                                      ...ad,
-                                      previewIndex: idx,
-                                    })
-                                  }
-                                >
-                                  <Video size={16} className="text-white" />
-                                </div>
-                              )}
-                              {ad.adFileUrls.length > 1 && (
+                              <img
+                                src={getImageUrl(url)}
+                                alt={`Advertisement ${idx + 1}`}
+                                className="w-full h-20 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() =>
+                                  setPreviewModal({
+                                    ...ad,
+                                    previewIndex: idx,
+                                  })
+                                }
+                              />
+                              {images.length > 1 && (
                                 <div className="absolute top-1 right-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">
-                                  {idx + 1}/{ad.adFileUrls.length}
+                                  {idx + 1}/{images.length}
                                 </div>
                               )}
                             </div>
@@ -466,7 +455,7 @@ export default function Advertisements() {
                             minute: "2-digit",
                           })}
                         </p>
-                        <p className="capitalize">{ad.submitterType}</p>
+                        <p className="capitalize">{submitterType}</p>
                       </div>
                     </div>
                   </div>
@@ -553,7 +542,7 @@ export default function Advertisements() {
                 Reject Advertisement
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                From: {selectedAd.name} — {selectedAd.email}
+                From: {selectedAd.workerId?.fullName || selectedAd.customerId?.fullName || "Advertiser"} — {selectedAd.email}
               </p>
             </div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -604,19 +593,15 @@ export default function Advertisements() {
           >
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
               <div className="flex items-center gap-2">
-                {previewModal.adType === "image" ? (
-                  <ImageIcon size={18} className="text-blue-500" />
-                ) : (
-                  <Video size={18} className="text-blue-500" />
-                )}
+                <ImageIcon size={18} className="text-blue-500" />
                 <span className="text-sm font-semibold text-slate-900">
-                  {previewModal.name}'s Advertisement
+                  {(previewModal.workerId?.fullName || previewModal.customerId?.fullName || "Advertiser")}'s Advertisement
                 </span>
-                {previewModal.adFileUrls &&
-                  previewModal.adFileUrls.length > 1 && (
+                {previewModal.images &&
+                  previewModal.images.length > 1 && (
                     <span className="text-xs text-slate-500">
                       ({(previewModal.previewIndex || 0) + 1}/
-                      {previewModal.adFileUrls.length})
+                      {previewModal.images.length})
                     </span>
                   )}
               </div>
@@ -628,28 +613,18 @@ export default function Advertisements() {
               </button>
             </div>
             <div className="p-5">
-              {previewModal.adFileUrls && previewModal.adFileUrls.length > 0 ? (
+              {previewModal.images && previewModal.images.length > 0 ? (
                 <div className="space-y-4">
-                  {previewModal.adType === "image" ? (
-                    <img
-                      src={getImageUrl(
-                        previewModal.adFileUrls[previewModal.previewIndex || 0],
-                      )}
-                      alt="Advertisement"
-                      className="w-full max-h-[60vh] object-contain rounded-lg bg-slate-100"
-                    />
-                  ) : (
-                    <video
-                      src={getImageUrl(
-                        previewModal.adFileUrls[previewModal.previewIndex || 0],
-                      )}
-                      controls
-                      className="w-full max-h-[60vh] rounded-lg bg-slate-900"
-                    />
-                  )}
-                  {previewModal.adFileUrls.length > 1 && (
+                  <img
+                    src={getImageUrl(
+                      previewModal.images[previewModal.previewIndex || 0],
+                    )}
+                    alt="Advertisement"
+                    className="w-full max-h-[60vh] object-contain rounded-lg bg-slate-100"
+                  />
+                  {previewModal.images.length > 1 && (
                     <div className="flex items-center justify-center gap-2">
-                      {previewModal.adFileUrls.map((_, idx) => (
+                      {previewModal.images.map((_, idx) => (
                         <button
                           key={idx}
                           onClick={() =>
@@ -675,9 +650,9 @@ export default function Advertisements() {
               )}
               <div className="mt-4 rounded-lg bg-slate-50 p-3 border border-slate-200">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                  Purpose
+                  {previewModal.title}
                 </p>
-                <p className="text-sm text-slate-700">{previewModal.purpose}</p>
+                <p className="text-sm text-slate-700">{previewModal.description}</p>
               </div>
             </div>
           </div>
