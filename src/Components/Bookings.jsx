@@ -207,6 +207,7 @@ export default function Bookings() {
   const [totalItems, setTotalItems] = useState(0);
   const [stats, setStats] = useState({
     approved: 0,
+    claimPending: 0,
     assigned: 0,
     rejected: 0,
     completed: 0,
@@ -331,6 +332,7 @@ export default function Bookings() {
         // them as a single "Approved" count in the UI.
         setStats({
           approved: raw.open ?? (raw.pending || 0) + (raw.approved || 0),
+          claimPending: raw.claimPending ?? raw["claim-pending"] ?? 0,
           assigned: raw.workerAssigned ?? raw.assigned ?? 0,
           rejected: raw.cancelled ?? raw.rejected ?? 0,
           completed: raw.completed ?? 0,
@@ -464,15 +466,6 @@ export default function Bookings() {
     }
   };
 
-  const BOOKING_STATUS_OPTIONS = [
-    { value: "all", label: "All Status" },
-    { value: "pending", label: "Approved" },
-    { value: "claim-pending", label: "Claim Pending" },
-    { value: "worker-assigned", label: "Worker Assigned" },
-    { value: "rejected", label: "Rejected" },
-    { value: "completed", label: "Completed" },
-  ];
-
   const getStatusConfig = (status) => {
     return STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   };
@@ -511,7 +504,7 @@ export default function Bookings() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard
           title="Approved"
           value={stats.approved}
@@ -520,6 +513,18 @@ export default function Bookings() {
           active={filterStatus === "pending"}
           onClick={() =>
             setFilterStatus(filterStatus === "pending" ? "all" : "pending")
+          }
+        />
+        <StatCard
+          title="Job Claim Request"
+          value={stats.claimPending}
+          icon={<AlertCircle size={18} />}
+          color="yellow"
+          active={filterStatus === "claim-pending"}
+          onClick={() =>
+            setFilterStatus(
+              filterStatus === "claim-pending" ? "all" : "claim-pending",
+            )
           }
         />
         <StatCard
@@ -560,9 +565,6 @@ export default function Bookings() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search by customer, service, email or address..."
-        filterStatus={filterStatus}
-        onFilterChange={setFilterStatus}
-        statusOptions={BOOKING_STATUS_OPTIONS}
         showDateFilter
         dateFrom={dateFrom}
         dateTo={dateTo}
