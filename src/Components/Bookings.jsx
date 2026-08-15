@@ -194,7 +194,6 @@ function ReceiptPreview({
 export default function Bookings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [paymentFilter, setPaymentFilter] = useState("all");
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -244,7 +243,6 @@ export default function Bookings() {
         ...(filterStatus !== "all" && { status: filterStatus }),
         ...(dateFrom && { startDate: dateFrom }),
         ...(dateTo && { endDate: dateTo }),
-        ...(paymentFilter !== "all" && { paymentFilter }),
       };
 
       const response = await paginatedRequest("/admin/bookings", params);
@@ -344,7 +342,7 @@ export default function Bookings() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, sort, searchTerm, filterStatus, dateFrom, dateTo, paymentFilter]);
+  }, [page, limit, sort, searchTerm, filterStatus, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchBookings();
@@ -353,7 +351,7 @@ export default function Bookings() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, filterStatus, dateFrom, dateTo, paymentFilter]);
+  }, [searchTerm, filterStatus, dateFrom, dateTo]);
 
   useRefresh("bookings", fetchBookings);
 
@@ -466,12 +464,6 @@ export default function Bookings() {
     }
   };
 
-  const PAYMENT_FILTER_OPTIONS = [
-    { value: "all", label: "All pay-after-work" },
-    { value: "pay-after-pending", label: "Pay-after: awaiting payment" },
-    { value: "pay-after-received", label: "Pay-after: payment received" },
-  ];
-
   const BOOKING_STATUS_OPTIONS = [
     { value: "all", label: "All Status" },
     { value: "pending", label: "Approved" },
@@ -583,21 +575,6 @@ export default function Bookings() {
         onSort={() => handleSort("createdAt")}
         sortLabel={sort.startsWith("-") ? "Newest first" : "Oldest first"}
       />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <label className="text-sm font-medium text-slate-700">Pay-after-work</label>
-        <select
-          value={paymentFilter}
-          onChange={(e) => setPaymentFilter(e.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-        >
-          {PAYMENT_FILTER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {loading ? (
