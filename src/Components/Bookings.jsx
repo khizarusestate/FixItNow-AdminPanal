@@ -37,12 +37,12 @@ const STATUS_CONFIG = {
     // rather than "Pending" — there is no manual admin approval step.
     color: "bg-emerald-100 text-emerald-700 border-emerald-200",
     icon: CheckCircle,
-    label: "Approved",
+    label: "Pending",
   },
   "claim-pending": {
     color: "bg-yellow-100 text-yellow-700 border-yellow-200",
     icon: AlertCircle,
-    label: "Claim Pending",
+    label: "Booking Claim Request",
   },
   approved: {
     color: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -69,6 +69,12 @@ const STATUS_CONFIG = {
     icon: Loader2,
     label: "In Progress",
   },
+  "on-the-way": {
+    color: "bg-orange-100 text-orange-700 border-orange-200",
+    icon: MapPin,
+    label: "On The Way",
+  },
+
   completed: {
     color: "bg-green-100 text-green-700 border-green-200",
     icon: CheckCircle,
@@ -211,6 +217,8 @@ export default function Bookings() {
     assigned: 0,
     rejected: 0,
     completed: 0,
+    onTheWay: 0,
+    inProgress: 0,
   });
 
   const [viewModal, setViewModal] = useState({
@@ -308,10 +316,11 @@ export default function Bookings() {
           approved: 1,
           "worker-assigned": 2,
           assigned: 2,
-          "in-progress": 3,
-          completed: 4,
-          rejected: 5,
-          cancelled: 6,
+          "on-the-way": 3,
+          "in-progress": 4,
+          completed: 5,
+          rejected: 6,
+          cancelled: 7,
         };
         return order[s] ?? 99;
       };
@@ -334,6 +343,8 @@ export default function Bookings() {
           approved: raw.open ?? (raw.pending || 0) + (raw.approved || 0),
           claimPending: raw.claimPending ?? raw["claim-pending"] ?? 0,
           assigned: raw.workerAssigned ?? raw.assigned ?? 0,
+          onTheWay: raw.onTheWay ?? raw["on-the-way"] ?? raw.on_way ?? 0,
+          inProgress: raw.inProgress ?? raw["in-progress"] ?? 0,
           rejected: raw.cancelled ?? raw.rejected ?? 0,
           completed: raw.completed ?? 0,
         });
@@ -504,9 +515,9 @@ export default function Bookings() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4">
         <StatCard
-          title="Approved"
+          title="Pending"
           value={stats.approved}
           icon={<CheckCircle size={18} />}
           color="green"
@@ -516,7 +527,7 @@ export default function Bookings() {
           }
         />
         <StatCard
-          title="Job Claim Request"
+          title="Booking Claim Request"
           value={stats.claimPending}
           icon={<AlertCircle size={18} />}
           color="yellow"
@@ -536,6 +547,30 @@ export default function Bookings() {
           onClick={() =>
             setFilterStatus(
               filterStatus === "worker-assigned" ? "all" : "worker-assigned",
+            )
+          }
+        />
+        <StatCard
+          title="On The Way"
+          value={stats.onTheWay}
+          icon={<MapPin size={18} />}
+          color="orange"
+          active={filterStatus === "on-the-way"}
+          onClick={() =>
+            setFilterStatus(
+              filterStatus === "on-the-way" ? "all" : "on-the-way",
+            )
+          }
+        />
+        <StatCard
+          title="In Progress"
+          value={stats.inProgress}
+          icon={<Loader2 size={18} />}
+          color="blue"
+          active={filterStatus === "in-progress"}
+          onClick={() =>
+            setFilterStatus(
+              filterStatus === "in-progress" ? "all" : "in-progress",
             )
           }
         />
