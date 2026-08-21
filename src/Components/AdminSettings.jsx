@@ -1,12 +1,13 @@
 /**
  * FILE: adminpanel/src/Components/AdminSettings.jsx
  * 
- * Admin panel settings including maintenance mode
+ * Admin panel settings including maintenance mode and notification sound
  */
 
 import { useState } from 'react';
 import { Settings, AlertTriangle, ArrowLeft } from 'lucide-react';
 import MaintenanceMode from './MaintenanceMode';
+import AdminNotificationSettings from './AdminNotificationSettings';
 
 export default function AdminSettings({ admin, onBack }) {
   const [activeTab, setActiveTab] = useState('maintenance');
@@ -29,7 +30,6 @@ export default function AdminSettings({ admin, onBack }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onBack}
@@ -44,7 +44,6 @@ export default function AdminSettings({ admin, onBack }) {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-200">
         <button
           onClick={() => setActiveTab('maintenance')}
@@ -56,11 +55,21 @@ export default function AdminSettings({ admin, onBack }) {
         >
           🔧 Maintenance Mode
         </button>
+        <button
+          onClick={() => setActiveTab('notifications')}
+          className={`px-4 py-3 font-medium transition-colors border-b-2 ${
+            activeTab === 'notifications'
+              ? 'border-blue-500 text-blue-500'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          🔔 Notifications
+        </button>
       </div>
 
-      {/* Content */}
       <div className="bg-white rounded-xl p-6">
         {activeTab === 'maintenance' && <MaintenanceMode />}
+        {activeTab === 'notifications' && <AdminNotificationSettings />}
       </div>
     </div>
   );
