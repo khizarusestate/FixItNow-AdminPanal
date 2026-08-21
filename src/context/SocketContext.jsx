@@ -18,7 +18,16 @@ import { USE_HTTPONLY_COOKIES, SESSION_ROLE_KEY } from "../config/auth.js";
 
 const SocketContext = createContext(null);
 
+const NOTIFICATION_SOUND_STORAGE_KEY = "fixitnow_admin_notification_sound";
 let audioContext = null;
+
+const isNotificationSoundEnabled = () => {
+  try {
+    return localStorage.getItem(NOTIFICATION_SOUND_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
+  }
+};
 
 const initAudioContext = () => {
   if (!audioContext) {
@@ -30,6 +39,7 @@ const initAudioContext = () => {
 };
 
 const playNotificationSound = () => {
+  if (!isNotificationSoundEnabled()) return;
   try {
     initAudioContext();
     if (!audioContext) return;
