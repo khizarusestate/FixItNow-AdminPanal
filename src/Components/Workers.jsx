@@ -22,7 +22,7 @@ import { resolveMediaUrl } from '../lib/media'
 import { useRefresh } from '../context/SocketContext'
 import LocationPicker from './LocationPicker.jsx'
 import { geoFromUser } from '../utils/location.js'
-import { getTradesDisplay, getTradeName } from '../utils/tradesDisplay.js'
+import { getTradeName } from '../utils/tradesDisplay.js'
 
 const emptyGeo = { location: '', latitude: null, longitude: null, placeId: '' }
 import Pagination from './Pagination'
@@ -72,13 +72,17 @@ const normalizeWorker = (worker = {}) => ({
   fullName: worker.fullName || '',
   email: worker.emailAddress || worker.email || '',
   phone: worker.phoneNumber || worker.phone || '',
-  service: worker.serviceCategory || worker.service || '',
-  location: worker.location || '',
-  latitude: worker.latitude ?? null,
-  longitude: worker.longitude ?? null,
+  service: worker.serviceCategory || worker.service || worker.primaryServiceCategory || '',
+  services: Array.isArray(worker.services) ? worker.services : [],
+  location: worker.location || worker.address || worker.serviceArea || '',
+  latitude: worker.latitude ?? worker.coordinates?.latitude ?? null,
+  longitude: worker.longitude ?? worker.coordinates?.longitude ?? null,
+  placeId: worker.placeId || worker.locationPlaceId || '',
   cnic: worker.cnicNumber || worker.cnic || '',
   profilePicture: worker.profilePicture || '',
   verificationPhoto: worker.verificationPhoto || '',
+  cnicFrontPhoto: worker.cnicFrontPhoto || '',
+  cnicBackPhoto: worker.cnicBackPhoto || '',
   availability: worker.availability ?? true,
   status: worker.status || 'not_approved',
   approvalStatus: worker.approvalStatus || 'pending_approval',
@@ -344,7 +348,6 @@ export default function Workers() {
         body: JSON.stringify({})
       })
       await fetchWorkers()
-      // Close the modal after successful approval
       setViewingWorker(null)
       setError('')
       setLoading(false)
@@ -393,9 +396,6 @@ export default function Workers() {
       availability: formData.availability,
     }
 
-    // Online/offline/suspended state only applies to editing an existing worker —
-    // new workers are always created active + approved. Approval/rejection is a
-    // separate decision made via the dedicated Approve/Reject actions, not this form.
     if (editingWorker) {
       submitData.status = formData.status
     }
@@ -489,30 +489,9 @@ export default function Workers() {
       )}
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard
-          title="Pending"
-          value={stats.pending}
-          icon={<Clock size={18} />}
-          color="yellow"
-          active={filterStatus === 'pending'}
-          onClick={() => setFilterStatus(filterStatus === 'pending' ? 'all' : 'pending')}
-        />
-        <StatCard
-          title="Approved"
-          value={stats.approved}
-          icon={<CheckCircle size={18} />}
-          color="green"
-          active={filterStatus === 'approved'}
-          onClick={() => setFilterStatus(filterStatus === 'approved' ? 'all' : 'approved')}
-        />
-        <StatCard
-          title="Rejected"
-          value={stats.rejected}
-          icon={<XCircle size={18} />}
-          color="red"
-          active={filterStatus === 'rejected'}
-          onClick={() => setFilterStatus(filterStatus === 'rejected' ? 'all' : 'rejected')}
-        />
+        <StatCard title="Pending" value={stats.pending} icon={<Clock size={18} />} color="yellow" active={filterStatus === 'pending'} onClick={() => setFilterStatus(filterStatus === 'pending' ? 'all' : 'pending')} />
+        <StatCard title="Approved" value={stats.approved} icon={<CheckCircle size={18} />} color="green" active={filterStatus === 'approved'} onClick={() => setFilterStatus(filterStatus === 'approved' ? 'all' : 'approved')} />
+        <StatCard title="Rejected" value={stats.rejected} icon={<XCircle size={18} />} color="red" active={filterStatus === 'rejected'} onClick={() => setFilterStatus(filterStatus === 'rejected' ? 'all' : 'rejected')} />
       </div>
 
       <ListToolbar
@@ -527,10 +506,7 @@ export default function Workers() {
         dateTo={dateTo}
         onDateFromChange={setDateFrom}
         onDateToChange={setDateTo}
-        onClearDates={() => {
-          setDateFrom('')
-          setDateTo('')
-        }}
+        onClearDates={() => { setDateFrom(''); setDateTo('') }}
         onSort={() => handleSort('createdAt')}
         sortLabel={sort.startsWith('-') ? 'Newest first' : 'Oldest first'}
       />
@@ -538,340 +514,102 @@ export default function Workers() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {workers.length === 0 ? (
           <div className="col-span-full bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserPlus size={32} className="text-slate-400" />
-            </div>
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4"><UserPlus size={32} className="text-slate-400" /></div>
             <h3 className="text-lg font-semibold text-slate-900 mb-2">No workers found</h3>
             <p className="text-slate-500">Try adjusting your search or filter criteria</p>
           </div>
-        ) : (
-          workers.map((worker) => (
-            <div key={worker._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 group">
-              {/* Worker Header */}
-              <div className="relative p-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
-                <div className="flex items-start gap-4">
-                  <WorkerAvatar worker={worker} size="lg" />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                      {worker.fullName}
-                    </h3>
-                    <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
-                    <div className="flex items-center gap-2 mt-3">
-                      {worker.services && worker.services.length > 0 ? (
-                        <>
-                          <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                            {getTradeName(worker.services[0])}
-                          </span>
-                          {worker.services.length > 1 && (
-                            <div className="relative">
-                              <button
-                                onClick={() =>
-                                  setExpandedTradesId(
-                                    expandedTradesId === worker._id ? null : worker._id
-                                  )
-                                }
-                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
-                              >
-                                +{worker.services.length - 1}
-                                <ChevronDown
-                                  size={12}
-                                  className={`transition-transform ${
-                                    expandedTradesId === worker._id ? 'rotate-180' : ''
-                                  }`}
-                                />
-                              </button>
-                              {expandedTradesId === worker._id && (
-                                <div className="absolute top-full mt-1 left-0 min-w-max bg-white border border-slate-200 rounded-lg shadow-lg z-10">
-                                  {worker.services.slice(1).map((trade, idx) => (
-                                    <div
-                                      key={idx}
-                                      className="px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
-                                    >
-                                      {getTradeName(trade)}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded-full">
-                          {worker.service || 'N/A'}
-                        </span>
-                      )}
-                    </div>
+        ) : workers.map((worker) => (
+          <div key={worker._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 group">
+            <div className="relative p-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100">
+              <div className="flex items-start gap-4">
+                <WorkerAvatar worker={worker} size="lg" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-lg text-slate-900 truncate group-hover:text-blue-600 transition-colors">{worker.fullName}</h3>
+                  <p className="text-sm text-slate-500 truncate mt-1">{worker.email}</p>
+                  <div className="flex items-center gap-2 mt-3">
+                    {worker.services && worker.services.length > 0 ? (
+                      <>
+                        <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">{getTradeName(worker.services[0])}</span>
+                        {worker.services.length > 1 && (
+                          <div className="relative">
+                            <button onClick={() => setExpandedTradesId(expandedTradesId === worker._id ? null : worker._id)} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors">
+                              +{worker.services.length - 1}<ChevronDown size={12} className={`transition-transform ${expandedTradesId === worker._id ? 'rotate-180' : ''}`} />
+                            </button>
+                            {expandedTradesId === worker._id && (
+                              <div className="absolute top-full mt-1 left-0 min-w-max bg-white border border-slate-200 rounded-lg shadow-lg z-10">
+                                {worker.services.slice(1).map((trade, idx) => <div key={idx} className="px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-b-0">{getTradeName(trade)}</div>)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    ) : <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded-full">{worker.service || 'N/A'}</span>}
                   </div>
-                </div>
-              </div>
-
-              {/* Worker Details */}
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Phone size={14} className="text-slate-400" />
-                    <span className="text-slate-600 truncate">{worker.phone || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-slate-400" />
-                  </div>
-                </div>
-
-                {isWorkerApproved(worker) && (
-                  <div className={`rounded-lg px-3 py-2 text-sm ${getActiveLineClasses(worker).wrap}`}>
-                    <p className="font-semibold inline-flex items-center gap-2">
-                      <span className={`h-2.5 w-2.5 rounded-full ${getActiveLineClasses(worker).dot}`} />
-                      {getActiveLine(worker)}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 pt-2">
-                  <button
-                    onClick={() => handleView(worker)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
-                  >
-                    <Eye size={16} />
-                  </button>
-                  {!isWorkerApproved(worker) ? (
-                    <>
-                      <button
-                        onClick={() => handleApproveWorker(worker._id)}
-                        className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                        title="Approve"
-                        disabled={loading}
-                      >
-                        <CheckCircle size={16} />
-                      </button>
-                      <button
-                        onClick={() => setRejectConfirm({ open: true, worker, reason: '' })}
-                        className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                        title="Reject"
-                        disabled={loading}
-                      >
-                        <XCircle size={16} />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          setOpenActionMenuId((prev) => (prev === worker._id ? null : worker._id))
-                        }
-                        className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
-                        title="More actions"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                      {openActionMenuId === worker._id && (
-                        <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50">
-                          <button
-                            onClick={() => {
-                              setOpenActionMenuId(null)
-                              handleEdit(worker)
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              setOpenActionMenuId(null)
-                              setDeleteConfirm({ open: true, worker })
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-                          >
-                            Delete
-                          </button>
-                          <button
-                            onClick={() => {
-                              setOpenActionMenuId(null)
-                              handleStatusChange(worker._id, null, { isDisabled: !worker.isDisabled })
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50"
-                          >
-                            {worker.isDisabled ? 'Enable account' : 'Disable account'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
-          ))
-        )}
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 gap-3 text-sm">
+                <div className="flex items-center gap-2 min-w-0"><Phone size={14} className="text-slate-400 shrink-0" /><span className="text-slate-600 truncate">{worker.phone || 'N/A'}</span></div>
+                <div className="flex items-start gap-2 min-w-0"><MapPin size={14} className="text-slate-400 mt-0.5 shrink-0" /><span className="text-slate-600 break-words" title={worker.location || ''}>{worker.location || 'Location not provided'}</span></div>
+              </div>
+
+              {isWorkerApproved(worker) && (
+                <div className={`rounded-lg px-3 py-2 text-sm ${getActiveLineClasses(worker).wrap}`}>
+                  <p className="font-semibold inline-flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${getActiveLineClasses(worker).dot}`} />{getActiveLine(worker)}</p>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-2">
+                <button onClick={() => handleView(worker)} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"><Eye size={16} /></button>
+                {!isWorkerApproved(worker) ? (
+                  <>
+                    <button onClick={() => handleApproveWorker(worker._id)} className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" title="Approve" disabled={loading}><CheckCircle size={16} /></button>
+                    <button onClick={() => setRejectConfirm({ open: true, worker, reason: '' })} className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" title="Reject" disabled={loading}><XCircle size={16} /></button>
+                  </>
+                ) : (
+                  <div className="relative">
+                    <button onClick={() => setOpenActionMenuId((prev) => (prev === worker._id ? null : worker._id))} className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors" title="More actions"><MoreVertical size={16} /></button>
+                    {openActionMenuId === worker._id && (
+                      <div className="absolute right-0 mt-2 w-44 rounded-xl border border-slate-200 bg-white shadow-lg z-50">
+                        <button onClick={() => { setOpenActionMenuId(null); handleEdit(worker) }} className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">Edit</button>
+                        <button onClick={() => { setOpenActionMenuId(null); setDeleteConfirm({ open: true, worker }) }} className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50">Delete</button>
+                        <button onClick={() => { setOpenActionMenuId(null); handleStatusChange(worker._id, null, { isDisabled: !worker.isDisabled }) }} className="w-full text-left px-4 py-2 text-sm hover:bg-slate-50">{worker.isDisabled ? 'Enable account' : 'Disable account'}</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {totalPages > 1 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          limit={limit}
-          onLimitChange={(newLimit) => {
-            setLimit(newLimit)
-            setPage(1)
-          }}
-          totalItems={totalItems}
-        />
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} limit={limit} onLimitChange={(newLimit) => { setLimit(newLimit); setPage(1) }} totalItems={totalItems} />
       )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsModalOpen(false)} />
           <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-950">
-                {editingWorker ? 'Edit Worker' : 'Add Worker'}
-              </h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-slate-100 rounded">
-                <X size={20} />
-              </button>
-            </div>
-
+            <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-bold text-slate-950">{editingWorker ? 'Edit Worker' : 'Add Worker'}</h2><button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-slate-100 rounded"><X size={20} /></button></div>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.fullName}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, fullName: event.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
-                  placeholder="Worker full name"
-                />
-              </div>
-
+              <div><label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label><input type="text" required value={formData.fullName} onChange={(event) => setFormData((prev) => ({ ...prev, fullName: event.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400" placeholder="Worker full name" /></div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
-                    placeholder="email@example.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phoneNumber}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, phoneNumber: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
-                    placeholder="03XX-XXXXXXX"
-                  />
-                </div>
+                <div><label className="block text-sm font-medium text-slate-700 mb-1">Email</label><input type="email" required value={formData.email} onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400" placeholder="email@example.com" /></div>
+                <div><label className="block text-sm font-medium text-slate-700 mb-1">Phone</label><input type="tel" required value={formData.phoneNumber} onChange={(event) => setFormData((prev) => ({ ...prev, phoneNumber: event.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400" placeholder="03XX-XXXXXXX" /></div>
               </div>
-
               <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Select Work</label>
-                  <select
-                    required
-                    value={formData.serviceCategory}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, serviceCategory: event.target.value }))}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"
-                  >
-                    <option value="">Select Work</option>
-                    {serviceOptions.map((service) => (
-                      <option key={service} value={service}>{service}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                  {editingWorker ? (
-                    <>
-                      <select
-                        value={formData.status}
-                        onChange={(event) => setFormData((prev) => ({ ...prev, status: event.target.value }))}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"
-                      >
-                        <option value="active">Online</option>
-                        <option value="inactive">Offline</option>
-                        <option value="suspended">Suspended</option>
-                      </select>
-                      <p className="text-xs text-slate-400 mt-1">
-                        Approval: {STATUS_LABELS[editingWorker.approvalStatus] || editingWorker.approvalStatus}.
-                        {editingWorker.approvalStatus === 'pending_approval' && ' Use Approve/Reject to change this.'}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="text-sm text-slate-500 px-3 py-2 border border-dashed border-slate-200 rounded-lg bg-slate-50">
-                      New workers are created Approved &amp; Online
-                    </p>
-                  )}
-                </div>
+                <div><label className="block text-sm font-medium text-slate-700 mb-1">Select Work</label><select required value={formData.serviceCategory} onChange={(event) => setFormData((prev) => ({ ...prev, serviceCategory: event.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"><option value="">Select Work</option>{serviceOptions.map((service) => <option key={service} value={service}>{service}</option>)}</select></div>
+                <div><label className="block text-sm font-medium text-slate-700 mb-1">Status</label>{editingWorker ? <><select value={formData.status} onChange={(event) => setFormData((prev) => ({ ...prev, status: event.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-white"><option value="active">Online</option><option value="inactive">Offline</option><option value="suspended">Suspended</option></select><p className="text-xs text-slate-400 mt-1">Approval: {STATUS_LABELS[editingWorker.approvalStatus] || editingWorker.approvalStatus}.{editingWorker.approvalStatus === 'pending_approval' && ' Use Approve/Reject to change this.'}</p></> : <p className="text-sm text-slate-500 px-3 py-2 border border-dashed border-slate-200 rounded-lg bg-slate-50">New workers are created Approved &amp; Online</p>}</div>
               </div>
-
-              <LocationPicker
-                label="Location"
-                required
-                value={workerGeo}
-                onChange={setWorkerGeo}
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">CNIC</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.cnic}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, cnic: event.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
-                  placeholder="XXXXX-XXXXXXX-X"
-                />
-              </div>
-
-              <div className="flex items-end">
-                <label className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={formData.availability}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, availability: event.target.checked }))}
-                    className="h-4 w-4 rounded border-slate-300 text-blue-500"
-                  />
-                  Available for work
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Password {editingWorker && <span className="text-slate-500 font-normal">(leave blank to keep unchanged)</span>}
-                </label>
-                <input
-                  type="password"
-                  required={!editingWorker}
-                  value={formData.password}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
-                  placeholder={editingWorker ? 'Keep current password' : 'Set password'}
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                  {editingWorker ? 'Update' : 'Create'}
-                </button>
-              </div>
+              <LocationPicker label="Location" required value={workerGeo} onChange={setWorkerGeo} />
+              <div><label className="block text-sm font-medium text-slate-700 mb-1">CNIC</label><input type="text" required value={formData.cnic} onChange={(event) => setFormData((prev) => ({ ...prev, cnic: event.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400" placeholder="XXXXX-XXXXXXX-X" /></div>
+              <div className="flex items-end"><label className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700"><input type="checkbox" checked={formData.availability} onChange={(event) => setFormData((prev) => ({ ...prev, availability: event.target.checked }))} className="h-4 w-4 rounded border-slate-300 text-blue-500" />Available for work</label></div>
+              <div><label className="block text-sm font-medium text-slate-700 mb-1">Password {editingWorker && <span className="text-slate-500 font-normal">(leave blank to keep unchanged)</span>}</label><input type="password" required={!editingWorker} value={formData.password} onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400" placeholder={editingWorker ? 'Keep current password' : 'Set password'} /></div>
+              <div className="flex gap-3 pt-4"><button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50">Cancel</button><button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-60 flex items-center justify-center gap-2">{saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}{editingWorker ? 'Update' : 'Create'}</button></div>
             </form>
           </div>
         </div>
@@ -880,26 +618,9 @@ export default function Workers() {
       {viewingWorker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setViewingWorker(null)} />
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-950">Worker Details</h2>
-              <button onClick={() => setViewingWorker(null)} className="p-1 hover:bg-slate-100 rounded">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4 mb-6">
-              <WorkerAvatar worker={viewingWorker} size="lg" />
-              <div>
-                <h3 className="font-semibold text-2xl text-slate-900">{viewingWorker.fullName || 'N/A'}</h3>
-                <p className="text-sm text-slate-500">{viewingWorker.email || 'No email'}</p>
-                <span
-                  className={`mt-2 inline-flex px-2.5 py-1 text-xs rounded-full ${getPresenceColor(viewingWorker)}`}
-                >
-                  {getPresenceLabel(viewingWorker)}
-                </span>
-              </div>
-            </div>
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-bold text-slate-950">Worker Details</h2><button onClick={() => setViewingWorker(null)} className="p-1 hover:bg-slate-100 rounded"><X size={20} /></button></div>
+            <div className="flex items-center gap-4 mb-6"><WorkerAvatar worker={viewingWorker} size="lg" /><div><h3 className="font-semibold text-2xl text-slate-900">{viewingWorker.fullName || 'N/A'}</h3><p className="text-sm text-slate-500">{viewingWorker.email || 'No email'}</p><span className={`mt-2 inline-flex px-2.5 py-1 text-xs rounded-full ${getPresenceColor(viewingWorker)}`}>{getPresenceLabel(viewingWorker)}</span></div></div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
               <DetailItem label="Full Name" value={viewingWorker.fullName || 'N/A'} />
@@ -907,68 +628,26 @@ export default function Workers() {
               <DetailItem label="Phone Number" value={viewingWorker.phone || 'N/A'} />
               <DetailItem label="Selected Work" value={viewingWorker.service || 'N/A'} />
               <DetailItem label="CNIC" value={viewingWorker.cnic || 'N/A'} />
+              <DetailItem label="Location" value={viewingWorker.location || 'N/A'} />
+              <DetailItem label="Coordinates" value={viewingWorker.latitude != null && viewingWorker.longitude != null ? `${viewingWorker.latitude}, ${viewingWorker.longitude}` : 'N/A'} />
               <DetailItem label="Availability" value={viewingWorker.availability ? 'Available' : 'Not Available'} />
               <DetailItem label="Worker Since" value={formatDateTime(viewingWorker.joinDate)} />
               <DetailItem label="Last Active" value={formatDateTime(viewingWorker.lastActive)} />
             </div>
 
-            {/* Profile Pictures Section */}
             <div className="mt-6 pt-6 border-t border-slate-200">
               <h3 className="font-semibold text-slate-900 mb-4">Photos & Documents</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {/* Profile Picture */}
-                <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">Profile Picture</p>
-                  {viewingWorker.profilePicture ? (
-                    <img 
-                      src={resolveMediaUrl(viewingWorker.profilePicture)} 
-                      alt="Profile" 
-                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
-                      crossOrigin="anonymous"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
-                      <span className="text-slate-400 text-sm">No photo</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Verification Photo */}
-                <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">Passport/Verification</p>
-                  {viewingWorker.verificationPhoto ? (
-                    <img 
-                      src={resolveMediaUrl(viewingWorker.verificationPhoto)} 
-                      alt="Verification" 
-                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
-                      crossOrigin="anonymous"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
-                      <span className="text-slate-400 text-sm">No photo</span>
-                    </div>
-                  )}
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <DocumentImage label="Profile Picture" src={viewingWorker.profilePicture} alt="Profile" empty="No photo" />
+                <DocumentImage label="Passport/Verification" src={viewingWorker.verificationPhoto} alt="Verification" empty="No photo" />
+                <DocumentImage label="CNIC Front" src={viewingWorker.cnicFrontPhoto} alt="CNIC front" empty="No CNIC front photo" />
+                <DocumentImage label="CNIC Back" src={viewingWorker.cnicBackPhoto} alt="CNIC back" empty="No CNIC back photo" />
               </div>
             </div>
 
             <div className="flex gap-2 pt-6">
-              <button
-                onClick={() => {
-                  const currentWorker = viewingWorker
-                  setViewingWorker(null)
-                  handleEdit(currentWorker)
-                }}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Edit Worker
-              </button>
-              <button
-                onClick={() => setViewingWorker(null)}
-                className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50"
-              >
-                Close
-              </button>
+              <button onClick={() => { const currentWorker = viewingWorker; setViewingWorker(null); handleEdit(currentWorker) }} className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Edit Worker</button>
+              <button onClick={() => setViewingWorker(null)} className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50">Close</button>
             </div>
           </div>
         </div>
@@ -977,29 +656,10 @@ export default function Workers() {
       {deleteConfirm.open && deleteConfirm.worker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle size={32} className="text-red-600" />
-            </div>
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><AlertTriangle size={32} className="text-red-600" /></div>
             <h2 className="text-xl font-bold text-slate-900 mb-2">Delete Worker?</h2>
-            <p className="text-slate-600 mb-6">
-              Are you sure you want to delete <strong>{deleteConfirm.worker.fullName}</strong>?
-              This action cannot be undone and the worker account will be permanently removed.
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setDeleteConfirm({ open: false, worker: null })}
-                className="px-6 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDeleteWorker}
-                disabled={deleting}
-                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
-              >
-                {deleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
+            <p className="text-slate-600 mb-6">Are you sure you want to delete <strong>{deleteConfirm.worker.fullName}</strong>? This action cannot be undone and the worker account will be permanently removed.</p>
+            <div className="flex justify-center gap-3"><button onClick={() => setDeleteConfirm({ open: false, worker: null })} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium transition-colors">Cancel</button><button onClick={confirmDeleteWorker} disabled={deleting} className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-60">{deleting ? 'Deleting...' : 'Delete'}</button></div>
           </div>
         </div>
       )}
@@ -1008,40 +668,24 @@ export default function Workers() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
             <h2 className="text-xl font-bold text-slate-900 mb-4">Reject Worker Application?</h2>
-            <p className="text-slate-600 mb-4">
-              Rejecting <strong>{rejectConfirm.worker.fullName}</strong>'s application will prevent them from using the platform.
-            </p>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Rejection Reason (Required) *
-              </label>
-              <textarea
-                value={rejectConfirm.reason}
-                onChange={(e) => setRejectConfirm(prev => ({ ...prev, reason: e.target.value }))}
-                placeholder="E.g., CNIC verification failed, document quality issues, etc."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
-                rows="3"
-                disabled={loading}
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setRejectConfirm({ open: false, worker: null, reason: '' })}
-                className="px-6 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium transition-colors"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleRejectWorker(rejectConfirm.worker._id, rejectConfirm.reason)}
-                disabled={loading || !rejectConfirm.reason.trim()}
-                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
-              >
-                {loading ? 'Rejecting...' : 'Reject'}
-              </button>
-            </div>
+            <p className="text-slate-600 mb-4">Rejecting <strong>{rejectConfirm.worker.fullName}</strong>'s application will prevent them from using the platform.</p>
+            <div className="mb-4"><label className="block text-sm font-medium text-slate-700 mb-2">Rejection Reason (Required) *</label><textarea value={rejectConfirm.reason} onChange={(e) => setRejectConfirm(prev => ({ ...prev, reason: e.target.value }))} placeholder="E.g., CNIC verification failed, document quality issues, etc." className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm" rows="3" disabled={loading} /></div>
+            <div className="flex justify-end gap-3"><button onClick={() => setRejectConfirm({ open: false, worker: null, reason: '' })} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg font-medium transition-colors" disabled={loading}>Cancel</button><button onClick={() => handleRejectWorker(rejectConfirm.worker._id, rejectConfirm.reason)} disabled={loading || !rejectConfirm.reason.trim()} className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors disabled:opacity-60">{loading ? 'Rejecting...' : 'Reject'}</button></div>
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+function DocumentImage({ label, src, alt, empty }) {
+  return (
+    <div>
+      <p className="text-sm font-medium text-slate-700 mb-2">{label}</p>
+      {src ? (
+        <img src={resolveMediaUrl(src)} alt={alt} className="w-full h-48 object-cover rounded-lg border border-slate-200" crossOrigin="anonymous" referrerPolicy="no-referrer" />
+      ) : (
+        <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center"><span className="text-slate-400 text-sm">{empty}</span></div>
       )}
     </div>
   )
@@ -1059,10 +703,7 @@ function DetailItem({ label, value }) {
 function Stat({ title, value, icon }) {
   return (
     <div className="bg-white p-4 rounded-xl border shadow-sm flex justify-between items-center">
-      <div>
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-xl font-bold">{value}</p>
-      </div>
+      <div><p className="text-sm text-gray-500">{title}</p><p className="text-xl font-bold">{value}</p></div>
       <div className="text-gray-400">{icon}</div>
     </div>
   )
