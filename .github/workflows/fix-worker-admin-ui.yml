@@ -1,0 +1,79 @@
+name: Fix worker admin documents and location UI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch Workers UI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('src/Components/Workers.jsx')
+          s = p.read_text()
+
+          s = s.replace("  verificationPhoto: worker.verificationPhoto || '',\n", "  verificationPhoto: worker.verificationPhoto || '',\n  cnicFrontPhoto: worker.cnicFrontPhoto || '',\n  cnicBackPhoto: worker.cnicBackPhoto || '',\n  services: Array.isArray(worker.services) ? worker.services : [],\n")
+
+          s = s.replace("  location: worker.location || '',\n  latitude: worker.latitude ?? null,\n  longitude: worker.longitude ?? null,\n", "  location: worker.location || worker.serviceArea || '',\n  latitude: worker.latitude ?? worker.coordinates?.latitude ?? null,\n  longitude: worker.longitude ?? worker.coordinates?.longitude ?? null,\n  placeId: worker.placeId || worker.locationPlaceId || '',\n")
+
+          old = '''                  <div className="grid grid-cols-2 gap-4 text-sm">\n                  <div className="flex items-center gap-2">\n                    <Phone size={14} className="text-slate-400" />\n                    <span className="text-slate-600 truncate">{worker.phone || 'N/A'}</span>\n                  </div>\n                  <div className="flex items-center gap-2">\n                    <MapPin size={14} className="text-slate-400" />\n                  </div>\n                </div>'''
+          new = '''                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">\n                  <div className="flex items-center gap-2 min-w-0">\n                    <Phone size={14} className="text-slate-400 shrink-0" />\n                    <span className="text-slate-600 truncate">{worker.phone || 'N/A'}</span>\n                  </div>\n                  <div className="flex items-center gap-2 min-w-0">\n                    <MapPin size={14} className="text-slate-400 shrink-0" />\n                    <span className="text-slate-600 truncate" title={worker.location || ''}>{worker.location || 'Location not provided'}</span>\n                  </div>\n                </div>'''
+          if old not in s:
+              raise SystemExit('worker card details block not found')
+          s = s.replace(old, new, 1)
+
+          old = '''              <DetailItem label="CNIC" value={viewingWorker.cnic || 'N/A'} />\n              <DetailItem label="Availability" value={viewingWorker.availability ? 'Available' : 'Not Available'} />'''
+          new = '''              <DetailItem label="CNIC" value={viewingWorker.cnic || 'N/A'} />\n              <DetailItem label="Location" value={viewingWorker.location || 'N/A'} />\n              <DetailItem label="Latitude" value={viewingWorker.latitude ?? 'N/A'} />\n              <DetailItem label="Longitude" value={viewingWorker.longitude ?? 'N/A'} />\n              <DetailItem label="Availability" value={viewingWorker.availability ? 'Available' : 'Not Available'} />'''
+          if old not in s:
+              raise SystemExit('worker detail grid anchor not found')
+          s = s.replace(old, new, 1)
+
+          old = '''              <div className="grid grid-cols-2 gap-4">\n                {/* Profile Picture */}'''
+          new = '''              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">\n                {/* Profile Picture */}'''
+          if old not in s:
+              raise SystemExit('photo grid anchor not found')
+          s = s.replace(old, new, 1)
+
+          anchor = '''                {/* Verification Photo */}\n                <div>'''
+          if anchor not in s:
+              raise SystemExit('verification photo anchor not found')
+
+          # Insert CNIC cards immediately after the existing verification-photo card.
+          marker = '''                </div>\n              </div>\n            </div>\n\n            <div className="flex gap-2 pt-6">'''
+          insert = '''                </div>\n\n                {/* CNIC Front */}\n                <div>\n                  <p className="text-sm font-medium text-slate-700 mb-2">CNIC Front</p>\n                  {viewingWorker.cnicFrontPhoto ? (\n                    <img\n                      src={resolveMediaUrl(viewingWorker.cnicFrontPhoto)}\n                      alt="CNIC front"\n                      className="w-full h-48 object-cover rounded-lg border border-slate-200"\n                      crossOrigin="anonymous"\n                    />\n                  ) : (\n                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">\n                      <span className="text-slate-400 text-sm">No CNIC front photo</span>\n                    </div>\n                  )}\n                </div>\n\n                {/* CNIC Back */}\n                <div>\n                  <p className="text-sm font-medium text-slate-700 mb-2">CNIC Back</p>\n                  {viewingWorker.cnicBackPhoto ? (\n                    <img\n                      src={resolveMediaUrl(viewingWorker.cnicBackPhoto)}\n                      alt="CNIC back"\n                      className="w-full h-48 object-cover rounded-lg border border-slate-200"\n                      crossOrigin="anonymous"\n                    />\n                  ) : (\n                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">\n                      <span className="text-slate-400 text-sm">No CNIC back photo</span>\n                    </div>\n                  )}\n                </div>\n              </div>\n            </div>\n\n            <div className="flex gap-2 pt-6">'''
+          if marker not in s:
+              raise SystemExit('photo section closing marker not found')
+          s = s.replace(marker, insert, 1)
+
+          p.write_text(s)
+          PY
+
+      - name: Verify
+        run: |
+          grep -n "cnicFrontPhoto\|cnicBackPhoto\|Location" src/Components/Workers.jsx
+          npm ci
+          npm run build
+          git diff --check
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Components/Workers.jsx
+          git diff --cached --quiet || git commit -m "Fix worker location and document display"
+          git push origin main
+
+      - name: Remove temporary workflow
+        if: success()
+        run: |
+          git rm .github/workflows/fix-worker-admin-ui.yml
+          git commit -m "chore: remove temporary worker UI patch workflow"
+          git push origin main
