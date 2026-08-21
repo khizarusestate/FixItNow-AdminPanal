@@ -2,18 +2,27 @@
  * FILE: adminpanel/src/Components/AdminNotificationSettings.jsx
  * 
  * Admin notification preferences UI
- * Control push and in-app notifications
+ * Control push, in-app notifications, notification types, and sound
  */
 
 import { useState, useEffect } from 'react';
-import { Bell, Save, Loader } from 'lucide-react';
+import { Bell, Save, Loader, Volume2, VolumeX } from 'lucide-react';
 import { apiRequestWithAuth } from '../lib/apiRequest';
+
+const SOUND_STORAGE_KEY = 'fixitnow_admin_notification_sound';
 
 export default function AdminNotificationSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(SOUND_STORAGE_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  });
 
   const [settings, setSettings] = useState({
     pushEnabled: true,
@@ -37,7 +46,6 @@ export default function AdminNotificationSettings() {
     newAdvertisement: '📢 New Advertisements',
   };
 
-  // Load settings
   useEffect(() => {
     fetchSettings();
   }, []);
@@ -70,10 +78,7 @@ export default function AdminNotificationSettings() {
 
   const handleToggle = (key, value) => {
     if (key === 'pushEnabled' || key === 'inAppEnabled') {
-      setSettings(prev => ({
-        ...prev,
-        [key]: value,
-      }));
+      setSettings(prev => ({ ...prev, [key]: value }));
     } else {
       setSettings(prev => ({
         ...prev,
@@ -82,6 +87,19 @@ export default function AdminNotificationSettings() {
           [key]: value,
         },
       }));
+    }
+    setSuccess('');
+  };
+
+  const handleSoundToggle = (value) => {
+    setNotificationSoundEnabled(value);
+    try {
+      localStorage.setItem(SOUND_STORAGE_KEY, String(value));
+      window.dispatchEvent(new CustomEvent('admin-notification-sound-changed', {
+        detail: { enabled: value },
+      }));
+    } catch {
+      /* ignore */
     }
     setSuccess('');
   };
@@ -98,6 +116,11 @@ export default function AdminNotificationSettings() {
       });
 
       if (result?.success) {
+        try {
+          localStorage.setItem(SOUND_STORAGE_KEY, String(notificationSoundEnabled));
+        } catch {
+          /* ignore */
+        }
         setSuccess('Notification settings saved successfully!');
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -121,7 +144,6 @@ export default function AdminNotificationSettings() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Bell className="text-blue-500" size={24} />
         <div>
@@ -130,25 +152,21 @@ export default function AdminNotificationSettings() {
         </div>
       </div>
 
-      {/* Error Alert */}
       {error && (
         <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
           {error}
         </div>
       )}
 
-      {/* Success Alert */}
       {success && (
         <div className="rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">
           {success}
         </div>
       )}
 
-      {/* Notification Channels */}
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
         <h3 className="font-semibold text-slate-900">Notification Channels</h3>
 
-        {/* Push Notifications */}
         <div className="flex items-center justify-between py-3 border-b border-slate-100">
           <div>
             <p className="font-medium text-slate-900">Push Notifications</p>
@@ -164,8 +182,7 @@ export default function AdminNotificationSettings() {
           </label>
         </div>
 
-        {/* In-App Notifications */}
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between py-3 border-b border-slate-100">
           <div>
             <p className="font-medium text-slate-900">In-App Notifications</p>
             <p className="text-sm text-slate-600">See notifications in the bell icon</p>
@@ -179,9 +196,30 @@ export default function AdminNotificationSettings() {
             />
           </label>
         </div>
+
+        <div className="flex items-center justify-between py-3">
+          <div className="flex items-center gap-3">
+            {notificationSoundEnabled ? (
+              <Volume2 size={20} className="text-blue-500" />
+            ) : (
+              <VolumeX size={20} className="text-slate-400" />
+            )}
+            <div>
+              <p className="font-medium text-slate-900">Notification Sound</p>
+              <p className="text-sm text-slate-600">Play a sound for new in-app notifications</p>
+            </div>
+          </div>
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={notificationSoundEnabled}
+              onChange={(e) => handleSoundToggle(e.target.checked)}
+              className="w-5 h-5 rounded border-slate-300 text-blue-500"
+            />
+          </label>
+        </div>
       </div>
 
-      {/* Notification Types */}
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
         <h3 className="font-semibold text-slate-900">Admin Notifications</h3>
         <p className="text-sm text-slate-600">Choose which notifications you want to receive</p>
@@ -205,7 +243,6 @@ export default function AdminNotificationSettings() {
         </div>
       </div>
 
-      {/* Save Button */}
       <div className="flex justify-end">
         <button
           onClick={handleSave}
@@ -226,7 +263,6 @@ export default function AdminNotificationSettings() {
         </button>
       </div>
 
-      {/* Info */}
       <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700 border border-blue-200">
         <p className="font-medium mb-1">💡 Tip:</p>
         <p>Disabling notifications won't prevent important updates from being saved. You can always check your notification history in the bell icon.</p>
