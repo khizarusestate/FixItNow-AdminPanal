@@ -1,0 +1,99 @@
+name: Patch worker CNIC display
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Patch worker details
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/Components/Workers.jsx')
+          s = p.read_text()
+
+          old = '''  profilePicture: worker.profilePicture || '',
+  verificationPhoto: worker.verificationPhoto || '',
+  availability: worker.availability ?? true,'''
+          new = '''  profilePicture: worker.profilePicture || '',
+  verificationPhoto: worker.verificationPhoto || '',
+  cnicFrontPhoto: worker.cnicFrontPhoto || '',
+  cnicBackPhoto: worker.cnicBackPhoto || '',
+  availability: worker.availability ?? true,'''
+          assert old in s
+          s = s.replace(old, new, 1)
+
+          old = '''                {/* Verification Photo */}
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">Passport/Verification</p>
+                  {viewingWorker.verificationPhoto ? (
+                    <img 
+                      src={resolveMediaUrl(viewingWorker.verificationPhoto)} 
+                      alt="Verification" 
+                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">No photo</span>
+                    </div>
+                  )}
+                </div>'''
+          new = old + '''
+
+                {/* CNIC Front */}
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">CNIC Front</p>
+                  {viewingWorker.cnicFrontPhoto ? (
+                    <img
+                      src={resolveMediaUrl(viewingWorker.cnicFrontPhoto)}
+                      alt="CNIC front"
+                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">No photo</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* CNIC Back */}
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">CNIC Back</p>
+                  {viewingWorker.cnicBackPhoto ? (
+                    <img
+                      src={resolveMediaUrl(viewingWorker.cnicBackPhoto)}
+                      alt="CNIC back"
+                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">No photo</span>
+                    </div>
+                  )}
+                </div>'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+          npm run build
+      - name: Commit and remove patch workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/patch-cnic-display.yml
+          git add src/Components/Workers.jsx .github/workflows/patch-cnic-display.yml
+          git commit -m 'feat: show worker CNIC front and back in approval details'
+          git push
