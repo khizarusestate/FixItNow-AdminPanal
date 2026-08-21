@@ -1,0 +1,160 @@
+name: Patch worker approval details
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Patch worker approval UI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('src/Components/Workers.jsx')
+          s = p.read_text()
+
+          old = "import { getTradesDisplay, getTradeName } from '../utils/tradesDisplay.js'"
+          new = "import { getTradeName } from '../utils/tradesDisplay.js'"
+          assert old in s, 'Expected trades import not found'
+          s = s.replace(old, new, 1)
+
+          old = '''  service: worker.serviceCategory || worker.service || '',
+  location: worker.location || '',
+  latitude: worker.latitude ?? null,
+  longitude: worker.longitude ?? null,
+  cnic: worker.cnicNumber || worker.cnic || '',
+  profilePicture: worker.profilePicture || '',
+  verificationPhoto: worker.verificationPhoto || '',
+  availability: worker.availability ?? true,'''
+          new = '''  service: worker.serviceCategory || worker.service || worker.primaryServiceCategory || '',
+  services: Array.isArray(worker.services) ? worker.services : [],
+  location: worker.location || worker.address || worker.serviceArea || '',
+  latitude: worker.latitude ?? null,
+  longitude: worker.longitude ?? null,
+  placeId: worker.placeId || '',
+  cnic: worker.cnicNumber || worker.cnic || '',
+  profilePicture: worker.profilePicture || '',
+  verificationPhoto: worker.verificationPhoto || '',
+  cnicFrontPhoto: worker.cnicFrontPhoto || '',
+  cnicBackPhoto: worker.cnicBackPhoto || '',
+  availability: worker.availability ?? true,'''
+          assert old in s, 'Expected worker normalization block not found'
+          s = s.replace(old, new, 1)
+
+          old = '''                  <div className="flex items-center gap-2">
+                    <MapPin size={14} className="text-slate-400" />
+                  </div>'''
+          new = '''                  <div className="flex items-start gap-2 min-w-0 col-span-2">
+                    <MapPin size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-slate-600 truncate" title={worker.location || 'Location not provided'}>
+                      {worker.location || 'Location not provided'}
+                    </span>
+                  </div>'''
+          assert old in s, 'Expected worker card location block not found'
+          s = s.replace(old, new, 1)
+
+          old = '''              <DetailItem label="Selected Work" value={viewingWorker.service || 'N/A'} />
+              <DetailItem label="CNIC" value={viewingWorker.cnic || 'N/A'} />
+              <DetailItem label="Availability" value={viewingWorker.availability ? 'Available' : 'Not Available'} />'''
+          new = '''              <DetailItem label="Selected Work" value={viewingWorker.service || 'N/A'} />
+              <DetailItem label="CNIC" value={viewingWorker.cnic || 'N/A'} />
+              <DetailItem label="Location" value={viewingWorker.location || 'N/A'} />
+              <DetailItem
+                label="Coordinates"
+                value={
+                  viewingWorker.latitude != null && viewingWorker.longitude != null
+                    ? `${viewingWorker.latitude}, ${viewingWorker.longitude}`
+                    : 'N/A'
+                }
+              />
+              <DetailItem label="Availability" value={viewingWorker.availability ? 'Available' : 'Not Available'} />'''
+          assert old in s, 'Expected worker detail fields not found'
+          s = s.replace(old, new, 1)
+
+          old = '''              <div className="grid grid-cols-2 gap-4">
+                {/* Profile Picture */}'''
+          new = '''              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Profile Picture */}'''
+          assert old in s, 'Expected photos grid not found'
+          s = s.replace(old, new, 1)
+
+          old = '''                {/* Verification Photo */}
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">Passport/Verification</p>
+                  {viewingWorker.verificationPhoto ? (
+                    <img 
+                      src={resolveMediaUrl(viewingWorker.verificationPhoto)} 
+                      alt="Verification" 
+                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">No photo</span>
+                    </div>
+                  )}
+                </div>'''
+          new = old + '''
+
+                {/* CNIC Front */}
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">CNIC Front</p>
+                  {viewingWorker.cnicFrontPhoto ? (
+                    <img
+                      src={resolveMediaUrl(viewingWorker.cnicFrontPhoto)}
+                      alt="CNIC front"
+                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                      crossOrigin="anonymous"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">No photo</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* CNIC Back */}
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">CNIC Back</p>
+                  {viewingWorker.cnicBackPhoto ? (
+                    <img
+                      src={resolveMediaUrl(viewingWorker.cnicBackPhoto)}
+                      alt="CNIC back"
+                      className="w-full h-48 object-cover rounded-lg border border-slate-200"
+                      crossOrigin="anonymous"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center">
+                      <span className="text-slate-400 text-sm">No photo</span>
+                    </div>
+                  )}
+                </div>'''
+          assert old in s, 'Expected verification photo block not found'
+          s = s.replace(old, new, 1)
+
+          p.write_text(s)
+          PY
+
+          npm run build
+
+      - name: Commit and remove patch workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/patch-worker-approval-details.yml
+          git add src/Components/Workers.jsx .github/workflows/patch-worker-approval-details.yml
+          git commit -m 'fix: complete worker approval details UI'
+          git push
