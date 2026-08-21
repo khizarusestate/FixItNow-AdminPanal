@@ -92,8 +92,10 @@ jobs:
       - name: Commit and remove patch workflow
         run: |
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email '41898282+users.noreply.github.com'
           rm .github/workflows/patch-cnic-display.yml
           git add src/Components/Workers.jsx .github/workflows/patch-cnic-display.yml
           git commit -m 'feat: show worker CNIC front and back in approval details'
           git push
+
+# retrigger worker CNIC display patch
