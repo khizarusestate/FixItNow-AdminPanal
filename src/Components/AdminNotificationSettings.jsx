@@ -1,13 +1,13 @@
 /**
  * FILE: adminpanel/src/Components/AdminNotificationSettings.jsx
- * 
+ *
  * Admin notification preferences UI
  * Control push, in-app notifications, notification types, and sound
  */
 
 import { useState, useEffect } from 'react';
 import { Bell, Save, Loader, Volume2, VolumeX } from 'lucide-react';
-import { apiRequestWithAuth } from '../lib/apiRequest';
+import { apiRequest } from '../lib/api';
 
 const SOUND_STORAGE_KEY = 'fixitnow_admin_notification_sound';
 
@@ -54,19 +54,19 @@ export default function AdminNotificationSettings() {
     try {
       setLoading(true);
       setError('');
-      const result = await apiRequestWithAuth('/notifications/settings', {
+      const result = await apiRequest('/notifications/settings', {
         method: 'GET',
       });
 
       if (result?.success && result?.data) {
-        setSettings({
+        setSettings(prev => ({
           pushEnabled: result.data.pushEnabled ?? true,
           inAppEnabled: result.data.inAppEnabled ?? true,
           notificationTypes: {
-            ...settings.notificationTypes,
+            ...prev.notificationTypes,
             ...result.data.notificationTypes,
           },
-        });
+        }));
       }
     } catch (err) {
       console.error('Error fetching notification settings:', err);
@@ -110,7 +110,7 @@ export default function AdminNotificationSettings() {
       setError('');
       setSuccess('');
 
-      const result = await apiRequestWithAuth('/notifications/settings', {
+      const result = await apiRequest('/notifications/settings', {
         method: 'PUT',
         body: JSON.stringify(settings),
       });
