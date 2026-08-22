@@ -1,13 +1,14 @@
 /**
  * FILE: adminpanel/src/Components/AdminSettings.jsx
- * 
- * Admin panel settings including maintenance mode and notification sound
+ *
+ * Admin panel settings including maintenance and separate notification controls.
  */
 
 import { useState } from 'react';
 import { Settings, AlertTriangle, ArrowLeft } from 'lucide-react';
 import MaintenanceMode from './MaintenanceMode';
 import AdminNotificationSettings from './AdminNotificationSettings';
+import AdminNotificationChannels from './AdminNotificationChannels';
 
 export default function AdminSettings({ admin, onBack }) {
   const [activeTab, setActiveTab] = useState('maintenance');
@@ -28,6 +29,13 @@ export default function AdminSettings({ admin, onBack }) {
     );
   }
 
+  const tabClass = (tab) =>
+    `px-4 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
+      activeTab === tab
+        ? 'border-blue-500 text-blue-500'
+        : 'border-transparent text-slate-600 hover:text-slate-900'
+    }`;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-6">
@@ -44,32 +52,26 @@ export default function AdminSettings({ admin, onBack }) {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('maintenance')}
-          className={`px-4 py-3 font-medium transition-colors border-b-2 ${
-            activeTab === 'maintenance'
-              ? 'border-blue-500 text-blue-500'
-              : 'border-transparent text-slate-600 hover:text-slate-900'
-          }`}
-        >
+      <div className="flex gap-2 border-b border-slate-200 overflow-x-auto">
+        <button onClick={() => setActiveTab('maintenance')} className={tabClass('maintenance')}>
           🔧 Maintenance Mode
         </button>
-        <button
-          onClick={() => setActiveTab('notifications')}
-          className={`px-4 py-3 font-medium transition-colors border-b-2 ${
-            activeTab === 'notifications'
-              ? 'border-blue-500 text-blue-500'
-              : 'border-transparent text-slate-600 hover:text-slate-900'
-          }`}
-        >
+        <button onClick={() => setActiveTab('notifications')} className={tabClass('notifications')}>
           🔔 Notifications
+        </button>
+        <button onClick={() => setActiveTab('push')} className={tabClass('push')}>
+          📲 Push Notifications
+        </button>
+        <button onClick={() => setActiveTab('inapp')} className={tabClass('inapp')}>
+          🔔 In-App & Sound
         </button>
       </div>
 
       <div className="bg-white rounded-xl p-6">
         {activeTab === 'maintenance' && <MaintenanceMode />}
         {activeTab === 'notifications' && <AdminNotificationSettings />}
+        {activeTab === 'push' && <AdminNotificationChannels mode="push" />}
+        {activeTab === 'inapp' && <AdminNotificationChannels mode="inapp" />}
       </div>
     </div>
   );
