@@ -384,7 +384,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
               </div>
               <div className="flex items-center gap-3">
                 <MapPin size={16} className="text-slate-400" />
-                <span className="text-sm text-slate-600">{profile.location || profile.address}</span>
+                <span className="text-sm text-slate-600">{profile.address}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Calendar size={16} className="text-slate-400" />
@@ -578,7 +578,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
                         {profile.role !== 'super_admin' ? (
                           <div>
                             <p className="text-sm text-slate-500 mb-1">Location</p>
-                            <p className="font-medium text-slate-900">{profile.location || profile.address}</p>
+                            <p className="font-medium text-slate-900">{profile.address}</p>
                           </div>
                         ) : null}
                       </div>
