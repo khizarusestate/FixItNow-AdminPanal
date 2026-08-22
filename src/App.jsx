@@ -30,7 +30,6 @@ function AppContent({ onLogout }) {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [profileAutoEdit, setProfileAutoEdit] = useState(false);
 
-  // Add global button sounds
   useGlobalButtonSounds();
 
   const handleLogout = () => {
@@ -38,7 +37,15 @@ function AppContent({ onLogout }) {
     onLogout();
   };
 
+  // "Profile & Settings" should open the combined super-admin settings
+  // screen so the new notification controls are actually reachable.
   const openProfileSettings = () => {
+    if (isSuperAdmin) {
+      setProfileAutoEdit(false);
+      setActiveSection("settings");
+      return;
+    }
+
     setProfileAutoEdit(true);
     setActiveSection("profile");
   };
