@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Bell, ChevronDown, LogOut, User, X, AlertTriangle } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User, Settings, X } from "lucide-react";
 import { apiRequest, clearAdminToken } from "../lib/api";
 import { useAdmin } from "../context/AdminContext";
 import { resolveMediaUrl } from "../lib/media";
@@ -131,10 +131,7 @@ export default function AdminTopBar({
               className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${theme.iconButton}`}
               title={`${unreadNotifications > 0 ? unreadNotifications : totalBadges} new notifications`}
             >
-              <Bell
-                size={18}
-                className={theme.iconButtonText}
-              />
+              <Bell size={18} className={theme.iconButtonText} />
               {(unreadNotifications > 0 || totalBadges > 0) && (
                 <span
                   className={`absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full text-[10px] font-bold text-white px-1 ${theme.badge}`}
@@ -149,20 +146,6 @@ export default function AdminTopBar({
                 </span>
               )}
             </button>
-
-            {/* Maintenance Mode Button (Super Admin Only) */}
-            {isSuperAdmin && (
-              <button
-                onClick={() => onNavigate?.("settings")}
-                className={`relative h-10 w-10 flex items-center justify-center rounded-xl transition-colors ${theme.iconButton} hover:bg-blue-100/20`}
-                title="Maintenance Mode Settings"
-              >
-                <AlertTriangle
-                  size={18}
-                  className="text-blue-500"
-                />
-              </button>
-            )}
 
             <div className="relative">
               <button
@@ -179,7 +162,9 @@ export default function AdminTopBar({
                     className={`h-8 w-8 rounded-full object-cover border-2 ${theme.avatarBorder}`}
                   />
                 ) : (
-                  <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${theme.avatarGradient} flex items-center justify-center`}>
+                  <div
+                    className={`h-8 w-8 rounded-full bg-gradient-to-br ${theme.avatarGradient} flex items-center justify-center`}
+                  >
                     <span className="text-white font-semibold text-sm">
                       {getInitials(admin?.name)}
                     </span>
@@ -192,7 +177,9 @@ export default function AdminTopBar({
               </button>
 
               {showDropdown && (
-                <div className={`absolute right-0 mt-2 w-56 rounded-xl shadow-xl py-2 z-50 ${theme.dropdown}`}>
+                <div
+                  className={`absolute right-0 mt-2 w-64 rounded-xl shadow-xl py-2 z-50 ${theme.dropdown}`}
+                >
                   <div className={`px-4 py-3 border-b ${theme.dropdownBorder}`}>
                     <p className={`font-semibold ${theme.dropdownText}`}>
                       {admin?.name || "Admin"}
@@ -201,30 +188,46 @@ export default function AdminTopBar({
                       {admin?.email || "admin@email.com"}
                     </p>
                     {isSuperAdmin && (
-                      <span className={`inline-flex mt-1 items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${theme.chip}`}>
+                      <span
+                        className={`inline-flex mt-1 items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${theme.chip}`}
+                      >
                         Super Admin
                       </span>
                     )}
                   </div>
+
                   <button
                     type="button"
                     onClick={() => {
-                      onOpenProfileSettings?.();
+                      onOpenProfileSettings?.("profile");
                       setShowDropdown(false);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 ${theme.dropdownText} ${theme.dropdownHover}`}
+                    className={`w-full px-4 py-3 text-left text-sm flex items-center gap-3 ${theme.dropdownText} ${theme.dropdownHover}`}
                   >
-                    <User size={16} className={theme.iconButtonText} />
-                    Profile &amp; Settings
+                    <User size={17} className={theme.iconButtonText} />
+                    <span>Profile</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenProfileSettings?.("settings");
+                      setShowDropdown(false);
+                    }}
+                    className={`w-full px-4 py-3 text-left text-sm flex items-center gap-3 ${theme.dropdownText} ${theme.dropdownHover}`}
+                  >
+                    <Settings size={17} className={theme.iconButtonText} />
+                    <span>Settings</span>
+                  </button>
+
                   <div className={`border-t mt-1 pt-1 ${theme.dropdownBorder}`}>
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"
                     >
-                      <LogOut size={16} />
-                      Logout
+                      <LogOut size={17} />
+                      <span>Logout</span>
                     </button>
                   </div>
                 </div>
