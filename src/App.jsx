@@ -37,17 +37,19 @@ function AppContent({ onLogout }) {
     onLogout();
   };
 
-  // "Profile & Settings" should open the combined super-admin settings
-  // screen so the new notification controls are actually reachable.
-  const openProfileSettings = () => {
-    if (isSuperAdmin) {
-      setProfileAutoEdit(false);
-      setActiveSection("settings");
+  // Top-bar profile menu has three separate actions:
+  // Profile, Settings, and Logout.
+  const openProfileSettings = (section) => {
+    if (section === "profile") {
+      setProfileAutoEdit(true);
+      setActiveSection("profile");
       return;
     }
 
-    setProfileAutoEdit(true);
-    setActiveSection("profile");
+    if (section === "settings") {
+      setProfileAutoEdit(false);
+      setActiveSection("settings");
+    }
   };
 
   useEffect(() => {
