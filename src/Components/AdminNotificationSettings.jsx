@@ -1,271 +1,155 @@
-/**
- * FILE: adminpanel/src/Components/AdminNotificationSettings.jsx
- *
- * Admin notification preferences UI
- * Control push, in-app notifications, notification types, and sound
- */
-
-import { useState, useEffect } from 'react';
-import { Bell, Save, Loader, Volume2, VolumeX } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Bell, Loader, Volume2, VolumeX } from 'lucide-react';
 import { apiRequest } from '../lib/api';
+import {
+  fetchDevicePushPreference,
+  registerWebPushAdmin,
+  saveDevicePushPreference,
+  unregisterWebPushAdmin,
+  isPushSupported,
+} from '../utils/pushNotifications.js';
 
 const SOUND_STORAGE_KEY = 'fixitnow_admin_notification_sound';
 
+function Toggle({ checked, onChange, disabled = false, label }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-label={label}
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${checked ? 'bg-blue-500' : 'bg-slate-300'}`}
+    >
+      <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform mt-0.5 ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
+    </button>
+  );
+}
+
 export default function AdminNotificationSettings() {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(() => {
-    try {
-      return localStorage.getItem(SOUND_STORAGE_KEY) !== 'false';
-    } catch {
-      return true;
-    }
-  });
-
-  const [settings, setSettings] = useState({
-    pushEnabled: true,
-    inAppEnabled: true,
-    notificationTypes: {
-      newBooking: true,
-      newWorker: true,
-      newCustomer: true,
-      claimPending: true,
-      newReview: true,
-      newAdvertisement: true,
-    },
-  });
-
-  const adminNotificationLabels = {
-    newBooking: '📅 New Booking Requests',
-    newWorker: '👷 New Worker Registrations',
-    newCustomer: '👤 New Customer Signups',
-    claimPending: '⏳ Worker Claim Reviews',
-    newReview: '⭐ New Reviews',
-    newAdvertisement: '📢 New Advertisements',
-  };
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [inAppEnabled, setInAppEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
-    fetchSettings();
+    let mounted = true;
+    (async () => {
+      try {
+        const [settingsResult, devicePush] = await Promise.all([
+          apiRequest('/notifications/settings', { method: 'GET' }),
+          fetchDevicePushPreference().catch(() => true),
+        ]);
+        if (!mounted) return;
+        setPushEnabled(settingsResult?.data?.pushEnabled ?? devicePush ?? true);
+        setInAppEnabled(settingsResult?.data?.inAppEnabled ?? true);
+        try { setSoundEnabled(localStorage.getItem(SOUND_STORAGE_KEY) !== 'false'); } catch { setSoundEnabled(true); }
+      } catch (err) {
+        if (mounted) setError(err?.message || 'Failed to load notification settings');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
   }, []);
 
-  const fetchSettings = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const result = await apiRequest('/notifications/settings', {
-        method: 'GET',
-      });
-
-      if (result?.success && result?.data) {
-        setSettings(prev => ({
-          pushEnabled: result.data.pushEnabled ?? true,
-          inAppEnabled: result.data.inAppEnabled ?? true,
-          notificationTypes: {
-            ...prev.notificationTypes,
-            ...result.data.notificationTypes,
-          },
-        }));
-      }
-    } catch (err) {
-      console.error('Error fetching notification settings:', err);
-      setError('Failed to load settings');
-    } finally {
-      setLoading(false);
-    }
+  const saveSettings = async ({ push = pushEnabled, inApp = inAppEnabled } = {}) => {
+    const result = await apiRequest('/notifications/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ pushEnabled: push, inAppEnabled: inApp }),
+    });
+    if (!result?.success) throw new Error(result?.message || 'Failed to save notification settings');
+    setPushEnabled(push);
+    setInAppEnabled(inApp);
   };
 
-  const handleToggle = (key, value) => {
-    if (key === 'pushEnabled' || key === 'inAppEnabled') {
-      setSettings(prev => ({ ...prev, [key]: value }));
-    } else {
-      setSettings(prev => ({
-        ...prev,
-        notificationTypes: {
-          ...prev.notificationTypes,
-          [key]: value,
-        },
-      }));
-    }
-    setSuccess('');
+  const toggleAppNotifications = async (next) => {
+    setBusy(true); setError(''); setSuccess('');
+    try {
+      await saveSettings({ inApp: next });
+      setSuccess(next ? 'App notifications enabled.' : 'App notifications disabled.');
+    } catch (err) { setError(err?.message || 'Failed to update app notifications'); }
+    finally { setBusy(false); }
   };
 
-  const handleSoundToggle = (value) => {
-    setNotificationSoundEnabled(value);
+  const togglePushNotifications = async (next) => {
+    setBusy(true); setError(''); setSuccess('');
     try {
-      localStorage.setItem(SOUND_STORAGE_KEY, String(value));
-      window.dispatchEvent(new CustomEvent('admin-notification-sound-changed', {
-        detail: { enabled: value },
-      }));
-    } catch {
-      /* ignore */
-    }
-    setSuccess('');
-  };
-
-  const handleSave = async () => {
-    try {
-      setSaving(true);
-      setError('');
-      setSuccess('');
-
-      const result = await apiRequest('/notifications/settings', {
-        method: 'PUT',
-        body: JSON.stringify(settings),
-      });
-
-      if (result?.success) {
-        try {
-          localStorage.setItem(SOUND_STORAGE_KEY, String(notificationSoundEnabled));
-        } catch {
-          /* ignore */
+      if (next) {
+        if (!isPushSupported()) throw new Error('Push notifications are not supported by this browser.');
+        const reg = await registerWebPushAdmin();
+        if (!reg.ok) {
+          throw new Error(
+            reg.reason === 'denied' ? 'Notifications are blocked in browser settings.' :
+            reg.reason === 'disabled' ? 'Push notifications are not configured on the server yet.' :
+            'Could not enable push notifications.'
+          );
         }
-        setSuccess('Notification settings saved successfully!');
-        setTimeout(() => setSuccess(''), 3000);
       } else {
-        setError(result?.message || 'Failed to save settings');
+        await unregisterWebPushAdmin();
       }
-    } catch (err) {
-      console.error('Error saving notification settings:', err);
-      setError('Failed to save settings');
-    } finally {
-      setSaving(false);
-    }
+      await saveDevicePushPreference(next);
+      await saveSettings({ push: next });
+      setSuccess(next ? 'Push notifications enabled.' : 'Push notifications disabled.');
+    } catch (err) { setError(err?.message || 'Failed to update push notifications'); }
+    finally { setBusy(false); }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader size={24} className="animate-spin text-blue-500" />
-      </div>
-    );
-  }
+  const toggleSound = (next) => {
+    setSoundEnabled(next);
+    try {
+      localStorage.setItem(SOUND_STORAGE_KEY, String(next));
+      window.dispatchEvent(new CustomEvent('admin-notification-sound-changed', { detail: { enabled: next } }));
+    } catch {}
+    setSuccess(next ? 'Notification sound enabled.' : 'Notification sound muted.');
+  };
+
+  if (loading) return <div className="flex items-center justify-center py-12"><Loader size={24} className="animate-spin text-blue-500" /></div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Bell className="text-blue-500" size={24} />
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Notification Settings</h2>
-          <p className="text-sm text-slate-600">Control your notification preferences</p>
+          <h2 className="text-2xl font-bold text-slate-900">Notifications</h2>
+          <p className="text-sm text-slate-600">Manage all notification preferences from one place.</p>
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">
-          {error}
+      {error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-200">{error}</div>}
+      {success && <div className="rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">{success}</div>}
+
+      <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
+        <div className="flex items-center justify-between gap-4 py-3 border-b border-slate-100">
+          <div>
+            <p className="font-medium text-slate-900">App Notifications</p>
+            <p className="text-sm text-slate-600">Show notifications in the admin panel bell and live feed.</p>
+          </div>
+          <Toggle checked={inAppEnabled} onChange={toggleAppNotifications} disabled={busy} label="App Notifications" />
         </div>
-      )}
 
-      {success && (
-        <div className="rounded-lg bg-green-50 p-4 text-sm text-green-700 border border-green-200">
-          {success}
-        </div>
-      )}
-
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
-        <h3 className="font-semibold text-slate-900">Notification Channels</h3>
-
-        <div className="flex items-center justify-between py-3 border-b border-slate-100">
+        <div className="flex items-center justify-between gap-4 py-3 border-b border-slate-100">
           <div>
             <p className="font-medium text-slate-900">Push Notifications</p>
-            <p className="text-sm text-slate-600">Receive browser/app notifications</p>
+            <p className="text-sm text-slate-600">Receive browser push notifications even when the panel is not focused.</p>
           </div>
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.pushEnabled}
-              onChange={(e) => handleToggle('pushEnabled', e.target.checked)}
-              className="w-5 h-5 rounded border-slate-300 text-blue-500"
-            />
-          </label>
+          <Toggle checked={pushEnabled} onChange={togglePushNotifications} disabled={busy || !isPushSupported()} label="Push Notifications" />
         </div>
 
-        <div className="flex items-center justify-between py-3 border-b border-slate-100">
-          <div>
-            <p className="font-medium text-slate-900">In-App Notifications</p>
-            <p className="text-sm text-slate-600">See notifications in the bell icon</p>
-          </div>
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={settings.inAppEnabled}
-              onChange={(e) => handleToggle('inAppEnabled', e.target.checked)}
-              className="w-5 h-5 rounded border-slate-300 text-blue-500"
-            />
-          </label>
-        </div>
-
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between gap-4 py-3">
           <div className="flex items-center gap-3">
-            {notificationSoundEnabled ? (
-              <Volume2 size={20} className="text-blue-500" />
-            ) : (
-              <VolumeX size={20} className="text-slate-400" />
-            )}
+            {soundEnabled ? <Volume2 size={20} className="text-blue-500" /> : <VolumeX size={20} className="text-slate-400" />}
             <div>
-              <p className="font-medium text-slate-900">Notification Sound</p>
-              <p className="text-sm text-slate-600">Play a sound for new in-app notifications</p>
+              <p className="font-medium text-slate-900">Mute Notification Sound</p>
+              <p className="text-sm text-slate-600">Mute or enable the sound played for new live app notifications.</p>
             </div>
           </div>
-          <label className="flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={notificationSoundEnabled}
-              onChange={(e) => handleSoundToggle(e.target.checked)}
-              className="w-5 h-5 rounded border-slate-300 text-blue-500"
-            />
-          </label>
+          <Toggle checked={!soundEnabled} onChange={(mute) => toggleSound(!mute)} disabled={busy} label="Mute Notification Sound" />
         </div>
-      </div>
-
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6">
-        <h3 className="font-semibold text-slate-900">Admin Notifications</h3>
-        <p className="text-sm text-slate-600">Choose which notifications you want to receive</p>
-
-        <div className="space-y-3">
-          {Object.keys(adminNotificationLabels).map(notifType => (
-            <div key={notifType} className="flex items-center justify-between py-2">
-              <label className="flex items-center cursor-pointer gap-3 flex-1">
-                <input
-                  type="checkbox"
-                  checked={settings.notificationTypes[notifType] ?? true}
-                  onChange={(e) => handleToggle(notifType, e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-blue-500"
-                />
-                <span className="text-slate-700">
-                  {adminNotificationLabels[notifType]}
-                </span>
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-3 font-medium text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {saving ? (
-            <>
-              <Loader size={18} className="animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save size={18} />
-              Save Settings
-            </>
-          )}
-        </button>
-      </div>
-
-      <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700 border border-blue-200">
-        <p className="font-medium mb-1">💡 Tip:</p>
-        <p>Disabling notifications won't prevent important updates from being saved. You can always check your notification history in the bell icon.</p>
       </div>
     </div>
   );
