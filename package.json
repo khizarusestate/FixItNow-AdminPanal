@@ -15,7 +15,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "leaflet": "^1.9.4",
-    "lucide-react": "^1.14.0",
+    "lucide-react": "^1.33.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "socket.io-client": "^4.8.3",
