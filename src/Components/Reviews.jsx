@@ -137,6 +137,11 @@ export default function Reviews() {
     fetchReviews();
   };
 
+  const handleFilterChange = (nextFilter) => {
+    setFilter(nextFilter);
+    setPage(1);
+  };
+
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -179,28 +184,28 @@ export default function Reviews() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div role="button" tabIndex={0} onClick={() => handleFilterChange('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('all'); }} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare size={20} className="text-slate-500" />
             <span className="text-sm font-medium text-slate-600">Total</span>
           </div>
           <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
         </div>
-        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+        <div role="button" tabIndex={0} onClick={() => handleFilterChange('pending')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('pending'); }} className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2 mb-2">
             <Clock size={20} className="text-yellow-600" />
             <span className="text-sm font-medium text-yellow-700">Pending</span>
           </div>
           <p className="text-2xl font-bold text-yellow-900">{stats.pending}</p>
         </div>
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+        <div role="button" tabIndex={0} onClick={() => handleFilterChange('approved')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('approved'); }} className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle size={20} className="text-emerald-600" />
             <span className="text-sm font-medium text-emerald-700">Approved</span>
           </div>
           <p className="text-2xl font-bold text-emerald-900">{stats.approved}</p>
         </div>
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
+        <div role="button" tabIndex={0} onClick={() => handleFilterChange('rejected')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('rejected'); }} className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2 mb-2">
             <XCircle size={20} className="text-red-600" />
             <span className="text-sm font-medium text-red-700">Rejected</span>

@@ -145,7 +145,7 @@ export default function Advertisements() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {["total", "pending", "approved", "rejected"].map((key) => {
           const meta = { total: ["Total", "text-slate-700", "bg-white", "border-slate-200"], pending: ["Pending", "text-amber-600", "bg-amber-50", "border-amber-200"], approved: ["Approved", "text-green-600", "bg-green-50", "border-green-200"], rejected: ["Rejected", "text-red-600", "bg-red-50", "border-red-200"] }[key];
-          return <div key={key} className={`rounded-xl border ${meta[3]} ${meta[2]} p-4`}><p className="text-xs font-medium uppercase tracking-wider text-slate-500">{meta[0]}</p><p className={`mt-1 text-2xl font-bold ${meta[1]}`}>{stats[key]}</p></div>;
+          return <div key={key} role="button" tabIndex={0} onClick={() => { setFilter(key === "total" ? "all" : key); setPage(1); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setFilter(key === "total" ? "all" : key); setPage(1); } }} className={`rounded-xl border ${meta[3]} ${meta[2]} p-4 cursor-pointer hover:shadow-md transition-shadow`}><p className="text-xs font-medium uppercase tracking-wider text-slate-500">{meta[0]}</p><p className={`mt-1 text-2xl font-bold ${meta[1]}`}>{stats[key]}</p></div>;
         })}
       </div>
 
