@@ -7,7 +7,7 @@ import {
   DollarSign,
   Megaphone,
   Star,
-  ShieldCheck,
+  MessageCircle,
   LayoutGrid,
   UserCog,
 } from "lucide-react";
@@ -18,6 +18,7 @@ const SHARED_MENU_ITEMS = [
   { id: "bookings", label: "Bookings", icon: Calendar, badgeKey: "bookings" },
   { id: "workers", label: "Workers", icon: UserCheck, badgeKey: "workers" },
   { id: "customers", label: "Customers", icon: Users, badgeKey: "customers" },
+  { id: "messenger", label: "Messenger", icon: MessageCircle, badgeKey: null },
   { id: "services", label: "Services", icon: Wrench, badgeKey: null },
   {
     id: "advertisements",
@@ -31,7 +32,7 @@ const SHARED_MENU_ITEMS = [
 /** Full menu for regular admins — no Revenue (super admin only, sensitive financial data) */
 export const ADMIN_MENU_ITEMS = SHARED_MENU_ITEMS;
 
-/** Super admin — top-level sidebar (3 items) */
+/** Super admin — top-level sidebar */
 export const SUPER_ADMIN_ROOT_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: Home, badgeKey: null },
   {
@@ -50,8 +51,7 @@ export const SUPER_ADMIN_ROOT_ITEMS = [
   },
 ];
 
-/** Shown under Platform Operations for super admin — includes Revenue, which
- * regular admins never see (in the sidebar or the underlying API). */
+/** Shown under Platform Operations for super admin. */
 export const OPERATIONS_MENU_ITEMS = [
   ...SHARED_MENU_ITEMS.filter((item) => item.id !== "dashboard"),
   { id: "revenue", label: "Revenue", icon: DollarSign, badgeKey: null },
