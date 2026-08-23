@@ -68,7 +68,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm -f .github/workflows/one-time-status-filter-fix.yml
-          git add src/Components/Reviews.jsx src/Components/Advertisements.jsx .github/workflows/one-time-status-filter-fix.yml
+          rm -f .github/workflows/one-time-status-filter-fix.yml .status-filter-trigger
+          git add src/Components/Reviews.jsx src/Components/Advertisements.jsx .github/workflows/one-time-status-filter-fix.yml .status-filter-trigger
           git commit -m "Fix Reviews and Advertisements status filter cards"
           git push origin main
