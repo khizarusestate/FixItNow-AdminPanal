@@ -1,0 +1,69 @@
+name: Fix admin status card filters
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Components/Reviews.jsx'
+      - 'src/Components/Advertisements.jsx'
+      - '.github/workflows/fix-status-card-filters.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch status cards
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          reviews = Path('src/Components/Reviews.jsx')
+          s = reviews.read_text()
+
+          marker = "  const handleRetry = () => {\n    fetchReviews();\n  };\n"
+          helper = marker + "\n  const handleFilterChange = (nextFilter) => {\n    setFilter(nextFilter);\n    setPage(1);\n  };\n"
+          if 'const handleFilterChange = (nextFilter)' not in s:
+              if marker not in s:
+                  raise SystemExit('Reviews handleRetry marker not found')
+              s = s.replace(marker, helper, 1)
+
+          replacements = [
+              ('<div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">', '<div role="button" tabIndex={0} onClick={() => handleFilterChange(\'all\')} onKeyDown={(e) => { if (e.key === \'Enter\' || e.key === \' \') handleFilterChange(\'all\'); }} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">', 1),
+              ('<div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 shadow-sm">', '<div role="button" tabIndex={0} onClick={() => handleFilterChange(\'pending\')} onKeyDown={(e) => { if (e.key === \'Enter\' || e.key === \' \') handleFilterChange(\'pending\'); }} className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">', 1),
+              ('<div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">', '<div role="button" tabIndex={0} onClick={() => handleFilterChange(\'approved\')} onKeyDown={(e) => { if (e.key === \'Enter\' || e.key === \' \') handleFilterChange(\'approved\'); }} className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">', 1),
+              ('<div className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">', '<div role="button" tabIndex={0} onClick={() => handleFilterChange(\'rejected\')} onKeyDown={(e) => { if (e.key === \'Enter\' || e.key === \' \') handleFilterChange(\'rejected\'); }} className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">', 1),
+          ]
+          for old, new, count in replacements:
+              if old not in s:
+                  raise SystemExit(f'Reviews card marker not found: {old}')
+              s = s.replace(old, new, count)
+          reviews.write_text(s)
+
+          ads = Path('src/Components/Advertisements.jsx')
+          s = ads.read_text()
+          old = 'return <div key={key} className={`rounded-xl border ${meta[3]} ${meta[2]} p-4`}>'
+          new = 'return <div key={key} role="button" tabIndex={0} onClick={() => { setFilter(key === "total" ? "all" : key); setPage(1); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { setFilter(key === "total" ? "all" : key); setPage(1); } }} className={`rounded-xl border ${meta[3]} ${meta[2]} p-4 cursor-pointer hover:shadow-md transition-shadow`}>'
+          if old not in s:
+              raise SystemExit('Advertisements card marker not found')
+          s = s.replace(old, new, 1)
+          ads.write_text(s)
+          PY
+
+      - name: Verify build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/Components/Reviews.jsx src/Components/Advertisements.jsx
+          git diff --cached --quiet || git commit -m 'Fix reviews and advertisement status card filters'
+          git push
