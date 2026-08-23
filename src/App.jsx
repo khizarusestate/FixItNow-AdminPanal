@@ -8,6 +8,7 @@ import Services from "./Components/Services";
 import Revenue from "./Components/Revenue";
 import Advertisements from "./Components/Advertisements";
 import Reviews from "./Components/Reviews";
+import Messenger from "./Components/Messenger";
 import AdminProfile from "./Components/AdminProfile";
 import AdminSettings from "./Components/AdminSettings";
 import TeamManagement from "./Components/TeamManagement";
@@ -37,8 +38,6 @@ function AppContent({ onLogout }) {
     onLogout();
   };
 
-  // Top-bar profile menu has three separate actions:
-  // Profile, Settings, and Logout.
   const openProfileSettings = (section) => {
     if (section === "profile") {
       setProfileAutoEdit(true);
@@ -63,61 +62,31 @@ function AppContent({ onLogout }) {
 
   const renderContent = () => {
     switch (activeSection) {
-      case "dashboard":
-        return <Dashboard onNavigate={setActiveSection} />;
-      case "bookings":
-        return <Bookings />;
-      case "workers":
-        return <Workers />;
-      case "customers":
-        return <Customers />;
-      case "services":
-        return <Services />;
+      case "dashboard": return <Dashboard onNavigate={setActiveSection} />;
+      case "bookings": return <Bookings />;
+      case "workers": return <Workers />;
+      case "customers": return <Customers />;
+      case "messenger": return <Messenger />;
+      case "services": return <Services />;
       case "revenue":
-        if (!isSuperAdmin) {
-          return <Dashboard onNavigate={setActiveSection} />;
-        }
+        if (!isSuperAdmin) return <Dashboard onNavigate={setActiveSection} />;
         return <Revenue />;
-      case "advertisements":
-        return <Advertisements />;
-      case "reviews":
-        return <Reviews />;
+      case "advertisements": return <Advertisements />;
+      case "reviews": return <Reviews />;
       case "profile":
-        return (
-          <AdminProfile
-            autoEdit={profileAutoEdit}
-            onAutoEditConsumed={() => setProfileAutoEdit(false)}
-          />
-        );
+        return <AdminProfile autoEdit={profileAutoEdit} onAutoEditConsumed={() => setProfileAutoEdit(false)} />;
       case "settings":
-        if (admin?.role !== "super_admin") {
-          return <Dashboard onNavigate={setActiveSection} />;
-        }
-        return (
-          <AdminSettings
-            admin={admin}
-            onBack={() => setActiveSection("dashboard")}
-          />
-        );
-      case "team":
-        return <TeamManagement />;
-      case "admins-activity":
-        return <AdminsActivity />;
-      default:
-        return <Dashboard onNavigate={setActiveSection} />;
+        if (admin?.role !== "super_admin") return <Dashboard onNavigate={setActiveSection} />;
+        return <AdminSettings admin={admin} onBack={() => setActiveSection("dashboard")} />;
+      case "team": return <TeamManagement />;
+      case "admins-activity": return <AdminsActivity />;
+      default: return <Dashboard onNavigate={setActiveSection} />;
     }
   };
 
   return (
-    <div
-      className={`min-h-screen admin-panel-container flex ${
-        isSuperAdmin ? `super-admin-panel ${getTheme(true).pageBg}` : getTheme(false).pageBg
-      }`}
-    >
-      <Sidebar
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-      />
+    <div className={`min-h-screen admin-panel-container flex ${isSuperAdmin ? `super-admin-panel ${getTheme(true).pageBg}` : getTheme(false).pageBg}`}>
+      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
         <AdminTopBar
           activeSection={activeSection}
@@ -162,9 +131,7 @@ export default function App() {
     setLogoutMessage("");
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
+  const handleLogout = () => setIsAuthenticated(false);
 
   if (isCheckingAuth) {
     return (
@@ -181,11 +148,7 @@ export default function App() {
     <ErrorBoundary>
       <AdminProvider>
         {!isAuthenticated ? (
-          <PinLogin
-            onLogin={handleLogin}
-            sessionExpired={sessionExpired}
-            logoutMessage={logoutMessage}
-          />
+          <PinLogin onLogin={handleLogin} sessionExpired={sessionExpired} logoutMessage={logoutMessage} />
         ) : (
           <SocketProvider>
             <AdminBootstrapGate>
