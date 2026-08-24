@@ -4,8 +4,8 @@ import { apiRequest } from '../lib/api'
 import { resolveMediaUrl } from '../lib/media'
 import LocationPicker from './LocationPicker.jsx'
 import { geoFromUser } from '../utils/location.js'
-import { fetchDevicePushPreference, registerWebPushAdmin, saveDevicePushPreference, unregisterWebPushAdmin, isPushSupported } from '../utils/pushNotifications.js'
 import { useSocket } from '../context/SocketContext'
+import AdminAccountDangerZone from './AdminAccountDangerZone.jsx'
 import {
   getAdminStatusMeta,
   resolveLocalAdminStatus,
@@ -36,9 +36,6 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
     profilePicture: ''
   })
 
-  const [devicePushEnabled, setDevicePushEnabled] = useState(true)
-  const [pushBusy, setPushBusy] = useState(false)
-  
   const [editForm, setEditForm] = useState({
     name: '',
     email: '',
@@ -88,45 +85,11 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
 
       setGeo(geoFromUser(adminData))
 
-      fetchDevicePushPreference()
-        .then((enabled) => setDevicePushEnabled(enabled))
-        .catch(() => {})
       
     } catch (err) {
       setError(err.message || 'Failed to fetch profile')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleToggleDevicePush = async () => {
-    const next = !devicePushEnabled
-    setPushBusy(true)
-    setError('')
-    try {
-      if (next) {
-        const reg = await registerWebPushAdmin()
-        if (!reg.ok) {
-          setError(
-            reg.reason === 'denied'
-              ? 'Notifications blocked in browser settings.'
-              : reg.reason === 'disabled'
-                ? 'Push is not configured on the server yet.'
-                : 'Could not enable notifications.',
-          )
-          setPushBusy(false)
-          return
-        }
-      } else {
-        await unregisterWebPushAdmin()
-      }
-
-      await saveDevicePushPreference(next)
-      setDevicePushEnabled(next)
-    } catch (err) {
-      setError(err.message || 'Failed to update notification setting')
-    } finally {
-      setPushBusy(false)
     }
   }
 
@@ -360,20 +323,6 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
             </div>
             
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-sm font-medium text-slate-900">Notifications</p>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={devicePushEnabled}
-                  aria-label="Notifications"
-                  disabled={pushBusy || !isPushSupported()}
-                  onClick={handleToggleDevicePush}
-                  className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${devicePushEnabled ? 'bg-blue-500' : 'bg-slate-300'}`}
-                >
-                  <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform mt-0.5 ${devicePushEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                </button>
-              </div>
               <div className="flex items-center gap-3">
                 <Mail size={16} className="text-slate-400" />
                 <span className="text-sm text-slate-600">{profile.email}</span>
@@ -623,6 +572,7 @@ export default function AdminProfile({ autoEdit = false, onAutoEditConsumed }) {
           </div>
         </div>
       </div>
+      <AdminAccountDangerZone role={profile.role} />
     </div>
   )
 }
