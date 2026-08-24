@@ -12,6 +12,7 @@ import AdminProfile from "./Components/AdminProfile";
 import AdminSettings from "./Components/AdminSettings";
 import TeamManagement from "./Components/TeamManagement";
 import AdminsActivity from "./Components/AdminsActivity";
+import SupportMessages from "./pages/SupportMessages.jsx";
 import ErrorBoundary from "./Components/ErrorBoundary";
 import PinLogin from "./Components/PinLogin";
 import AdminBootstrapGate from "./Components/AdminBootstrapGate";
@@ -37,15 +38,12 @@ function AppContent({ onLogout }) {
     onLogout();
   };
 
-  // Top-bar profile menu has three separate actions:
-  // Profile, Settings, and Logout.
   const openProfileSettings = (section) => {
     if (section === "profile") {
       setProfileAutoEdit(true);
       setActiveSection("profile");
       return;
     }
-
     if (section === "settings") {
       setProfileAutoEdit(false);
       setActiveSection("settings");
@@ -63,71 +61,34 @@ function AppContent({ onLogout }) {
 
   const renderContent = () => {
     switch (activeSection) {
-      case "dashboard":
-        return <Dashboard onNavigate={setActiveSection} />;
-      case "bookings":
-        return <Bookings />;
-      case "workers":
-        return <Workers />;
-      case "customers":
-        return <Customers />;
-      case "services":
-        return <Services />;
+      case "dashboard": return <Dashboard onNavigate={setActiveSection} />;
+      case "bookings": return <Bookings />;
+      case "workers": return <Workers />;
+      case "customers": return <Customers />;
+      case "services": return <Services />;
       case "revenue":
-        if (!isSuperAdmin) {
-          return <Dashboard onNavigate={setActiveSection} />;
-        }
+        if (!isSuperAdmin) return <Dashboard onNavigate={setActiveSection} />;
         return <Revenue />;
-      case "advertisements":
-        return <Advertisements />;
-      case "reviews":
-        return <Reviews />;
+      case "advertisements": return <Advertisements />;
+      case "reviews": return <Reviews />;
+      case "support-messages": return <SupportMessages />;
       case "profile":
-        return (
-          <AdminProfile
-            autoEdit={profileAutoEdit}
-            onAutoEditConsumed={() => setProfileAutoEdit(false)}
-          />
-        );
+        return <AdminProfile autoEdit={profileAutoEdit} onAutoEditConsumed={() => setProfileAutoEdit(false)} />;
       case "settings":
-        if (admin?.role !== "super_admin") {
-          return <Dashboard onNavigate={setActiveSection} />;
-        }
-        return (
-          <AdminSettings
-            admin={admin}
-            onBack={() => setActiveSection("dashboard")}
-          />
-        );
-      case "team":
-        return <TeamManagement />;
-      case "admins-activity":
-        return <AdminsActivity />;
-      default:
-        return <Dashboard onNavigate={setActiveSection} />;
+        if (admin?.role !== "super_admin") return <Dashboard onNavigate={setActiveSection} />;
+        return <AdminSettings admin={admin} onBack={() => setActiveSection("dashboard")} />;
+      case "team": return <TeamManagement />;
+      case "admins-activity": return <AdminsActivity />;
+      default: return <Dashboard onNavigate={setActiveSection} />;
     }
   };
 
   return (
-    <div
-      className={`min-h-screen admin-panel-container flex ${
-        isSuperAdmin ? `super-admin-panel ${getTheme(true).pageBg}` : getTheme(false).pageBg
-      }`}
-    >
-      <Sidebar
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-      />
+    <div className={`min-h-screen admin-panel-container flex ${isSuperAdmin ? `super-admin-panel ${getTheme(true).pageBg}` : getTheme(false).pageBg}`}>
+      <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-        <AdminTopBar
-          activeSection={activeSection}
-          onNavigate={setActiveSection}
-          onLogout={handleLogout}
-          onOpenProfileSettings={openProfileSettings}
-        />
-        <main className="super-admin-main flex-1 p-6 animate-fadeIn min-w-0 overflow-auto">
-          {renderContent()}
-        </main>
+        <AdminTopBar activeSection={activeSection} onNavigate={setActiveSection} onLogout={handleLogout} onOpenProfileSettings={openProfileSettings} />
+        <main className="super-admin-main flex-1 p-6 animate-fadeIn min-w-0 overflow-auto">{renderContent()}</main>
       </div>
       <LiveNotificationHost />
     </div>
@@ -161,38 +122,16 @@ export default function App() {
     setSessionExpired(false);
     setLogoutMessage("");
   };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
+  const handleLogout = () => setIsAuthenticated(false);
 
   if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-violet-50/50 to-teal-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-gradient-to-br from-sky-50 via-violet-50/50 to-teal-50 flex items-center justify-center"><div className="text-center"><div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div><p className="text-slate-600">Loading...</p></div></div>;
   }
 
   return (
     <ErrorBoundary>
       <AdminProvider>
-        {!isAuthenticated ? (
-          <PinLogin
-            onLogin={handleLogin}
-            sessionExpired={sessionExpired}
-            logoutMessage={logoutMessage}
-          />
-        ) : (
-          <SocketProvider>
-            <AdminBootstrapGate>
-              <AppContent onLogout={handleLogout} />
-            </AdminBootstrapGate>
-          </SocketProvider>
-        )}
+        {!isAuthenticated ? <PinLogin onLogin={handleLogin} sessionExpired={sessionExpired} logoutMessage={logoutMessage} /> : <SocketProvider><AdminBootstrapGate><AppContent onLogout={handleLogout} /></AdminBootstrapGate></SocketProvider>}
       </AdminProvider>
     </ErrorBoundary>
   );
