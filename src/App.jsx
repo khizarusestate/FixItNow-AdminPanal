@@ -1,4 +1,5 @@
 import AdminTopBar from "./Components/AdminTopBar";
+import SupportHeaderButton from "./Components/SupportHeaderButton";
 import Sidebar from "./Components/Sidebar";
 import Dashboard from "./Components/Dashboard";
 import Bookings from "./Components/Bookings";
@@ -16,6 +17,7 @@ import AdminsActivity from "./Components/AdminsActivity";
 import ErrorBoundary from "./Components/ErrorBoundary";
 import PinLogin from "./Components/PinLogin";
 import AdminBootstrapGate from "./Components/AdminBootstrapGate";
+import SupportVoiceCallPanel from "./Components/SupportVoiceCallPanel";
 import { SocketProvider } from "./context/SocketContext";
 import { AdminProvider } from "./context/AdminContext";
 import { useState, useEffect } from "react";
@@ -23,6 +25,7 @@ import { isAdminAuthenticated, clearAdminToken } from "./lib/api";
 import { useAdmin } from "./context/AdminContext";
 import { getTheme } from "./config/theme";
 import LiveNotificationHost from "./Components/shared/LiveNotificationHost.jsx";
+import { startSupportVoiceCallSocket } from "./services/supportVoiceCallSocket.js";
 import { useGlobalButtonSounds } from "./hooks/useGlobalButtonSounds.js";
 import "./styles/globalStyles.css";
 
@@ -32,6 +35,8 @@ function AppContent({ onLogout }) {
   const [profileAutoEdit, setProfileAutoEdit] = useState(false);
 
   useGlobalButtonSounds();
+
+  useEffect(() => startSupportVoiceCallSocket(), []);
 
   const handleLogout = () => { clearAdminToken(); onLogout(); };
 
@@ -69,9 +74,15 @@ function AppContent({ onLogout }) {
     <div className={`min-h-screen admin-panel-container flex ${isSuperAdmin ? `super-admin-panel ${getTheme(true).pageBg}` : getTheme(false).pageBg}`}>
       <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-        <AdminTopBar activeSection={activeSection} onNavigate={setActiveSection} onLogout={handleLogout} onOpenProfileSettings={openProfileSettings} />
+        <div className="relative">
+          <AdminTopBar activeSection={activeSection} onNavigate={setActiveSection} onLogout={handleLogout} onOpenProfileSettings={openProfileSettings} />
+          <div className="absolute right-[7.5rem] top-2 z-30">
+            <SupportHeaderButton onNavigate={setActiveSection} />
+          </div>
+        </div>
         <main className="super-admin-main flex-1 p-6 animate-fadeIn min-w-0 overflow-auto">{renderContent()}</main>
       </div>
+      <SupportVoiceCallPanel />
       <LiveNotificationHost />
     </div>
   );
