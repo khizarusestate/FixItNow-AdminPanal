@@ -7,10 +7,8 @@ import {
   DollarSign,
   Megaphone,
   Star,
-  ShieldCheck,
   LayoutGrid,
   UserCog,
-  MessageCircle,
 } from "lucide-react";
 
 const SHARED_MENU_ITEMS = [
@@ -19,7 +17,6 @@ const SHARED_MENU_ITEMS = [
   { id: "workers", label: "Workers", icon: UserCheck, badgeKey: "workers" },
   { id: "customers", label: "Customers", icon: Users, badgeKey: "customers" },
   { id: "services", label: "Services", icon: Wrench, badgeKey: null },
-  { id: "support-messages", label: "Support Messages", icon: MessageCircle, badgeKey: null },
   { id: "advertisements", label: "Advertisements", icon: Megaphone, badgeKey: "advertisements" },
   { id: "reviews", label: "Reviews", icon: Star, badgeKey: "reviews" },
 ];
@@ -48,6 +45,7 @@ export const SECTION_TITLES = {
   ...Object.fromEntries(ADMIN_MENU_ITEMS.map((item) => [item.id, item.label])),
   ...Object.fromEntries(OPERATIONS_MENU_ITEMS.map((item) => [item.id, item.label])),
   ...Object.fromEntries(SUPER_ADMIN_ROOT_ITEMS.map((item) => [item.id, item.label])),
+  "support-messages": "Support Messages",
   profile: "Profile & Settings",
   team: "Admin Accounts",
   "operations-hub": "Platform Operations",
