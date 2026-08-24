@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageCircle, Send } from "lucide-react";
 import { supportMessengerService } from "../services/supportMessenger.js";
+import { useSocketEvent } from "../context/SocketContext.jsx";
 
 export default function SupportMessenger() {
   const [conversations, setConversations] = useState([]);
@@ -10,14 +11,14 @@ export default function SupportMessenger() {
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
       const response = await supportMessengerService.list();
       setConversations(response?.data || []);
     } catch {}
-  };
+  }, []);
 
-  const loadMessages = async (id) => {
+  const loadMessages = useCallback(async (id) => {
     setLoading(true);
     try {
       const response = await supportMessengerService.getMessages(id);
@@ -26,10 +27,22 @@ export default function SupportMessenger() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { loadConversations(); }, []);
+  useEffect(() => { loadConversations(); }, [loadConversations]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  const onMessage = useCallback((message) => {
+    const id = String(message?.conversationId || "");
+    if (!id) return;
+    if (id === String(selected)) {
+      setMessages((current) => current.some((item) => String(item._id) === String(message._id)) ? current : [...current, message]);
+      void supportMessengerService.markRead(id).catch(() => {});
+    }
+    void loadConversations();
+  }, [selected, loadConversations]);
+
+  useSocketEvent("message-new", onMessage);
 
   const send = async (event) => {
     event.preventDefault();
