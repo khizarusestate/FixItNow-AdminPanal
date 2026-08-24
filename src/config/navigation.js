@@ -10,56 +10,35 @@ import {
   ShieldCheck,
   LayoutGrid,
   UserCog,
+  MessageCircle,
 } from "lucide-react";
 
-/** Shared between the regular-admin sidebar and super admin's Platform Operations hub */
 const SHARED_MENU_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: Home, badgeKey: null },
   { id: "bookings", label: "Bookings", icon: Calendar, badgeKey: "bookings" },
   { id: "workers", label: "Workers", icon: UserCheck, badgeKey: "workers" },
   { id: "customers", label: "Customers", icon: Users, badgeKey: "customers" },
   { id: "services", label: "Services", icon: Wrench, badgeKey: null },
-  {
-    id: "advertisements",
-    label: "Advertisements",
-    icon: Megaphone,
-    badgeKey: "advertisements",
-  },
+  { id: "support-messages", label: "Support Messages", icon: MessageCircle, badgeKey: null },
+  { id: "advertisements", label: "Advertisements", icon: Megaphone, badgeKey: "advertisements" },
   { id: "reviews", label: "Reviews", icon: Star, badgeKey: "reviews" },
 ];
 
-/** Full menu for regular admins — no Revenue (super admin only, sensitive financial data) */
 export const ADMIN_MENU_ITEMS = SHARED_MENU_ITEMS;
 
-/** Super admin — top-level sidebar (3 items) */
 export const SUPER_ADMIN_ROOT_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: Home, badgeKey: null },
-  {
-    id: "operations-hub",
-    label: "Platform Operations",
-    icon: LayoutGrid,
-    badgeKey: null,
-    isOperationsHub: true,
-  },
+  { id: "operations-hub", label: "Platform Operations", icon: LayoutGrid, badgeKey: null, isOperationsHub: true },
   { id: "team", label: "Admin Accounts", icon: UserCog, badgeKey: null },
-  {
-    id: "admins-activity",
-    label: "Audit Log",
-    icon: Users,
-    badgeKey: null,
-  },
+  { id: "admins-activity", label: "Audit Log", icon: Users, badgeKey: null },
 ];
 
-/** Shown under Platform Operations for super admin — includes Revenue, which
- * regular admins never see (in the sidebar or the underlying API). */
 export const OPERATIONS_MENU_ITEMS = [
   ...SHARED_MENU_ITEMS.filter((item) => item.id !== "dashboard"),
   { id: "revenue", label: "Revenue", icon: DollarSign, badgeKey: null },
 ];
 
-export const OPERATIONS_SECTION_IDS = OPERATIONS_MENU_ITEMS.map(
-  (item) => item.id,
-);
+export const OPERATIONS_SECTION_IDS = OPERATIONS_MENU_ITEMS.map((item) => item.id);
 
 export function isOperationsSection(sectionId) {
   return OPERATIONS_SECTION_IDS.includes(sectionId);
@@ -67,12 +46,8 @@ export function isOperationsSection(sectionId) {
 
 export const SECTION_TITLES = {
   ...Object.fromEntries(ADMIN_MENU_ITEMS.map((item) => [item.id, item.label])),
-  ...Object.fromEntries(
-    OPERATIONS_MENU_ITEMS.map((item) => [item.id, item.label]),
-  ),
-  ...Object.fromEntries(
-    SUPER_ADMIN_ROOT_ITEMS.map((item) => [item.id, item.label]),
-  ),
+  ...Object.fromEntries(OPERATIONS_MENU_ITEMS.map((item) => [item.id, item.label])),
+  ...Object.fromEntries(SUPER_ADMIN_ROOT_ITEMS.map((item) => [item.id, item.label])),
   profile: "Profile & Settings",
   team: "Admin Accounts",
   "operations-hub": "Platform Operations",
@@ -80,8 +55,6 @@ export const SECTION_TITLES = {
 
 export function getPageTitle(activeSection, isSuperAdmin) {
   if (activeSection === "profile") return SECTION_TITLES.profile;
-  if (isSuperAdmin && isOperationsSection(activeSection)) {
-    return SECTION_TITLES[activeSection] || "Platform Operations";
-  }
+  if (isSuperAdmin && isOperationsSection(activeSection)) return SECTION_TITLES[activeSection] || "Platform Operations";
   return SECTION_TITLES[activeSection] || "Dashboard";
 }
