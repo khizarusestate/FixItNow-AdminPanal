@@ -977,7 +977,7 @@ export default function Bookings() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Mail size={14} />
-                          {workerDetailsModal.worker.emailAddress || "N/A"}
+                          {workerDetailsModal.worker.emailAddress || workerDetailsModal.worker.email || "N/A"}
                         </span>
                       </div>
                       <div className="mt-2 flex items-center gap-2">
@@ -1253,7 +1253,7 @@ function BookingModal({
                 <InfoCard
                   icon={<Mail size={16} />}
                   label="Worker Email"
-                  value={booking.worker.emailAddress || "N/A"}
+                  value={booking.worker.emailAddress || booking.worker.email || "N/A"}
                 />
                 <InfoCard
                   icon={<Wrench size={16} />}
@@ -1498,7 +1498,7 @@ function RankingModal({ rankingModal, onClose, onAssign, assigning }) {
 
                         <div className="mt-2 flex flex-wrap gap-2 text-sm text-slate-600">
                           <span>📞 {worker?.phoneNumber || "N/A"}</span>
-                          <span>✉️ {worker?.emailAddress || "N/A"}</span>
+                          <span>✉️ {worker?.emailAddress || worker?.email || "N/A"}</span>
                         </div>
                       </div>
                     </div>
