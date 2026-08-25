@@ -76,7 +76,7 @@ function AppContent({ onLogout }) {
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
         <div className="relative">
           <AdminTopBar activeSection={activeSection} onNavigate={setActiveSection} onLogout={handleLogout} onOpenProfileSettings={openProfileSettings} />
-          <div className="absolute right-[7.5rem] top-2 z-30">
+          <div className="absolute right-[6rem] top-2 z-30">
             <SupportHeaderButton onNavigate={setActiveSection} />
           </div>
         </div>
