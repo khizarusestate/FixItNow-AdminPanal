@@ -1,5 +1,4 @@
 import AdminTopBar from "./Components/AdminTopBar";
-import SupportHeaderButton from "./Components/SupportHeaderButton";
 import Sidebar from "./Components/Sidebar";
 import Dashboard from "./Components/Dashboard";
 import Bookings from "./Components/Bookings";
@@ -74,12 +73,7 @@ function AppContent({ onLogout }) {
     <div className={`min-h-screen admin-panel-container flex ${isSuperAdmin ? `super-admin-panel ${getTheme(true).pageBg}` : getTheme(false).pageBg}`}>
       <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-        <div className="relative">
-          <AdminTopBar activeSection={activeSection} onNavigate={setActiveSection} onLogout={handleLogout} onOpenProfileSettings={openProfileSettings} />
-          <div className="absolute right-[6rem] top-2 z-30">
-            <SupportHeaderButton onNavigate={setActiveSection} />
-          </div>
-        </div>
+        <AdminTopBar activeSection={activeSection} onNavigate={setActiveSection} onLogout={handleLogout} onOpenProfileSettings={openProfileSettings} />
         <main className="super-admin-main flex-1 p-6 animate-fadeIn min-w-0 overflow-auto">{renderContent()}</main>
       </div>
       <SupportVoiceCallPanel />
