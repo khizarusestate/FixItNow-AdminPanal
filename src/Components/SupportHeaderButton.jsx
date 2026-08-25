@@ -1,14 +1,34 @@
 import { Headset } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSocketEvent } from "../context/SocketContext";
+import { apiRequest } from "../lib/api";
 
 export default function SupportHeaderButton({ onNavigate }) {
   const [unread, setUnread] = useState(0);
+
+  const loadUnread = useCallback(async () => {
+    try {
+      const response = await apiRequest("/support-messages/admin/conversations");
+      const total = (response?.data || []).reduce(
+        (sum, conversation) => sum + Number(conversation?.unreadCount || 0),
+        0,
+      );
+      setUnread(Math.min(total, 99));
+    } catch {
+      // Keep the current badge when the background refresh fails.
+    }
+  }, []);
 
   useSocketEvent("support-message-new", (message = {}) => {
     if (message.senderRole === "admin") return;
     setUnread((count) => Math.min(count + 1, 99));
   });
+
+  useEffect(() => {
+    loadUnread();
+    const timer = window.setInterval(loadUnread, 5000);
+    return () => window.clearInterval(timer);
+  }, [loadUnread]);
 
   useEffect(() => {
     const onNavigateSupport = (event) => {
