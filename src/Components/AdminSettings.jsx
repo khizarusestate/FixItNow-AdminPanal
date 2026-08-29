@@ -1,14 +1,13 @@
 /**
  * FILE: adminpanel/src/Components/AdminSettings.jsx
  *
- * Admin panel settings including maintenance and separate notification controls.
+ * Admin panel settings. Notification preferences are consolidated into one tab.
  */
 
 import { useState } from 'react';
 import { Settings, AlertTriangle, ArrowLeft } from 'lucide-react';
 import MaintenanceMode from './MaintenanceMode';
 import AdminNotificationSettings from './AdminNotificationSettings';
-import AdminNotificationChannels from './AdminNotificationChannels';
 
 export default function AdminSettings({ admin, onBack }) {
   const [activeTab, setActiveTab] = useState('maintenance');
@@ -59,19 +58,11 @@ export default function AdminSettings({ admin, onBack }) {
         <button onClick={() => setActiveTab('notifications')} className={tabClass('notifications')}>
           🔔 Notifications
         </button>
-        <button onClick={() => setActiveTab('push')} className={tabClass('push')}>
-          📲 Push Notifications
-        </button>
-        <button onClick={() => setActiveTab('inapp')} className={tabClass('inapp')}>
-          🔔 In-App & Sound
-        </button>
       </div>
 
       <div className="bg-white rounded-xl p-6">
         {activeTab === 'maintenance' && <MaintenanceMode />}
         {activeTab === 'notifications' && <AdminNotificationSettings />}
-        {activeTab === 'push' && <AdminNotificationChannels mode="push" />}
-        {activeTab === 'inapp' && <AdminNotificationChannels mode="inapp" />}
       </div>
     </div>
   );
