@@ -1,6 +1,6 @@
 /**
  * FILE: adminpanel/src/Components/AdminNotificationBell.jsx
- * 
+ *
  * Admin notification bell with dropdown and section navigation
  */
 
@@ -53,7 +53,8 @@ export default function AdminNotificationBell() {
       const result = await apiRequestWithAuth('/notifications', { method: 'GET' });
       if (result?.success && result?.data) {
         setNotifications(result.data);
-        setUnreadCount(result.data.filter(n => !n.read).length);
+        // Backend stores the canonical field as `isRead`, not `read`.
+        setUnreadCount(result.data.filter(n => !n.isRead).length);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -64,7 +65,7 @@ export default function AdminNotificationBell() {
     try {
       await apiRequestWithAuth(`/notifications/${notificationId}/read`, { method: 'PATCH' });
       setNotifications(prev =>
-        prev.map(n => n._id === notificationId ? { ...n, read: true } : n),
+        prev.map(n => n._id === notificationId ? { ...n, isRead: true } : n),
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
@@ -83,15 +84,18 @@ export default function AdminNotificationBell() {
   };
 
   const handleNotificationClick = async (notification) => {
-    await markAsRead(notification._id);
+    if (!notification.isRead) await markAsRead(notification._id);
     openNotificationSection(notification);
   };
 
   const deleteNotification = async (notificationId) => {
     try {
+      const notification = notifications.find(n => n._id === notificationId);
       await apiRequestWithAuth(`/notifications/${notificationId}`, { method: 'DELETE' });
       setNotifications(prev => prev.filter(n => n._id !== notificationId));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      if (notification && !notification.isRead) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
@@ -160,7 +164,7 @@ export default function AdminNotificationBell() {
                 <div
                   key={notification._id}
                   className={`p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${
-                    !notification.read ? 'bg-blue-50' : ''
+                    !notification.isRead ? 'bg-blue-50' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
