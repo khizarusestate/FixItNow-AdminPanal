@@ -25,12 +25,17 @@ import SupportHeaderButton from "./SupportHeaderButton";
 
 const NOTIFICATION_SECTION_MAP = {
   new_booking: "bookings",
+  booking: "bookings",
   booking_received: "bookings",
   claim_pending: "bookings",
   claim_approved: "bookings",
   claim_rejected: "bookings",
   worker_assigned: "bookings",
+  worker_on_the_way: "bookings",
   job_completed: "bookings",
+  worker_completed: "bookings",
+  customer_completed: "bookings",
+  new_job: "bookings",
   new_worker: "workers",
   new_customer: "customers",
   new_review: "reviews",
@@ -45,16 +50,24 @@ const NOTIFICATION_SECTION_MAP = {
   bookings: "bookings",
   reviews: "reviews",
   advertisements: "advertisements",
+  support_chat: "support-messages",
+  support_message: "support-messages",
+  support_messages: "support-messages",
 };
 
 const NOTIFICATION_ICONS = {
   new_booking: Calendar,
+  booking: Calendar,
   booking_received: Calendar,
   claim_pending: Calendar,
   claim_approved: Check,
   claim_rejected: X,
   worker_assigned: UserCheck,
+  worker_on_the_way: UserCheck,
   job_completed: Check,
+  worker_completed: Check,
+  customer_completed: Check,
+  new_job: Calendar,
   new_worker: UserCheck,
   new_customer: Users,
   new_review: Star,
@@ -69,11 +82,35 @@ const NOTIFICATION_ICONS = {
   bookings: Calendar,
   reviews: Star,
   advertisements: Megaphone,
+  support_chat: Users,
+  support_message: Users,
+  support_messages: Users,
 };
 
 function getNotificationSection(notification) {
-  const type = String(notification?.type || "").toLowerCase();
-  return notification?.sectionType || NOTIFICATION_SECTION_MAP[type] || null;
+  const type = String(notification?.type || "").trim().toLowerCase();
+  const explicitSection = String(notification?.sectionType || "").trim().toLowerCase();
+  const section = NOTIFICATION_SECTION_MAP[type];
+  const explicitMappedSection = NOTIFICATION_SECTION_MAP[explicitSection];
+
+  // Only use sectionType directly when it is an actual admin section id.
+  // This prevents arbitrary notification types from overriding the reliable type map.
+  const validSections = new Set([
+    "bookings",
+    "workers",
+    "customers",
+    "services",
+    "revenue",
+    "advertisements",
+    "reviews",
+    "support-messages",
+    "admins-activity",
+  ]);
+
+  if (explicitMappedSection) return explicitMappedSection;
+  if (validSections.has(explicitSection)) return explicitSection;
+  if (section) return section;
+  return null;
 }
 
 function getNotificationIcon(type) {
@@ -268,16 +305,16 @@ export default function AdminTopBar({ activeSection, onNavigate, onLogout, onOpe
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-3 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/30 z-[55]">
-                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
-                    <div>
+                <div className="absolute right-0 mt-3 w-[min(23rem,calc(100vw-1rem))] max-w-[calc(100vw-1rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/30 z-[55]">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-3">
+                    <div className="min-w-0 pr-2">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-slate-900">Notifications</h3>
-                        {unreadNotifications > 0 && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-700">{unreadNotifications} unread</span>}
+                        {unreadNotifications > 0 && <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-700">{unreadNotifications} unread</span>}
                       </div>
-                      <p className="mt-0.5 text-xs text-slate-500">Latest activity from your FixItNow platform</p>
+                      <p className="mt-0.5 truncate text-xs text-slate-500">Latest activity from your FixItNow platform</p>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex shrink-0 items-center gap-1">
                       {isSuperAdmin && (
                         <button type="button" onClick={() => { setShowNotifications(false); onOpenProfileSettings?.("settings"); }} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" title="Notification settings" aria-label="Notification settings">
                           <Settings size={16} />
@@ -289,7 +326,7 @@ export default function AdminTopBar({ activeSection, onNavigate, onLogout, onOpe
                     </div>
                   </div>
 
-                  <div className="max-h-[28rem] overflow-y-auto">
+                  <div className="max-h-[min(28rem,65vh)] overflow-y-auto overscroll-contain">
                     {notificationsLoading && notifications.length === 0 ? (
                       <div className="px-6 py-12 text-center">
                         <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-slate-200 border-t-sky-500" />
@@ -317,10 +354,10 @@ export default function AdminTopBar({ activeSection, onNavigate, onLogout, onOpe
                           const section = getNotificationSection(item);
                           return (
                             <div key={item._id || item.id} className={`group border-b border-slate-100 last:border-b-0 transition-colors ${item.isRead ? "bg-white hover:bg-slate-50" : "bg-sky-50/70 hover:bg-sky-50"}`}>
-                              <div className="flex items-start gap-3 px-4 py-3.5">
-                                <button type="button" onClick={() => handleNotificationClick(item)} className="flex min-w-0 flex-1 items-start gap-3 text-left" title={section ? "Open related section" : "Mark as read"}>
-                                  <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.isRead ? "bg-slate-100 text-slate-500" : "bg-sky-100 text-sky-600"}`}>
-                                    <Icon size={17} />
+                              <div className="flex items-start gap-3 px-3.5 py-3">
+                                <button type="button" onClick={() => handleNotificationClick(item)} className="flex min-w-0 flex-1 items-start gap-2.5 text-left" title={section ? "Open related section" : "Mark as read"}>
+                                  <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${item.isRead ? "bg-slate-100 text-slate-500" : "bg-sky-100 text-sky-600"}`}>
+                                    <Icon size={16} />
                                   </span>
                                   <span className="min-w-0 flex-1">
                                     <span className="flex items-center gap-2">
@@ -351,7 +388,7 @@ export default function AdminTopBar({ activeSection, onNavigate, onLogout, onOpe
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-4 py-2.5">
+                  <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-3.5 py-2.5">
                     <span className="text-[11px] text-slate-400">Showing latest {Math.min(notifications.length, 20)}</span>
                     <div className="flex items-center gap-2">
                       <button type="button" onClick={loadNotifications} disabled={notificationsLoading} className="text-xs font-medium text-slate-500 hover:text-slate-800 disabled:opacity-50">Refresh</button>
