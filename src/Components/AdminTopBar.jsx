@@ -305,7 +305,7 @@ export default function AdminTopBar({ activeSection, onNavigate, onLogout, onOpe
               </button>
 
               {showNotifications && (
-                <div className="absolute right-[-1rem] sm:right-0 mt-3 w-[calc(100vw-1rem)] max-w-[22rem] sm:w-[23rem] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/30 z-[55]">
+                <div className="absolute fixed right-2 top-[4.5rem] w-[calc(100vw-1rem)] max-w-[20rem] sm:absolute sm:right-0 sm:top-auto sm:mt-3 sm:w-[23rem] sm:max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/30 z-[55]">
                   <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-3">
                     <div className="min-w-0 pr-2">
                       <div className="flex items-center gap-2">
