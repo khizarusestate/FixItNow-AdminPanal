@@ -446,20 +446,20 @@ const printBooking = (booking) => {
       window.print();
     });
 
-    const waitForPdfLibraries = () => new Promise((resolve, reject) => {
-      if (window.html2canvas && window.jspdf) {
-        resolve();
+    const waitForJsPdf = () => new Promise((resolve, reject) => {
+      if (window.jspdf && window.jspdf.jsPDF) {
+        resolve(window.jspdf.jsPDF);
         return;
       }
 
       const started = Date.now();
       const timer = setInterval(() => {
-        if (window.html2canvas && window.jspdf) {
+        if (window.jspdf && window.jspdf.jsPDF) {
           clearInterval(timer);
-          resolve();
+          resolve(window.jspdf.jsPDF);
         } else if (Date.now() - started > 15000) {
           clearInterval(timer);
-          reject(new Error("PDF libraries could not be loaded"));
+          reject(new Error("jsPDF failed to load"));
         }
       }, 150);
     });
@@ -467,77 +467,127 @@ const printBooking = (booking) => {
     downloadBtn.addEventListener("click", async function () {
       downloadBtn.disabled = true;
       downloadBtn.textContent = "Preparing...";
-      message.textContent = "Loading PDF engine...";
+      message.textContent = "Preparing PDF...";
 
       try {
-        await waitForPdfLibraries();
-      downloadBtn.textContent = "Creating PDF...";
-      message.textContent = "Preparing your booking PDF...";
-
-      try {
-        const paper = document.getElementById("bookingPaper");
-        const canvas = await window.html2canvas(paper, {
-          scale: 2,
-          backgroundColor: "#ffffff",
-          useCORS: true,
-          logging: false
-        });
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
+        const JsPDF = await waitForJsPdf();
+        const doc = new JsPDF({
           orientation: "portrait",
           unit: "mm",
           format: "a4",
           compress: true
         });
 
-        const pageWidth = 210;
-        const pageHeight = 297;
-        const margin = 0;
-        const imgWidth = pageWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const navy = [11, 31, 58];
+        const gold = [212, 154, 31];
+        const slate = [100, 116, 139];
+        const line = [226, 232, 240];
 
-        if (imgHeight <= pageHeight) {
-          pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, imgWidth, imgHeight);
-        } else {
-          const pageCanvas = document.createElement("canvas");
-          const pagePixelHeight = Math.floor(canvas.width * pageHeight / pageWidth);
-          let sourceY = 0;
-          let pageNumber = 0;
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, 210, 297, "F");
 
-          while (sourceY < canvas.height) {
-            pageCanvas.width = canvas.width;
-            pageCanvas.height = Math.min(pagePixelHeight, canvas.height - sourceY);
-            const ctx = pageCanvas.getContext("2d");
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-            ctx.drawImage(
-              canvas,
-              0, sourceY, canvas.width, pageCanvas.height,
-              0, 0, pageCanvas.width, pageCanvas.height
-            );
+        doc.setTextColor(...navy);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(24);
+        doc.text("FixIt", 18, 24);
+        doc.setTextColor(...gold);
+        doc.text("Now", 39, 24);
 
-            if (pageNumber > 0) pdf.addPage();
-            const currentHeight = (pageCanvas.height * pageWidth) / canvas.width;
-            pdf.addImage(
-              pageCanvas.toDataURL("image/jpeg", 0.95),
-              "JPEG",
-              margin,
-              margin,
-              imgWidth,
-              currentHeight
-            );
+        doc.setTextColor(...slate);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text("Booking Document", 18, 31);
 
-            sourceY += pageCanvas.height;
-            pageNumber += 1;
-          }
+        doc.setTextColor(...navy);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text("#\${escapePrintHtml(bookingId)}", 192, 22, { align: "right" });
+        doc.setTextColor(...slate);
+        doc.setFontSize(7);
+        doc.text("BOOKING ID", 192, 28, { align: "right" });
+
+        doc.setDrawColor(...navy);
+        doc.setLineWidth(0.7);
+        doc.line(18, 39, 192, 39);
+
+        doc.setTextColor(...navy);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.text("BOOKING INFORMATION", 18, 51);
+
+        const rows = [
+          ["CUSTOMER", "\${escapePrintHtml(booking.customer)}"],
+          ["BOOKED ON", "\${escapePrintHtml(booking.date)} at \${escapePrintHtml(booking.time)}"],
+          ["SERVICE", "\${escapePrintHtml(booking.service)}"],
+          ["CATEGORY", "\${escapePrintHtml(booking.category)}"],
+          ["ASSIGNED WORKER", "\${escapePrintHtml(workerName)}"],
+          ["WORKER SERVICE", "\${escapePrintHtml(workerCategory)}"]
+        ];
+
+        let y = 57;
+        rows.forEach((row, index) => {
+          const x = index % 2 === 0 ? 18 : 105;
+          const rowY = y + Math.floor(index / 2) * 30;
+
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(...line);
+          doc.roundedRect(x, rowY, 87, 24, 2, 2, "FD");
+
+          doc.setTextColor(...slate);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(6.5);
+          doc.text(row[0], x + 5, rowY + 7);
+
+          doc.setTextColor(15, 23, 42);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8.5);
+          doc.text(row[1], x + 5, rowY + 15, { maxWidth: 77 });
+        });
+
+        const notesY = 154;
+        if (\${Boolean(booking.notes)}) {
+          doc.setTextColor(...navy);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.text("CUSTOMER NOTES", 18, notesY);
+
+          doc.setDrawColor(...line);
+          doc.setFillColor(255, 255, 255);
+          doc.roundedRect(18, notesY + 6, 174, 34, 2, 2, "FD");
+          doc.setTextColor(15, 23, 42);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.text("\${escapePrintHtml(booking.notes)}", 24, notesY + 14, { maxWidth: 162 });
         }
 
-        pdf.save("FixItNow-Booking-${escapePrintHtml(bookingId)}.pdf");
+        const priceY = \${Boolean(booking.notes)} ? 205 : 154;
+        doc.setDrawColor(...line);
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(18, priceY, 174, 24, 2, 2, "FD");
+
+        doc.setTextColor(...slate);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7);
+        doc.text("SERVICE PRICE", 25, priceY + 14);
+
+        doc.setTextColor(...navy);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text("PKR \${Number(booking.price || 0).toLocaleString()}", 185, priceY + 15, { align: "right" });
+
+        doc.setDrawColor(...line);
+        doc.line(18, 276, 192, 276);
+        doc.setTextColor(148, 163, 184);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6.5);
+        doc.text("FixItNow · fixitnow.pk", 18, 283);
+        doc.text("Generated by FixItNow Admin", 192, 283, { align: "right" });
+
+        doc.save("FixItNow-Booking-\${escapePrintHtml(bookingId)}.pdf");
         message.textContent = "PDF downloaded successfully.";
       } catch (error) {
         console.error(error);
-        message.textContent = "PDF download failed. Check internet connection and try again.";
+        message.textContent = "PDF engine could not load. Check internet and try again.";
       } finally {
         downloadBtn.disabled = false;
         downloadBtn.textContent = "Download PDF";
