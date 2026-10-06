@@ -169,12 +169,12 @@ const printBooking = (booking) => {
     return;
   }
 
-  const html = \`<!doctype html>
+  const html = `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>FixItNow Booking #\${escapePrintHtml(bookingId)}</title>
+  <title>FixItNow Booking #${escapePrintHtml(bookingId)}</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
   <style>
@@ -398,29 +398,29 @@ const printBooking = (booking) => {
           <div class="subtitle">Booking Document</div>
         </div>
         <div class="booking-id">
-          <strong>#\${escapePrintHtml(bookingId)}</strong>
+          <strong>#${escapePrintHtml(bookingId)}</strong>
           <span>BOOKING ID</span>
-          <div class="status">\${escapePrintHtml(statusLabel)}</div>
+          <div class="status">${escapePrintHtml(statusLabel)}</div>
         </div>
       </header>
 
       <section class="section">
         <h2 class="section-title">Booking Information</h2>
         <div class="grid">
-          <div class="item"><div class="label">Customer</div><div class="value">\${escapePrintHtml(booking.customer)}</div></div>
-          <div class="item"><div class="label">Booked On</div><div class="value">\${escapePrintHtml(booking.date)} at \${escapePrintHtml(booking.time)}</div></div>
-          <div class="item"><div class="label">Service</div><div class="value">\${escapePrintHtml(booking.service)}</div></div>
-          <div class="item"><div class="label">Category</div><div class="value">\${escapePrintHtml(booking.category)}</div></div>
-          <div class="item"><div class="label">Assigned Worker</div><div class="value">\${escapePrintHtml(workerName)}</div></div>
-          <div class="item"><div class="label">Worker Service</div><div class="value">\${escapePrintHtml(workerCategory)}</div></div>
+          <div class="item"><div class="label">Customer</div><div class="value">${escapePrintHtml(booking.customer)}</div></div>
+          <div class="item"><div class="label">Booked On</div><div class="value">${escapePrintHtml(booking.date)} at ${escapePrintHtml(booking.time)}</div></div>
+          <div class="item"><div class="label">Service</div><div class="value">${escapePrintHtml(booking.service)}</div></div>
+          <div class="item"><div class="label">Category</div><div class="value">${escapePrintHtml(booking.category)}</div></div>
+          <div class="item"><div class="label">Assigned Worker</div><div class="value">${escapePrintHtml(workerName)}</div></div>
+          <div class="item"><div class="label">Worker Service</div><div class="value">${escapePrintHtml(workerCategory)}</div></div>
         </div>
       </section>
 
-      \${booking.notes ? \`<section class="section"><h2 class="section-title">Customer Notes</h2><div class="notes">\${escapePrintHtml(booking.notes)}</div></section>\` : ""}
+      ${booking.notes ? `<section class="section"><h2 class="section-title">Customer Notes</h2><div class="notes">${escapePrintHtml(booking.notes)}</div></section>` : ""}
 
       <div class="price">
         <div class="price-label">Service Price</div>
-        <div class="price-value">₨\${Number(booking.price || 0).toLocaleString()}</div>
+        <div class="price-value">₨${Number(booking.price || 0).toLocaleString()}</div>
       </div>
 
       <footer class="footer">
@@ -509,7 +509,7 @@ const printBooking = (booking) => {
           }
         }
 
-        pdf.save("FixItNow-Booking-\${escapePrintHtml(bookingId)}.pdf");
+        pdf.save("FixItNow-Booking-${escapePrintHtml(bookingId)}.pdf");
         message.textContent = "PDF downloaded successfully.";
       } catch (error) {
         console.error(error);
@@ -525,7 +525,7 @@ const printBooking = (booking) => {
     });
   <\/script>
 </body>
-</html>\`;
+</html>`;
 
   printWindow.document.open();
   printWindow.document.write(html);
