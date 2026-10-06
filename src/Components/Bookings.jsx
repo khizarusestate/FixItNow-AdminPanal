@@ -153,8 +153,6 @@ const escapePrintHtml = (value) => {
 const printBooking = (booking) => {
   if (!booking) return;
 
-  const statusLabel =
-    STATUS_CONFIG[booking.status]?.label || booking.status || "Unknown";
   const bookingId = String(booking.id || "").slice(-8).toUpperCase();
   const workerName = booking.worker?.fullName || "Not assigned";
   const workerCategory =
@@ -175,8 +173,8 @@ const printBooking = (booking) => {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>FixItNow Booking #${escapePrintHtml(bookingId)}</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"><\/script>
   <style>
     :root {
       --navy: #0b1f3a;
@@ -237,6 +235,7 @@ const printBooking = (booking) => {
       display: flex;
       justify-content: center;
       align-items: flex-start;
+      overflow: hidden;
     }
     .paper {
       width: 794px;
@@ -245,6 +244,8 @@ const printBooking = (booking) => {
       background: #fff;
       box-shadow: 0 12px 40px rgba(15, 23, 42, .16);
       border-radius: 3px;
+      transform-origin: top center;
+      flex: 0 0 794px;
     }
     .header {
       display: flex;
@@ -352,12 +353,18 @@ const printBooking = (booking) => {
       text-align: right;
     }
     @media (max-width: 850px) {
-      .toolbar { align-items: flex-start; }
+      .toolbar {
+        min-height: 64px;
+        padding: 10px 12px;
+        align-items: center;
+      }
+      .toolbar-title { font-size: 14px; }
+      .toolbar-subtitle { font-size: 10px; }
       .toolbar-actions { justify-content: flex-end; }
-      .workspace { padding: 18px 10px 30px; overflow-x: auto; }
-      .paper {
-        flex: 0 0 794px;
-        transform-origin: top center;
+      .action { padding: 9px 11px; font-size: 11px; }
+      .workspace {
+        padding: 18px 8px 30px;
+        overflow: hidden;
       }
     }
     @media print {
@@ -400,7 +407,6 @@ const printBooking = (booking) => {
         <div class="booking-id">
           <strong>#${escapePrintHtml(bookingId)}</strong>
           <span>BOOKING ID</span>
-          <div class="status">${escapePrintHtml(statusLabel)}</div>
         </div>
       </header>
 
@@ -440,13 +446,31 @@ const printBooking = (booking) => {
       window.print();
     });
 
-    downloadBtn.addEventListener("click", async function () {
-      if (!window.html2canvas || !window.jspdf) {
-        message.textContent = "PDF engine is still loading. Please try again.";
+    const waitForPdfLibraries = () => new Promise((resolve, reject) => {
+      if (window.html2canvas && window.jspdf) {
+        resolve();
         return;
       }
 
+      const started = Date.now();
+      const timer = setInterval(() => {
+        if (window.html2canvas && window.jspdf) {
+          clearInterval(timer);
+          resolve();
+        } else if (Date.now() - started > 15000) {
+          clearInterval(timer);
+          reject(new Error("PDF libraries could not be loaded"));
+        }
+      }, 150);
+    });
+
+    downloadBtn.addEventListener("click", async function () {
       downloadBtn.disabled = true;
+      downloadBtn.textContent = "Preparing...";
+      message.textContent = "Loading PDF engine...";
+
+      try {
+        await waitForPdfLibraries();
       downloadBtn.textContent = "Creating PDF...";
       message.textContent = "Preparing your booking PDF...";
 
@@ -513,14 +537,34 @@ const printBooking = (booking) => {
         message.textContent = "PDF downloaded successfully.";
       } catch (error) {
         console.error(error);
-        message.textContent = "PDF download failed. Use Print → Save as PDF.";
+        message.textContent = "PDF download failed. Check internet connection and try again.";
       } finally {
         downloadBtn.disabled = false;
         downloadBtn.textContent = "Download PDF";
       }
     });
 
+    function fitPaperToWindow() {
+      const paper = document.getElementById("bookingPaper");
+      const workspace = document.querySelector(".workspace");
+      if (!paper || !workspace) return;
+
+      paper.style.transform = "none";
+
+      if (window.matchMedia("print").matches) {
+        workspace.style.minHeight = "0";
+        return;
+      }
+
+      const availableWidth = Math.max(280, window.innerWidth - 24);
+      const scale = Math.min(1, availableWidth / 794);
+      paper.style.transform = "scale(" + scale + ")";
+      workspace.style.minHeight = Math.ceil(1123 * scale + 48) + "px";
+    }
+
+    window.addEventListener("resize", fitPaperToWindow);
     window.addEventListener("load", function () {
+      fitPaperToWindow();
       window.focus();
     });
   <\/script>
