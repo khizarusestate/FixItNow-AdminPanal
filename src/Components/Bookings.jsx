@@ -560,6 +560,10 @@ const printBooking = (booking) => {
       return new Blob([pdf], { type: "application/pdf" });
     }
 
+    // Expose these for the opener fallback on browsers that block dynamically-written handlers.
+    window.PDF_DATA = PDF_DATA;
+    window.buildPdf = buildPdf;
+
     downloadBtn.addEventListener("click", function () {
       downloadBtn.disabled = true;
       downloadBtn.textContent = "Preparing...";
@@ -630,27 +634,38 @@ const printBooking = (booking) => {
       }
 
       const downloadButton = printWindow.document.getElementById("downloadBtn");
-      if (downloadButton && typeof printWindow.buildPdf === "function") {
+      if (downloadButton) {
         downloadButton.onclick = () => {
+          const msg = printWindow.document.getElementById("message");
           downloadButton.disabled = true;
           downloadButton.textContent = "Preparing...";
-          const msg = printWindow.document.getElementById("message");
           if (msg) msg.textContent = "Preparing PDF...";
+
           try {
-            const data = printWindow.PDF_DATA;
-            const blob = printWindow.buildPdf(data);
-            const url = printWindow.URL.createObjectURL(blob);
-            const link = printWindow.document.createElement("a");
-            link.href = url;
-            link.download = "FixItNow-Booking-" + data.bookingId + ".pdf";
-            printWindow.document.body.appendChild(link);
-            link.click();
-            link.remove();
-            setTimeout(() => printWindow.URL.revokeObjectURL(url), 1000);
-            if (msg) msg.textContent = "PDF downloaded successfully.";
+            if (typeof printWindow.buildPdf === "function") {
+              const data = printWindow.PDF_DATA;
+              const blob = printWindow.buildPdf(data);
+              const url = printWindow.URL.createObjectURL(blob);
+              const link = printWindow.document.createElement("a");
+              link.href = url;
+              link.download = "FixItNow-Booking-" + data.bookingId + ".pdf";
+              link.style.display = "none";
+              printWindow.document.body.appendChild(link);
+              link.click();
+              link.remove();
+              setTimeout(() => printWindow.URL.revokeObjectURL(url), 1500);
+              if (msg) msg.textContent = "PDF downloaded successfully.";
+            } else {
+              // Last-resort native PDF flow: works even when page scripts are blocked.
+              if (msg) msg.textContent = "Opening Save as PDF...";
+              printWindow.focus();
+              printWindow.print();
+            }
           } catch (error) {
             console.error("PDF download failed:", error);
-            if (msg) msg.textContent = "PDF download failed.";
+            if (msg) msg.textContent = "Opening Save as PDF...";
+            printWindow.focus();
+            printWindow.print();
           } finally {
             downloadButton.disabled = false;
             downloadButton.textContent = "Download PDF";
