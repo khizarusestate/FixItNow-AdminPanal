@@ -415,11 +415,11 @@ const printBooking = (booking) => {
         <h2 class="section-title">Booking Information</h2>
         <div class="grid">
           <div class="item"><div class="label">Customer</div><div class="value">${escapePrintHtml(booking.customer)}</div></div>
+          <div class="item"><div class="label">Phone</div><div class="value">${escapePrintHtml(booking.phone || "N/A")}</div></div>
+          <div class="item"><div class="label">Email</div><div class="value">${escapePrintHtml(booking.email || "N/A")}</div></div>
           <div class="item"><div class="label">Booked On</div><div class="value">${escapePrintHtml(booking.date)} at ${escapePrintHtml(booking.time)}</div></div>
           <div class="item"><div class="label">Service</div><div class="value">${escapePrintHtml(booking.service)}</div></div>
-          <div class="item"><div class="label">Category</div><div class="value">${escapePrintHtml(booking.category)}</div></div>
-          <div class="item"><div class="label">Assigned Worker</div><div class="value">${escapePrintHtml(workerName)}</div></div>
-          <div class="item"><div class="label">Worker Service</div><div class="value">${escapePrintHtml(workerCategory)}</div></div>
+          <div class="item"><div class="label">Address</div><div class="value">${escapePrintHtml(booking.location || "N/A")}</div></div>
         </div>
       </section>
 
@@ -444,9 +444,9 @@ const printBooking = (booking) => {
       date: ${JSON.stringify(booking.date ?? "N/A")},
       time: ${JSON.stringify(booking.time ?? "N/A")},
       service: ${JSON.stringify(booking.service ?? "N/A")},
-      category: ${JSON.stringify(booking.category ?? "N/A")},
-      workerName: ${JSON.stringify(workerName)},
-      workerCategory: ${JSON.stringify(workerCategory)},
+      phone: ${JSON.stringify(booking.phone ?? "N/A")},
+      email: ${JSON.stringify(booking.email ?? "N/A")},
+      address: ${JSON.stringify(booking.location ?? "N/A")},
       notes: ${JSON.stringify(booking.notes ?? "")},
       price: ${JSON.stringify(Number(booking.price || 0))}
     };
@@ -489,11 +489,11 @@ const printBooking = (booking) => {
 
       const rows = [
         ["CUSTOMER", data.customer],
+        ["PHONE", data.phone],
+        ["EMAIL", data.email],
         ["BOOKED ON", data.date + " at " + data.time],
         ["SERVICE", data.service],
-        ["CATEGORY", data.category],
-        ["ASSIGNED WORKER", data.workerName],
-        ["WORKER SERVICE", data.workerCategory]
+        ["ADDRESS", data.address]
       ];
 
       rows.forEach((row, index) => {
