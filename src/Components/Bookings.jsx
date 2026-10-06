@@ -244,7 +244,7 @@ const printBooking = (booking) => {
       background: #fff;
       box-shadow: 0 12px 40px rgba(15, 23, 42, .16);
       border-radius: 3px;
-      transform-origin: top center;
+      transform-origin: top left;
       flex: 0 0 794px;
     }
     .header {
@@ -437,21 +437,31 @@ const printBooking = (booking) => {
   </main>
 
   <script>
+    const PDF_DATA = {
+      bookingId: \${JSON.stringify(bookingId)},
+      customer: \${JSON.stringify(booking.customer ?? "N/A")},
+      date: \${JSON.stringify(booking.date ?? "N/A")},
+      time: \${JSON.stringify(booking.time ?? "N/A")},
+      service: \${JSON.stringify(booking.service ?? "N/A")},
+      category: \${JSON.stringify(booking.category ?? "N/A")},
+      workerName: \${JSON.stringify(workerName)},
+      workerCategory: \${JSON.stringify(workerCategory)},
+      notes: \${JSON.stringify(booking.notes ?? "")},
+      price: \${JSON.stringify(Number(booking.price || 0))}
+    };
+
     const printBtn = document.getElementById("printBtn");
     const downloadBtn = document.getElementById("downloadBtn");
     const message = document.getElementById("message");
 
     printBtn.addEventListener("click", function () {
+      message.textContent = "Opening print dialog...";
       window.focus();
-      window.print();
+      setTimeout(function () { window.print(); }, 50);
     });
 
     const waitForJsPdf = () => new Promise((resolve, reject) => {
-      if (window.jspdf && window.jspdf.jsPDF) {
-        resolve(window.jspdf.jsPDF);
-        return;
-      }
-
+      if (window.jspdf && window.jspdf.jsPDF) return resolve(window.jspdf.jsPDF);
       const started = Date.now();
       const timer = setInterval(() => {
         if (window.jspdf && window.jspdf.jsPDF) {
@@ -468,156 +478,72 @@ const printBooking = (booking) => {
       downloadBtn.disabled = true;
       downloadBtn.textContent = "Preparing...";
       message.textContent = "Preparing PDF...";
-
       try {
         const JsPDF = await waitForJsPdf();
-        const doc = new JsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-          compress: true
-        });
+        const doc = new JsPDF({ orientation:"portrait", unit:"mm", format:"a4", compress:true });
+        const navy=[11,31,58], gold=[212,154,31], slate=[100,116,139], line=[226,232,240];
 
-        const navy = [11, 31, 58];
-        const gold = [212, 154, 31];
-        const slate = [100, 116, 139];
-        const line = [226, 232, 240];
+        doc.setFillColor(255,255,255); doc.rect(0,0,210,297,"F");
+        doc.setTextColor(...navy); doc.setFont("helvetica","bold"); doc.setFontSize(24); doc.text("FixIt",18,24);
+        doc.setTextColor(...gold); doc.text("Now",39,24);
+        doc.setTextColor(...slate); doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.text("Booking Document",18,31);
+        doc.setTextColor(...navy); doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.text("#"+PDF_DATA.bookingId,192,22,{align:"right"});
+        doc.setTextColor(...slate); doc.setFontSize(7); doc.text("BOOKING ID",192,28,{align:"right"});
+        doc.setDrawColor(...navy); doc.setLineWidth(.7); doc.line(18,39,192,39);
+        doc.setTextColor(...navy); doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.text("BOOKING INFORMATION",18,51);
 
-        doc.setFillColor(255, 255, 255);
-        doc.rect(0, 0, 210, 297, "F");
-
-        doc.setTextColor(...navy);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(24);
-        doc.text("FixIt", 18, 24);
-        doc.setTextColor(...gold);
-        doc.text("Now", 39, 24);
-
-        doc.setTextColor(...slate);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.text("Booking Document", 18, 31);
-
-        doc.setTextColor(...navy);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.text("#\${escapePrintHtml(bookingId)}", 192, 22, { align: "right" });
-        doc.setTextColor(...slate);
-        doc.setFontSize(7);
-        doc.text("BOOKING ID", 192, 28, { align: "right" });
-
-        doc.setDrawColor(...navy);
-        doc.setLineWidth(0.7);
-        doc.line(18, 39, 192, 39);
-
-        doc.setTextColor(...navy);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9);
-        doc.text("BOOKING INFORMATION", 18, 51);
-
-        const rows = [
-          ["CUSTOMER", "\${escapePrintHtml(booking.customer)}"],
-          ["BOOKED ON", "\${escapePrintHtml(booking.date)} at \${escapePrintHtml(booking.time)}"],
-          ["SERVICE", "\${escapePrintHtml(booking.service)}"],
-          ["CATEGORY", "\${escapePrintHtml(booking.category)}"],
-          ["ASSIGNED WORKER", "\${escapePrintHtml(workerName)}"],
-          ["WORKER SERVICE", "\${escapePrintHtml(workerCategory)}"]
+        const rows=[
+          ["CUSTOMER",PDF_DATA.customer],["BOOKED ON",PDF_DATA.date+" at "+PDF_DATA.time],
+          ["SERVICE",PDF_DATA.service],["CATEGORY",PDF_DATA.category],
+          ["ASSIGNED WORKER",PDF_DATA.workerName],["WORKER SERVICE",PDF_DATA.workerCategory]
         ];
-
-        let y = 57;
-        rows.forEach((row, index) => {
-          const x = index % 2 === 0 ? 18 : 105;
-          const rowY = y + Math.floor(index / 2) * 30;
-
-          doc.setFillColor(248, 250, 252);
-          doc.setDrawColor(...line);
-          doc.roundedRect(x, rowY, 87, 24, 2, 2, "FD");
-
-          doc.setTextColor(...slate);
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(6.5);
-          doc.text(row[0], x + 5, rowY + 7);
-
-          doc.setTextColor(15, 23, 42);
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(8.5);
-          doc.text(row[1], x + 5, rowY + 15, { maxWidth: 77 });
+        rows.forEach((row,index)=>{
+          const x=index%2===0?18:105, rowY=57+Math.floor(index/2)*30;
+          doc.setFillColor(248,250,252); doc.setDrawColor(...line); doc.roundedRect(x,rowY,87,24,2,2,"FD");
+          doc.setTextColor(...slate); doc.setFont("helvetica","bold"); doc.setFontSize(6.5); doc.text(row[0],x+5,rowY+7);
+          doc.setTextColor(15,23,42); doc.setFont("helvetica","bold"); doc.setFontSize(8.5); doc.text(String(row[1]||"N/A"),x+5,rowY+15,{maxWidth:77});
         });
 
-        const notesY = 154;
-        if (\${Boolean(booking.notes)}) {
-          doc.setTextColor(...navy);
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(9);
-          doc.text("CUSTOMER NOTES", 18, notesY);
-
-          doc.setDrawColor(...line);
-          doc.setFillColor(255, 255, 255);
-          doc.roundedRect(18, notesY + 6, 174, 34, 2, 2, "FD");
-          doc.setTextColor(15, 23, 42);
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(8);
-          doc.text("\${escapePrintHtml(booking.notes)}", 24, notesY + 14, { maxWidth: 162 });
+        const notesY=154;
+        if(PDF_DATA.notes){
+          doc.setTextColor(...navy); doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.text("CUSTOMER NOTES",18,notesY);
+          doc.setDrawColor(...line); doc.setFillColor(255,255,255); doc.roundedRect(18,notesY+6,174,34,2,2,"FD");
+          doc.setTextColor(15,23,42); doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.text(String(PDF_DATA.notes),24,notesY+14,{maxWidth:162});
         }
 
-        const priceY = \${Boolean(booking.notes)} ? 205 : 154;
-        doc.setDrawColor(...line);
-        doc.setFillColor(248, 250, 252);
-        doc.roundedRect(18, priceY, 174, 24, 2, 2, "FD");
-
-        doc.setTextColor(...slate);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(7);
-        doc.text("SERVICE PRICE", 25, priceY + 14);
-
-        doc.setTextColor(...navy);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(18);
-        doc.text("PKR \${Number(booking.price || 0).toLocaleString()}", 185, priceY + 15, { align: "right" });
-
-        doc.setDrawColor(...line);
-        doc.line(18, 276, 192, 276);
-        doc.setTextColor(148, 163, 184);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(6.5);
-        doc.text("FixItNow · fixitnow.pk", 18, 283);
-        doc.text("Generated by FixItNow Admin", 192, 283, { align: "right" });
-
-        doc.save("FixItNow-Booking-\${escapePrintHtml(bookingId)}.pdf");
-        message.textContent = "PDF downloaded successfully.";
-      } catch (error) {
-        console.error(error);
-        message.textContent = "PDF engine could not load. Check internet and try again.";
+        const priceY=PDF_DATA.notes?205:154;
+        doc.setDrawColor(...line); doc.setFillColor(248,250,252); doc.roundedRect(18,priceY,174,24,2,2,"FD");
+        doc.setTextColor(...slate); doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.text("SERVICE PRICE",25,priceY+14);
+        doc.setTextColor(...navy); doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("PKR "+Number(PDF_DATA.price||0).toLocaleString(),185,priceY+15,{align:"right"});
+        doc.setDrawColor(...line); doc.line(18,276,192,276);
+        doc.setTextColor(148,163,184); doc.setFont("helvetica","normal"); doc.setFontSize(6.5);
+        doc.text("FixItNow · fixitnow.pk",18,283); doc.text("Generated by FixItNow Admin",192,283,{align:"right"});
+        doc.save("FixItNow-Booking-"+PDF_DATA.bookingId+".pdf");
+        message.textContent="PDF downloaded successfully.";
+      } catch(error) {
+        console.error("PDF download failed:",error);
+        message.textContent="PDF download failed. Check your internet connection and try again.";
       } finally {
-        downloadBtn.disabled = false;
-        downloadBtn.textContent = "Download PDF";
+        downloadBtn.disabled=false; downloadBtn.textContent="Download PDF";
       }
     });
 
     function fitPaperToWindow() {
-      const paper = document.getElementById("bookingPaper");
-      const workspace = document.querySelector(".workspace");
-      if (!paper || !workspace) return;
-
-      paper.style.transform = "none";
-
-      if (window.matchMedia("print").matches) {
-        workspace.style.minHeight = "0";
-        return;
-      }
-
-      const availableWidth = Math.max(280, window.innerWidth - 24);
-      const scale = Math.min(1, availableWidth / 794);
-      paper.style.transform = "scale(" + scale + ")";
-      workspace.style.minHeight = Math.ceil(1123 * scale + 48) + "px";
+      const paper=document.getElementById("bookingPaper");
+      const workspace=document.querySelector(".workspace");
+      if(!paper||!workspace)return;
+      paper.style.transform="none";
+      if(window.matchMedia("print").matches){workspace.style.minHeight="0";return;}
+      const scale=Math.min(1,Math.max(280,window.innerWidth-16)/794);
+      paper.style.transform="scale("+scale+")";
+      workspace.style.width="100%";
+      workspace.style.minHeight=Math.ceil(1123*scale+48)+"px";
+      workspace.style.overflow="hidden";
     }
-
-    window.addEventListener("resize", fitPaperToWindow);
-    window.addEventListener("load", function () {
-      fitPaperToWindow();
-      window.focus();
-    });
-  <\/script>
+    window.addEventListener("resize",fitPaperToWindow);
+    window.addEventListener("load",fitPaperToWindow);
+    fitPaperToWindow();
+  <\\/script>
 </body>
 </html>`;
 
