@@ -438,16 +438,16 @@ const printBooking = (booking) => {
 
   <script>
     const PDF_DATA = {
-      bookingId: \${JSON.stringify(bookingId)},
-      customer: \${JSON.stringify(booking.customer ?? "N/A")},
-      date: \${JSON.stringify(booking.date ?? "N/A")},
-      time: \${JSON.stringify(booking.time ?? "N/A")},
-      service: \${JSON.stringify(booking.service ?? "N/A")},
-      category: \${JSON.stringify(booking.category ?? "N/A")},
-      workerName: \${JSON.stringify(workerName)},
-      workerCategory: \${JSON.stringify(workerCategory)},
-      notes: \${JSON.stringify(booking.notes ?? "")},
-      price: \${JSON.stringify(Number(booking.price || 0))}
+      bookingId: ${JSON.stringify(bookingId)},
+      customer: ${JSON.stringify(booking.customer ?? "N/A")},
+      date: ${JSON.stringify(booking.date ?? "N/A")},
+      time: ${JSON.stringify(booking.time ?? "N/A")},
+      service: ${JSON.stringify(booking.service ?? "N/A")},
+      category: ${JSON.stringify(booking.category ?? "N/A")},
+      workerName: ${JSON.stringify(workerName)},
+      workerCategory: ${JSON.stringify(workerCategory)},
+      notes: ${JSON.stringify(booking.notes ?? "")},
+      price: ${JSON.stringify(Number(booking.price || 0))}
     };
 
     const printBtn = document.getElementById("printBtn");
