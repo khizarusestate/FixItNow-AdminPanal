@@ -243,7 +243,7 @@ const printBooking = (booking) => {
       background: #fff;
       box-shadow: 0 12px 40px rgba(15, 23, 42, .16);
       border-radius: 3px;
-      transform-origin: top left;
+      transform-origin: top center;
       flex: 0 0 794px;
     }
     .header {
@@ -584,16 +584,25 @@ const printBooking = (booking) => {
     });
 
     function fitPaperToWindow() {
-      const paper=document.getElementById("bookingPaper");
-      const workspace=document.querySelector(".workspace");
-      if(!paper||!workspace)return;
-      paper.style.transform="none";
-      if(window.matchMedia("print").matches){workspace.style.minHeight="0";return;}
-      const scale=Math.min(1,Math.max(280,window.innerWidth-16)/794);
-      paper.style.transform="scale("+scale+")";
-      workspace.style.width="100%";
-      workspace.style.minHeight=Math.ceil(1123*scale+48)+"px";
-      workspace.style.overflow="hidden";
+      const paper = document.getElementById("bookingPaper");
+      const workspace = document.querySelector(".workspace");
+      if (!paper || !workspace) return;
+
+      if (window.matchMedia("print").matches) {
+        paper.style.transform = "none";
+        workspace.style.minHeight = "0";
+        workspace.style.overflow = "visible";
+        return;
+      }
+
+      const scale = 0.5;
+      paper.style.transform = "scale(" + scale + ")";
+      workspace.style.width = "100%";
+      workspace.style.display = "flex";
+      workspace.style.justifyContent = "center";
+      workspace.style.alignItems = "flex-start";
+      workspace.style.minHeight = Math.ceil(1123 * scale + 48) + "px";
+      workspace.style.overflow = "hidden";
     }
     window.addEventListener("resize",fitPaperToWindow);
     window.addEventListener("load",fitPaperToWindow);
