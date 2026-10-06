@@ -262,6 +262,23 @@ const printBooking = (booking) => {
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
+    .print-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .print-action {
+      border: 0;
+      border-radius: 7px;
+      padding: 9px 14px;
+      background: #0b1f3a;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .print-action.download { background: #d49a1f; color: #0b1f3a; }
     .footer {
       margin-top: 35px;
       padding-top: 10px;
@@ -273,6 +290,7 @@ const printBooking = (booking) => {
     }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -306,6 +324,11 @@ const printBooking = (booking) => {
   <div class="price">
     <div class="price-label">Service Price</div>
     <div class="price-value">₨${Number(booking.price || 0).toLocaleString()}</div>
+  </div>
+
+  <div class="print-actions no-print">
+    <button class="print-action" onclick="window.print()">Print</button>
+    <button class="print-action download" onclick="window.print()">Download / Save PDF</button>
   </div>
 
   <footer class="footer">
