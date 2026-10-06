@@ -19,6 +19,7 @@ import {
   Trophy,
   Star,
   Receipt,
+  Printer,
 } from "lucide-react";
 
 import { useEffect, useState, useCallback } from "react";
@@ -137,6 +138,196 @@ const isPayAfterWorkBooking = (booking) => {
     pd.payAfterWork ||
       String(pd.paymentMethod || "").toLowerCase() === "pay-after-work",
   );
+};
+
+
+const escapePrintHtml = (value) => {
+  return String(value ?? "N/A")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+const printBooking = (booking) => {
+  if (!booking) return;
+
+  const statusLabel =
+    STATUS_CONFIG[booking.status]?.label || booking.status || "Unknown";
+  const bookingId = String(booking.id || "").slice(-8).toUpperCase();
+  const workerName = booking.worker?.fullName || "Not assigned";
+  const workerCategory =
+    booking.worker?.primaryServiceCategory ||
+    booking.worker?.serviceCategory ||
+    booking.category ||
+    "N/A";
+
+  const printWindow = window.open("", "_blank", "width=900,height=800");
+  if (!printWindow) {
+    window.alert("Please allow pop-ups to print the booking.");
+    return;
+  }
+
+  const html = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>FixItNow Booking #${escapePrintHtml(bookingId)}</title>
+  <style>
+    @page { size: A4; margin: 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #0f172a;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding-bottom: 18px;
+      border-bottom: 2px solid #0b1f3a;
+    }
+    .brand {
+      color: #0b1f3a;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .brand span { color: #d49a1f; }
+    .subtitle { margin-top: 3px; color: #64748b; font-size: 12px; }
+    .booking-id { text-align: right; }
+    .booking-id strong { display: block; font-size: 17px; }
+    .booking-id span { color: #64748b; font-size: 11px; }
+    .status {
+      display: inline-block;
+      margin-top: 7px;
+      padding: 4px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .section { margin-top: 22px; }
+    .section-title {
+      margin: 0 0 9px;
+      color: #0b1f3a;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .item {
+      padding: 10px 12px;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .item:nth-child(2n) { border-right: 0; }
+    .item:nth-last-child(-n+2) { border-bottom: 0; }
+    .label {
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .value { margin-top: 2px; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .price {
+      margin-top: 22px;
+      padding: 15px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .price-label { color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700; }
+    .price-value { color: #0b1f3a; font-size: 22px; font-weight: 800; }
+    .notes {
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .footer {
+      margin-top: 35px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      color: #94a3b8;
+      font-size: 10px;
+    }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div>
+      <div class="brand">FixIt<span>Now</span></div>
+      <div class="subtitle">Booking Document</div>
+    </div>
+    <div class="booking-id">
+      <strong>#${escapePrintHtml(bookingId)}</strong>
+      <span>Booking ID</span>
+      <div class="status">${escapePrintHtml(statusLabel)}</div>
+    </div>
+  </header>
+
+  <section class="section">
+    <h2 class="section-title">Booking Information</h2>
+    <div class="grid">
+      <div class="item"><div class="label">Customer</div><div class="value">${escapePrintHtml(booking.customer)}</div></div>
+      <div class="item"><div class="label">Booked On</div><div class="value">${escapePrintHtml(booking.date)} at ${escapePrintHtml(booking.time)}</div></div>
+      <div class="item"><div class="label">Service</div><div class="value">${escapePrintHtml(booking.service)}</div></div>
+      <div class="item"><div class="label">Category</div><div class="value">${escapePrintHtml(booking.category)}</div></div>
+      <div class="item"><div class="label">Assigned Worker</div><div class="value">${escapePrintHtml(workerName)}</div></div>
+      <div class="item"><div class="label">Worker Service</div><div class="value">${escapePrintHtml(workerCategory)}</div></div>
+    </div>
+  </section>
+
+  ${booking.notes ? `<section class="section"><h2 class="section-title">Customer Notes</h2><div class="notes">${escapePrintHtml(booking.notes)}</div></section>` : ""}
+
+  <div class="price">
+    <div class="price-label">Service Price</div>
+    <div class="price-value">₨${Number(booking.price || 0).toLocaleString()}</div>
+  </div>
+
+  <footer class="footer">
+    <span>FixItNow · fixitnow.pk</span>
+    <span>Generated by FixItNow Admin</span>
+  </footer>
+
+  <script>
+    window.onload = function () {
+      window.focus();
+      window.print();
+    };
+    window.onafterprint = function () {
+      window.close();
+    };
+  </script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
 };
 
 const paymentMethodLabel = (key) => {
@@ -813,9 +1004,19 @@ export default function Bookings() {
                           booking,
                         })
                       }
+                      title="View booking details"
                       className="flex flex-1 items-center justify-center rounded-xl bg-blue-100 px-4 py-3 text-blue-700 transition-colors hover:bg-blue-200"
                     >
                       <Eye size={20} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => printBooking(booking)}
+                      title="Print booking"
+                      className="rounded-xl bg-slate-100 px-4 py-3 text-slate-700 transition-colors hover:bg-slate-200"
+                    >
+                      <Printer size={20} />
                     </button>
 
                     {isPayAfterWorkBooking(booking) &&
