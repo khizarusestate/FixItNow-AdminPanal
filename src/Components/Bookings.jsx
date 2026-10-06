@@ -391,7 +391,7 @@ const printBooking = (booking) => {
     </div>
     <div>
       <div class="toolbar-actions">
-        <button class="action action-print" id="printBtn" type="button">Print</button>
+        <button class="action action-print" id="printBtn" type="button" onclick="window.print()">Print</button>
         <button class="action action-download" id="downloadBtn" type="button">Download PDF</button>
       </div>
       <div class="message" id="message"></div>
@@ -616,6 +616,51 @@ const printBooking = (booking) => {
   printWindow.document.open();
   printWindow.document.write(html);
   printWindow.document.close();
+
+  // document.write() may prevent scripts inside dynamically-written about:blank documents
+  // from executing in some browsers. Wire the controls from the opener as a reliable fallback.
+  setTimeout(() => {
+    try {
+      const printButton = printWindow.document.getElementById("printBtn");
+      if (printButton) {
+        printButton.onclick = () => {
+          printWindow.focus();
+          printWindow.print();
+        };
+      }
+
+      const downloadButton = printWindow.document.getElementById("downloadBtn");
+      if (downloadButton && typeof printWindow.buildPdf === "function") {
+        downloadButton.onclick = () => {
+          downloadButton.disabled = true;
+          downloadButton.textContent = "Preparing...";
+          const msg = printWindow.document.getElementById("message");
+          if (msg) msg.textContent = "Preparing PDF...";
+          try {
+            const data = printWindow.PDF_DATA;
+            const blob = printWindow.buildPdf(data);
+            const url = printWindow.URL.createObjectURL(blob);
+            const link = printWindow.document.createElement("a");
+            link.href = url;
+            link.download = "FixItNow-Booking-" + data.bookingId + ".pdf";
+            printWindow.document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => printWindow.URL.revokeObjectURL(url), 1000);
+            if (msg) msg.textContent = "PDF downloaded successfully.";
+          } catch (error) {
+            console.error("PDF download failed:", error);
+            if (msg) msg.textContent = "PDF download failed.";
+          } finally {
+            downloadButton.disabled = false;
+            downloadButton.textContent = "Download PDF";
+          }
+        };
+      }
+    } catch (error) {
+      console.error("Booking preview controls could not be wired:", error);
+    }
+  }, 100);
 };
 const paymentMethodLabel = (key) => {
   const k = String(key || "").toLowerCase();
