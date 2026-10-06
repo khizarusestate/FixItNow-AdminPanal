@@ -243,6 +243,7 @@ const printBooking = (booking) => {
       background: #fff;
       box-shadow: 0 12px 40px rgba(15, 23, 42, .16);
       border-radius: 3px;
+      transform: scale(.5);
       transform-origin: top center;
       flex: 0 0 794px;
     }
@@ -377,6 +378,7 @@ const printBooking = (booking) => {
         padding: 16mm;
         box-shadow: none;
         border-radius: 0;
+        transform: none;
       }
     }
   </style>
