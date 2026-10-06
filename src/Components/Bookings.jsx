@@ -173,7 +173,7 @@ const printBooking = (booking) => {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>FixItNow Booking #${escapePrintHtml(bookingId)}</title>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>
+
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"><\/script>
   <style>
     :root {
@@ -543,7 +543,7 @@ const printBooking = (booking) => {
     window.addEventListener("resize",fitPaperToWindow);
     window.addEventListener("load",fitPaperToWindow);
     fitPaperToWindow();
-  <\\/script>
+  <\/script>
 </body>
 </html>`;
 
