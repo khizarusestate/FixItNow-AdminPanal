@@ -163,46 +163,107 @@ const printBooking = (booking) => {
     booking.category ||
     "N/A";
 
-  const printWindow = window.open("", "_blank", "width=900,height=800");
+  const printWindow = window.open("", "_blank", "width=1100,height=900");
   if (!printWindow) {
-    window.alert("Please allow pop-ups to print the booking.");
+    window.alert("Please allow pop-ups to preview or download the booking.");
     return;
   }
 
-  const html = `<!doctype html>
+  const html = \`<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>FixItNow Booking #${escapePrintHtml(bookingId)}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FixItNow Booking #\${escapePrintHtml(bookingId)}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
   <style>
-    @page { size: A4; margin: 16mm; }
+    :root {
+      --navy: #0b1f3a;
+      --gold: #d49a1f;
+      --slate: #64748b;
+      --line: #e2e8f0;
+      --bg: #eef2f7;
+    }
     * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
     body {
-      margin: 0;
       color: #0f172a;
-      background: #fff;
+      background: var(--bg);
       font-family: Arial, Helvetica, sans-serif;
       font-size: 13px;
       line-height: 1.5;
+    }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      min-height: 68px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(11, 31, 58, .97);
+      box-shadow: 0 4px 18px rgba(15, 23, 42, .18);
+    }
+    .toolbar-title {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .toolbar-subtitle {
+      margin-top: 2px;
+      color: #cbd5e1;
+      font-size: 11px;
+    }
+    .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action {
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 14px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .action-print { background: #fff; color: var(--navy); }
+    .action-download { background: var(--gold); color: var(--navy); }
+    .action:disabled { opacity: .65; cursor: wait; }
+    .workspace {
+      min-height: calc(100vh - 68px);
+      padding: 34px 20px 48px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .paper {
+      width: 794px;
+      min-height: 1123px;
+      padding: 60px 58px;
+      background: #fff;
+      box-shadow: 0 12px 40px rgba(15, 23, 42, .16);
+      border-radius: 3px;
     }
     .header {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      padding-bottom: 18px;
-      border-bottom: 2px solid #0b1f3a;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--navy);
     }
     .brand {
-      color: #0b1f3a;
-      font-size: 25px;
+      color: var(--navy);
+      font-size: 28px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      letter-spacing: -.6px;
     }
-    .brand span { color: #d49a1f; }
-    .subtitle { margin-top: 3px; color: #64748b; font-size: 12px; }
+    .brand span { color: var(--gold); }
+    .subtitle { margin-top: 4px; color: var(--slate); font-size: 12px; }
     .booking-id { text-align: right; }
-    .booking-id strong { display: block; font-size: 17px; }
-    .booking-id span { color: #64748b; font-size: 11px; }
+    .booking-id strong { display: block; color: var(--navy); font-size: 18px; }
+    .booking-id span { color: var(--slate); font-size: 10px; }
     .status {
       display: inline-block;
       margin-top: 7px;
@@ -210,149 +271,266 @@ const printBooking = (booking) => {
       border: 1px solid #cbd5e1;
       border-radius: 999px;
       color: #334155;
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 10px;
+      font-weight: 800;
     }
-    .section { margin-top: 22px; }
+    .section { margin-top: 28px; }
     .section-title {
-      margin: 0 0 9px;
-      color: #0b1f3a;
-      font-size: 13px;
+      margin: 0 0 10px;
+      color: var(--navy);
+      font-size: 12px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .07em;
     }
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
       overflow: hidden;
     }
     .item {
-      padding: 10px 12px;
-      border-right: 1px solid #e2e8f0;
-      border-bottom: 1px solid #e2e8f0;
+      min-height: 65px;
+      padding: 11px 13px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
     }
     .item:nth-child(2n) { border-right: 0; }
     .item:nth-last-child(-n+2) { border-bottom: 0; }
     .label {
-      color: #64748b;
-      font-size: 10px;
-      font-weight: 700;
+      color: var(--slate);
+      font-size: 9px;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: .05em;
+      letter-spacing: .06em;
     }
-    .value { margin-top: 2px; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .price {
-      margin-top: 22px;
-      padding: 15px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-    }
-    .price-label { color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700; }
-    .price-value { color: #0b1f3a; font-size: 22px; font-weight: 800; }
-    .notes {
-      padding: 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
+    .value {
+      margin-top: 3px;
+      font-weight: 600;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
-    .print-actions {
+    .notes {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .price {
+      margin-top: 28px;
+      padding: 17px 18px;
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 18px;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f8fafc;
     }
-    .print-action {
-      border: 0;
-      border-radius: 7px;
-      padding: 9px 14px;
-      background: #0b1f3a;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
+    .price-label {
+      color: var(--slate);
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 800;
     }
-    .print-action.download { background: #d49a1f; color: #0b1f3a; }
+    .price-value { color: var(--navy); font-size: 24px; font-weight: 800; }
     .footer {
-      margin-top: 35px;
-      padding-top: 10px;
-      border-top: 1px solid #e2e8f0;
+      margin-top: 46px;
+      padding-top: 11px;
+      border-top: 1px solid var(--line);
       display: flex;
       justify-content: space-between;
       color: #94a3b8;
+      font-size: 9px;
+    }
+    .message {
+      min-height: 16px;
+      margin-top: 7px;
+      color: #cbd5e1;
       font-size: 10px;
+      text-align: right;
+    }
+    @media (max-width: 850px) {
+      .toolbar { align-items: flex-start; }
+      .toolbar-actions { justify-content: flex-end; }
+      .workspace { padding: 18px 10px 30px; overflow-x: auto; }
+      .paper {
+        flex: 0 0 794px;
+        transform-origin: top center;
+      }
     }
     @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .no-print { display: none !important; }
+      @page { size: A4; margin: 0; }
+      html, body { background: #fff; }
+      .toolbar, .message { display: none !important; }
+      .workspace { padding: 0; display: block; min-height: 0; }
+      .paper {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 16mm;
+        box-shadow: none;
+        border-radius: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <header class="header">
+  <div class="toolbar">
     <div>
-      <div class="brand">FixIt<span>Now</span></div>
-      <div class="subtitle">Booking Document</div>
+      <div class="toolbar-title">Booking Preview</div>
+      <div class="toolbar-subtitle">A4 document · FixItNow Admin</div>
     </div>
-    <div class="booking-id">
-      <strong>#${escapePrintHtml(bookingId)}</strong>
-      <span>Booking ID</span>
-      <div class="status">${escapePrintHtml(statusLabel)}</div>
+    <div>
+      <div class="toolbar-actions">
+        <button class="action action-print" id="printBtn" type="button">Print</button>
+        <button class="action action-download" id="downloadBtn" type="button">Download PDF</button>
+      </div>
+      <div class="message" id="message"></div>
     </div>
-  </header>
-
-  <section class="section">
-    <h2 class="section-title">Booking Information</h2>
-    <div class="grid">
-      <div class="item"><div class="label">Customer</div><div class="value">${escapePrintHtml(booking.customer)}</div></div>
-      <div class="item"><div class="label">Booked On</div><div class="value">${escapePrintHtml(booking.date)} at ${escapePrintHtml(booking.time)}</div></div>
-      <div class="item"><div class="label">Service</div><div class="value">${escapePrintHtml(booking.service)}</div></div>
-      <div class="item"><div class="label">Category</div><div class="value">${escapePrintHtml(booking.category)}</div></div>
-      <div class="item"><div class="label">Assigned Worker</div><div class="value">${escapePrintHtml(workerName)}</div></div>
-      <div class="item"><div class="label">Worker Service</div><div class="value">${escapePrintHtml(workerCategory)}</div></div>
-    </div>
-  </section>
-
-  ${booking.notes ? `<section class="section"><h2 class="section-title">Customer Notes</h2><div class="notes">${escapePrintHtml(booking.notes)}</div></section>` : ""}
-
-  <div class="price">
-    <div class="price-label">Service Price</div>
-    <div class="price-value">₨${Number(booking.price || 0).toLocaleString()}</div>
   </div>
 
-  <div class="print-actions no-print">
-    <button class="print-action" onclick="window.print()">Print</button>
-    <button class="print-action download" onclick="window.print()">Download / Save PDF</button>
-  </div>
+  <main class="workspace">
+    <article class="paper" id="bookingPaper">
+      <header class="header">
+        <div>
+          <div class="brand">FixIt<span>Now</span></div>
+          <div class="subtitle">Booking Document</div>
+        </div>
+        <div class="booking-id">
+          <strong>#\${escapePrintHtml(bookingId)}</strong>
+          <span>BOOKING ID</span>
+          <div class="status">\${escapePrintHtml(statusLabel)}</div>
+        </div>
+      </header>
 
-  <footer class="footer">
-    <span>FixItNow · fixitnow.pk</span>
-    <span>Generated by FixItNow Admin</span>
-  </footer>
+      <section class="section">
+        <h2 class="section-title">Booking Information</h2>
+        <div class="grid">
+          <div class="item"><div class="label">Customer</div><div class="value">\${escapePrintHtml(booking.customer)}</div></div>
+          <div class="item"><div class="label">Booked On</div><div class="value">\${escapePrintHtml(booking.date)} at \${escapePrintHtml(booking.time)}</div></div>
+          <div class="item"><div class="label">Service</div><div class="value">\${escapePrintHtml(booking.service)}</div></div>
+          <div class="item"><div class="label">Category</div><div class="value">\${escapePrintHtml(booking.category)}</div></div>
+          <div class="item"><div class="label">Assigned Worker</div><div class="value">\${escapePrintHtml(workerName)}</div></div>
+          <div class="item"><div class="label">Worker Service</div><div class="value">\${escapePrintHtml(workerCategory)}</div></div>
+        </div>
+      </section>
+
+      \${booking.notes ? \`<section class="section"><h2 class="section-title">Customer Notes</h2><div class="notes">\${escapePrintHtml(booking.notes)}</div></section>\` : ""}
+
+      <div class="price">
+        <div class="price-label">Service Price</div>
+        <div class="price-value">₨\${Number(booking.price || 0).toLocaleString()}</div>
+      </div>
+
+      <footer class="footer">
+        <span>FixItNow · fixitnow.pk</span>
+        <span>Generated by FixItNow Admin</span>
+      </footer>
+    </article>
+  </main>
 
   <script>
-    window.onload = function () {
+    const printBtn = document.getElementById("printBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const message = document.getElementById("message");
+
+    printBtn.addEventListener("click", function () {
       window.focus();
       window.print();
-    };
-    window.onafterprint = function () {
-      window.close();
-    };
-  </script>
+    });
+
+    downloadBtn.addEventListener("click", async function () {
+      if (!window.html2canvas || !window.jspdf) {
+        message.textContent = "PDF engine is still loading. Please try again.";
+        return;
+      }
+
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = "Creating PDF...";
+      message.textContent = "Preparing your booking PDF...";
+
+      try {
+        const paper = document.getElementById("bookingPaper");
+        const canvas = await window.html2canvas(paper, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+          logging: false
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          compress: true
+        });
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 0;
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        if (imgHeight <= pageHeight) {
+          pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", margin, margin, imgWidth, imgHeight);
+        } else {
+          const pageCanvas = document.createElement("canvas");
+          const pagePixelHeight = Math.floor(canvas.width * pageHeight / pageWidth);
+          let sourceY = 0;
+          let pageNumber = 0;
+
+          while (sourceY < canvas.height) {
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = Math.min(pagePixelHeight, canvas.height - sourceY);
+            const ctx = pageCanvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+            ctx.drawImage(
+              canvas,
+              0, sourceY, canvas.width, pageCanvas.height,
+              0, 0, pageCanvas.width, pageCanvas.height
+            );
+
+            if (pageNumber > 0) pdf.addPage();
+            const currentHeight = (pageCanvas.height * pageWidth) / canvas.width;
+            pdf.addImage(
+              pageCanvas.toDataURL("image/jpeg", 0.95),
+              "JPEG",
+              margin,
+              margin,
+              imgWidth,
+              currentHeight
+            );
+
+            sourceY += pageCanvas.height;
+            pageNumber += 1;
+          }
+        }
+
+        pdf.save("FixItNow-Booking-\${escapePrintHtml(bookingId)}.pdf");
+        message.textContent = "PDF downloaded successfully.";
+      } catch (error) {
+        console.error(error);
+        message.textContent = "PDF download failed. Use Print → Save as PDF.";
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = "Download PDF";
+      }
+    });
+
+    window.addEventListener("load", function () {
+      window.focus();
+    });
+  <\/script>
 </body>
-</html>`;
+</html>\`;
 
   printWindow.document.open();
   printWindow.document.write(html);
   printWindow.document.close();
 };
-
 const paymentMethodLabel = (key) => {
   const k = String(key || "").toLowerCase();
   const map = {
